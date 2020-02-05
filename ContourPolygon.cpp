@@ -13,7 +13,7 @@ ContourPolygon::ContourPolygon()
 	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
 }
 
-void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas, windowSettings axes)
+void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas, Axes axes)
 {
 	std::vector<wxPoint> p;
 	p.resize(points.size());
@@ -161,8 +161,10 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
 	return D;
 }
 
-void ContourPolygon::Transform(std::function<std::complex<double>(std::complex<double>)> f)
+ContourPolygon* ContourPolygon::Apply(std::function<std::complex<double>(std::complex<double>)> f)
 {
-	for (auto& z : points)
+	ContourPolygon* C = Clone();
+	for (auto& z : C->points)
 		z = f(z);
+	return C;
 }

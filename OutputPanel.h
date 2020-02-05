@@ -3,6 +3,7 @@
 #include "ComplexPlane.h"
 #include <complex>
 
+class InputPanel;
 class Contour;
 
 // Right Panel in UI. Displays the mapping of input point sets under
@@ -10,16 +11,18 @@ class Contour;
 
 class OutputPanel : public ComplexPlane
 {
-    friend class InputPanel;
 public:
-    windowSettings axes;
+    Axes axes;
 
-    int resolution = 100;
-    OutputPanel(wxWindow* parent) : ComplexPlane(parent) {};
-    ~OutputPanel();
+    OutputPanel(wxWindow* parent, InputPanel* In);
+    //~OutputPanel();
     void OnPaint(wxPaintEvent& paint);
 
+    int resolution = 100;
+    std::function<std::complex<double>(std::complex<double>)> f =
+        [](std::complex<double> z) { return z * z; };
 private:
-    std::vector<Contour*> mappedContours;
+    InputPanel* in;
+    //std::vector<Contour*> mappedContours;
     wxDECLARE_EVENT_TABLE();
 };

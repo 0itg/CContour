@@ -9,7 +9,7 @@ ContourRect::ContourRect(std::complex<double> c) : ContourPolygon(c)
 	closed = true;
 }
 
-void ContourRect::Draw(wxDC* dc, ComplexPlane* canvas, windowSettings axes)
+void ContourRect::Draw(wxDC* dc, ComplexPlane* canvas, Axes axes)
 {
 	int width = canvas->LengthToScreen(points[2].real() - points[0].real());
 	int height = canvas->LengthToScreen(points[2].imag() - points[0].imag());

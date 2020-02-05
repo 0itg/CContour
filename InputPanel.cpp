@@ -18,6 +18,8 @@ InputPanel::~InputPanel()
 {
     for (auto C : drawnContours)
         delete C;
+    for (auto C : subDivContours)
+        delete C;
 }
 
 void InputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
@@ -52,6 +54,7 @@ void InputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
         if (highlightedContour < 0)
         {
             drawnContours.push_back(CreateContour(mouse.GetPosition()));
+            subDivContours.push_back(drawnContours.back()->Subdivide(res));
             activeContour = drawnContours.size() - 1;
             highlightedContour = activeContour;
         }
@@ -68,6 +71,9 @@ void InputPanel::OnMouseRightUp(wxMouseEvent& mouse)
     {
         delete drawnContours[activeContour];
         drawnContours.erase(drawnContours.begin() + activeContour);
+        subDivContours.erase(subDivContours.begin() + activeContour);
+        //Output->mappedContours.erase(
+        //    Output->mappedContours.begin() + activeContour);
         activeContour = -1;
         highlightedContour = -1;
         highlightedCtrlPoint = -1;
@@ -81,6 +87,9 @@ void InputPanel::OnMouseRightUp(wxMouseEvent& mouse)
         {
             delete drawnContours[highlightedContour];
             drawnContours.erase(drawnContours.begin() + highlightedContour);
+            subDivContours.erase(subDivContours.begin() + highlightedContour);
+            //Output->mappedContours.erase(
+            //    Output->mappedContours.begin() + highlightedContour);
             highlightedContour = -1;
             highlightedCtrlPoint = -1;
             Refresh();
@@ -109,6 +118,11 @@ void InputPanel::OnMouseMoving(wxMouseEvent& mouse)
                 moveCtrlPoint(ScreenToComplex(mouse.GetPosition()),
                     highlightedCtrlPoint);
         }
+        delete subDivContours[activeContour];
+        subDivContours[activeContour] =
+            std::move(drawnContours[activeContour]->Subdivide(res));
+        //Output->mappedContours[activeContour] =
+        //    std::move(drawnContours[activeContour]->Subdivide(res));
         lastMousePos = ScreenToComplex(mouse.GetPosition());
         Refresh();
         Update();
@@ -166,17 +180,11 @@ void InputPanel::OnPaint(wxPaintEvent& paint)
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    for (auto C : Output->mappedContours)
-        delete C;
-    Output->mappedContours.clear();
-    Output->highlightedContour = highlightedContour;
     for (auto C : drawnContours)
     {
         pen.SetColour(C->color);
         dc.SetPen(pen);
         C->Draw(&dc, this, axes);
-        Map(C, f); // Wrong place for this from efficiency perspective.
-        // Only the altered contour needs its transformed version updated.
     }
 
     if (highlightedContour > -1)
@@ -193,8 +201,12 @@ void InputPanel::OnPaint(wxPaintEvent& paint)
         dc.SetPen(pen);
         drawnContours[highlightedContour]->Draw(&dc, this, axes);
     }
-    Output->Refresh();
-    Output->Update();
+    axes.Draw(&dc);
+    for (auto out : outputs)
+    {
+        out->Update();
+        out->Refresh();
+    }
 }
 
 void InputPanel::SetContourStyle(int id)
@@ -221,13 +233,13 @@ Contour* InputPanel::CreateContour(wxPoint mousePos)
     return new ContourCircle(ScreenToComplex(mousePos));
 }
 
-void InputPanel::Map(Contour* C,
-    std::function<std::complex<double>(std::complex<double>)> f)
-{
-    // Approximate the mapped contour by interpolating points
-    // of the input and transforming those.
-    //ContourPolygon* D = new ContourPolygon();
-    ContourPolygon* D = C->Subdivide(resolution);
-    D->Transform(f);
-    Output->mappedContours.push_back(D);
-}
+//void InputPanel::Map(Contour* C,
+//    std::function<std::complex<double>(std::complex<double>)> f)
+//{
+//    // Approximate the mapped contour by interpolating points
+//    // of the input and transforming those.
+//    //ContourPolygon* D = new ContourPolygon();
+//    ContourPolygon* D = C->Subdivide(res);
+//    D->Apply(f);
+//    //Output->mappedContours.push_back(D);
+//}

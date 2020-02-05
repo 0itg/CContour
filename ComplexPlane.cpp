@@ -5,6 +5,51 @@
 #include "ContourRect.h"
 #include <complex>
 
+void Axes::Draw(wxDC* dc)
+{
+    using namespace std::complex_literals;
+    wxPoint center = parent->ComplexToScreen(0);
+    wxPen pen(2);
+    pen.SetColour(*wxBLACK);
+    dc->SetPen(pen);
+    dc->CrossHair(center);
+
+    wxSize size = parent->GetClientSize();
+    std::complex<double> cMark = 0;
+    wxPoint mark;
+    while (cMark.real() < realMax)
+    {
+        cMark += reStep;
+        mark = parent->ComplexToScreen(cMark);
+        dc->DrawLine(wxPoint(mark.x, mark.y + HASH_WIDTH / 2),
+            wxPoint(mark.x, mark.y - HASH_WIDTH / 2));
+    }
+    cMark = 0;
+    while (cMark.real() > realMin)
+    {
+        cMark -= reStep;
+        mark = parent->ComplexToScreen(cMark);
+        dc->DrawLine(wxPoint(mark.x, mark.y + HASH_WIDTH / 2),
+            wxPoint(mark.x, mark.y - HASH_WIDTH / 2));
+    }
+    cMark = 0;
+    while (cMark.imag() < imagMax)
+    {
+        cMark += imStep * 1i;
+        mark = parent->ComplexToScreen(cMark);
+        dc->DrawLine(wxPoint(mark.x + HASH_WIDTH / 2, mark.y),
+            wxPoint(mark.x - HASH_WIDTH / 2, mark.y));
+    }
+    cMark = 0;
+    while (cMark.imag() > imagMin)
+    {
+        cMark -= imStep * 1i;
+        mark = parent->ComplexToScreen(cMark);
+        dc->DrawLine(wxPoint(mark.x + HASH_WIDTH / 2, mark.y),
+            wxPoint(mark.x - HASH_WIDTH / 2, mark.y));
+    }
+}
+
 std::complex<double> ComplexPlane::ScreenToComplex(wxPoint P)
 {
     return std::complex<double>((double)P.x /

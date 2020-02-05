@@ -10,6 +10,10 @@
 //#include "wx/aui/auibar.h"
 
 #include "MainWindowFrame.h"
+#include "InputPanel.h"
+#include "OutputPanel.h"
+
+//wxDECLARE_EVENT(EVT_CONTOUR_MOD, wxCommandEvent);
 
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
 EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
@@ -52,9 +56,9 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolBar->Realize();
     CreateStatusBar();
 
-    OutputPanel* OutputPlane = new OutputPanel(this);
+    InputPlane = new InputPanel(this);
+    OutputPanel* OutputPlane = new OutputPanel(this, InputPlane);
     OutputPlane->Refresh(); // Forces it to show mapped inputs.
-    InputPlane = new InputPanel(this, OutputPlane);
     wxBoxSizer* ComplexPlanes = new wxBoxSizer(wxHORIZONTAL);
     wxSizerFlags PlaneFlags(1);
     PlaneFlags.Shaped().Border(wxALL, 10).Center();

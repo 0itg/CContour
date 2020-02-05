@@ -25,11 +25,19 @@ enum
 
 class Contour;
 class OutputPanel;
-struct windowSettings {
+class ComplexPlane;
+
+struct Axes {
+    Axes(ComplexPlane* p) : parent(p) {};
+    ComplexPlane* parent;
     double realMin = -10;
     double realMax = 10;
     double imagMin = -10;
     double imagMax = 10;
+    double reStep = 1;
+    double imStep = 1;
+    void Draw(wxDC* dc);
+    const int HASH_WIDTH = 10;
 };
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
@@ -38,7 +46,7 @@ struct windowSettings {
 class ComplexPlane : public wxPanel
 {
 public:
-    ComplexPlane(wxWindow* parent) :
+    ComplexPlane(wxWindow* parent) : axes(this),
         wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
         wxFULL_REPAINT_ON_RESIZE) { SetBackgroundStyle(wxBG_STYLE_CUSTOM); }
     virtual ~ComplexPlane() {}
@@ -48,10 +56,10 @@ public:
     double LengthToScreen(double r);
     double ScreenToLength(double r);
 
-    windowSettings axes;
+    Axes axes;
 protected:
     int highlightedContour = -1;
     int activeContour = -1;
     int highlightedCtrlPoint = -1;
-    int resolution = 100;
+    int res = 100;
 };
