@@ -1,6 +1,4 @@
 #pragma once
-#include "InputPanel.h"
-#include "OutputPanel.h"
 
 class InputPanel;
 

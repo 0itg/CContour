@@ -1,3 +1,12 @@
+#define WXUSINGDLL
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
+#include "wx/dcclient.h"
+#include "wx/dcmemory.h"
+#include "wx/dcbuffer.h"
 #include "MainWindowFrame.h"
 
 class ContourViewer : public wxApp

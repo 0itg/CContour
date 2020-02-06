@@ -48,3 +48,22 @@ void Contour::Translate(std::complex<double> z2, std::complex<double> z1)
 		p += displacement;
 	}
 }
+
+double DistancePointToLine(std::complex<double> pt,
+	std::complex<double> z1, std::complex<double> z2)
+{
+	double n = abs((z2.imag() - z1.imag()) * pt.real()
+		- (z2.real() - z1.real()) * pt.imag()
+		+ z2.real() * z1.imag() - z1.real() * z2.imag());
+	double d = abs(z2 - z1);
+	if (d != 0) return n / d;
+	else return abs(z2 - pt);
+};
+bool IsInsideLine(std::complex<double> pt,
+	std::complex<double> z1, std::complex<double> z2)
+{
+	double Dz1z2 = abs(z2 - z1);
+	double Dz1pt = abs(pt - z1);
+	double Dz2pt = abs(pt - z2);
+	return (Dz1pt < Dz1z2 && Dz2pt < Dz1z2);
+};

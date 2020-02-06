@@ -8,7 +8,7 @@ public:
     ContourPolygon();
     virtual ContourPolygon* Clone() { return new ContourPolygon(*this); };
 
-    virtual void Draw(wxDC* dc, ComplexPlane* canvas, windowSettings axes);
+    virtual void Draw(wxDC* dc, ComplexPlane* canvas);
     virtual void ActionNoCtrlPoint(std::complex<double> mousePos,
         std::complex<double> lastPointClicked);
     virtual bool IsClosed();
@@ -17,7 +17,7 @@ public:
     virtual void Finalize();
     std::complex<double> Interpolate(double t);
     ContourPolygon* Subdivide(int res);
-    void Transform(std::function<std::complex<double>(std::complex<double>)> f);
+    ContourPolygon* Apply(std::function<std::complex<double>(std::complex<double>)> f);
 protected:
     bool closed = false;
     double perimeter;

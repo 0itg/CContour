@@ -3,34 +3,41 @@
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
+#include "ContourLine.h"
 
 wxBEGIN_EVENT_TABLE(InputPanel, wxPanel)
 EVT_LEFT_UP(InputPanel::OnMouseLeftUp)
 //EVT_LEFT_DOWN(InputPanel::OnMouseLeftDown)
-EVT_RIGHT_UP(InputPanel::OnMouseRightUp)
-//EVT_RIGHT_DOWN(InputPanel::OnMouseRightUp)
-//EVT_LEAVE_WINDOW(InputPanel::OnMouseLeave)
+EVT_RIGHT_UP(ComplexPlane::OnMouseRightUp)
+EVT_RIGHT_DOWN(ComplexPlane::OnMouseRightDown)
+//EVT_MIDDLE_DOWN(InputPanel::OnMouseMiddleDown)
+//EVT_MIDDLE_UP(InputPanel::OnMouseMiddleUp)
+EVT_MOUSEWHEEL(ComplexPlane::OnMouseWheel)
 EVT_MOTION(InputPanel::OnMouseMoving)
+EVT_KEY_UP(InputPanel::OnKeyDelete)
 EVT_PAINT(InputPanel::OnPaint)
 wxEND_EVENT_TABLE()
 
 InputPanel::~InputPanel()
 {
-    for (auto C : drawnContours)
+    for (auto C : subDivContours)
         delete C;
 }
 
 void InputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
 {
-    // if activeContour > -1, then a contour is selected for editing
-    // and it equals the index of the contour.
-    if (activeContour > -1)
+    // if state > -1, then a contour is selected for editing
+    // and state equals the index of the contour.
+    if (state > -1)
     {
         // If the contour is closed, finalize it by deselecting it
-        if (drawnContours[activeContour]->IsClosed())
+        if (drawnContours[state]->IsClosed())
         {
-            drawnContours[activeContour]->Finalize();
-            activeContour = -1;
+            ReleaseMouseIfAble();
+            drawnContours[state]->Finalize();
+            delete subDivContours[state];
+            subDivContours[state] = drawnContours[state]->Subdivide(res);
+            state = -1;
             highlightedContour = -1;
             highlightedCtrlPoint = -1;
         }
@@ -38,54 +45,32 @@ void InputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
         // so move on to the next one
         else
         {
-            drawnContours[activeContour]->
+            drawnContours[state]->
                 AddPoint(ScreenToComplex(mouse.GetPosition()));
             highlightedCtrlPoint++;
         }
         Refresh();
         Update();
     }
-    else
+    else if (state == STATE_IDLE)
     {
+        CaptureMouseIfAble();
         // If a contour is not highlighted (< 0), then create a new one
         // And set to be the active contour.
         if (highlightedContour < 0)
         {
             drawnContours.push_back(CreateContour(mouse.GetPosition()));
-            activeContour = drawnContours.size() - 1;
-            highlightedContour = activeContour;
+            subDivContours.push_back(drawnContours.back()->Subdivide(res));
+            state = drawnContours.size() - 1;
+            highlightedContour = state;
         }
         // If not, then make the highlighted contour active.
         else
-            activeContour = highlightedContour;
-    }
-}
-
-void InputPanel::OnMouseRightUp(wxMouseEvent& mouse)
-{
-    // Right click will delete the active contour
-    if (activeContour > -1)
-    {
-        delete drawnContours[activeContour];
-        drawnContours.erase(drawnContours.begin() + activeContour);
-        activeContour = -1;
-        highlightedContour = -1;
-        highlightedCtrlPoint = -1;
-        Refresh();
-        Update();
+            state = highlightedContour;
     }
     else
     {
-        // On right click, delete the highlighted contour, if there is one.
-        if (highlightedContour > -1)
-        {
-            delete drawnContours[highlightedContour];
-            drawnContours.erase(drawnContours.begin() + highlightedContour);
-            highlightedContour = -1;
-            highlightedCtrlPoint = -1;
-            Refresh();
-            Update();
-        }
+        state = STATE_IDLE;
     }
 }
 
@@ -96,64 +81,65 @@ void InputPanel::OnMouseMoving(wxMouseEvent& mouse)
     // the contour. The control-point action should move the control
     // point. The non-control-point action is generally expected to
     // translate the contour, but it adjusts the radius of a circle.
-    if (activeContour > -1)
+    if (state > STATE_IDLE)
     {
         if (highlightedCtrlPoint < 0)
         {
-            drawnContours[activeContour]->ActionNoCtrlPoint(
+            drawnContours[state]->ActionNoCtrlPoint(
                 ScreenToComplex(mouse.GetPosition()), lastMousePos);
         }
         else
         {
-            drawnContours[activeContour]->
+            drawnContours[state]->
                 moveCtrlPoint(ScreenToComplex(mouse.GetPosition()),
                     highlightedCtrlPoint);
         }
-        lastMousePos = ScreenToComplex(mouse.GetPosition());
+        delete subDivContours[state];
+        subDivContours[state] =
+            std::move(drawnContours[state]->Subdivide(res));
         Refresh();
         Update();
     }
     // When the mouse moves, recheck for highlighted contours
         // and control points (and automatically highlight the contour).
-    else
+    else if (state == STATE_IDLE)
     {
-        bool notOnAnyContour = true;
-        int lastHC = highlightedContour;
-        int lastHCP = highlightedCtrlPoint;
+        Highlight(mouse.GetPosition());
+        for (auto out : outputs)
+            out->highlightedContour = highlightedContour;
+    }
+    else if (state == STATE_PANNING)
+    {
+        Pan(mouse.GetPosition());
+    }
 
-        for (int i = 0; i < drawnContours.size(); i++)
+    lastMousePos = ScreenToComplex(mouse.GetPosition());
+}
+
+void InputPanel::OnKeyDelete(wxKeyEvent& Key)
+{
+    ReleaseMouseIfAble(); // Captured by OnMouseRightDown
+// Right click while editing will delete the active contour
+    if (highlightedContour > -1)
+    {
+        delete drawnContours[highlightedContour];
+        drawnContours.erase(drawnContours.begin() + highlightedContour);
+        delete subDivContours[highlightedContour];
+        subDivContours.erase(subDivContours.begin() + highlightedContour);
+
+        for (auto out : outputs)
         {
-            int CtrlPtIndex = drawnContours[i]->
-                OnCtrlPoint(ScreenToComplex(mouse.GetPosition()), this);
-            if (CtrlPtIndex > -1)
-            {
-                notOnAnyContour = false;
-                highlightedCtrlPoint = CtrlPtIndex;
-                highlightedContour = i;
-            }
-            else if (drawnContours[i]->
-                IsOnContour(ScreenToComplex(mouse.GetPosition()), this))
-            {
-                notOnAnyContour = false;
-                highlightedContour = i;
-                highlightedCtrlPoint = -1;
-            }
+            delete out->drawnContours[highlightedContour];
+            out->drawnContours.erase(out->drawnContours.begin() + highlightedContour);
+            out->highlightedContour = -1;
+            out->highlightedCtrlPoint = -1;
         }
-        // Unhighlight the previously highlighted contour if the mouse
-        // is not over one anymore.
-        if (highlightedContour > -1 && notOnAnyContour)
-        {
-            highlightedContour = -1;
-            highlightedCtrlPoint = -1;
-        }
-        // Only update the screen if different things are highlighted.
-        // Theoretically more efficient.
-        if (highlightedContour != lastHC || highlightedCtrlPoint != lastHCP)
-        {
-            Refresh();
-            Update();
-        }
-        lastMousePos = ScreenToComplex(mouse.GetPosition());
+
+        state = STATE_IDLE;
+        highlightedContour = -1;
+        highlightedCtrlPoint = -1;
+        Refresh();
+        Update();
     }
 }
 
@@ -166,17 +152,11 @@ void InputPanel::OnPaint(wxPaintEvent& paint)
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    for (auto C : Output->mappedContours)
-        delete C;
-    Output->mappedContours.clear();
-    Output->highlightedContour = highlightedContour;
     for (auto C : drawnContours)
     {
         pen.SetColour(C->color);
         dc.SetPen(pen);
-        C->Draw(&dc, this, axes);
-        Map(C, f); // Wrong place for this from efficiency perspective.
-        // Only the altered contour needs its transformed version updated.
+        C->Draw(&dc, this);
     }
 
     if (highlightedContour > -1)
@@ -191,10 +171,15 @@ void InputPanel::OnPaint(wxPaintEvent& paint)
         }
         pen.SetWidth(2);
         dc.SetPen(pen);
-        drawnContours[highlightedContour]->Draw(&dc, this, axes);
+        drawnContours[highlightedContour]->Draw(&dc, this);
     }
-    Output->Refresh();
-    Output->Update();
+    axes.Draw(&dc);
+
+    for (auto out : outputs)
+    {
+        out->Update();
+        out->Refresh();
+    }
 }
 
 void InputPanel::SetContourStyle(int id)
@@ -217,17 +202,10 @@ Contour* InputPanel::CreateContour(wxPoint mousePos)
         highlightedCtrlPoint = 1;
         return new ContourPolygon(ScreenToComplex(mousePos));
         break;
+    case ID_Line:
+        highlightedCtrlPoint = 1;
+        return new ContourLine(ScreenToComplex(mousePos));
+        break;
     }
     return new ContourCircle(ScreenToComplex(mousePos));
-}
-
-void InputPanel::Map(Contour* C,
-    std::function<std::complex<double>(std::complex<double>)> f)
-{
-    // Approximate the mapped contour by interpolating points
-    // of the input and transforming those.
-    //ContourPolygon* D = new ContourPolygon();
-    ContourPolygon* D = C->Subdivide(resolution);
-    D->Transform(f);
-    Output->mappedContours.push_back(D);
 }
