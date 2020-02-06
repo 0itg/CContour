@@ -24,7 +24,7 @@ public:
     virtual ~Contour() {}
     virtual Contour* Clone() = 0;
 
-    virtual void Draw(wxDC* dc, ComplexPlane* canvas, Axes axes) = 0;
+    virtual void Draw(wxDC* dc, ComplexPlane* canvas) = 0;
     virtual void AddPoint(std::complex<double> mousePos);
     virtual void moveCtrlPoint(std::complex<double> mousePos, int ptIndex = -1);
     virtual void ActionNoCtrlPoint(std::complex<double> mousePos,
@@ -40,9 +40,15 @@ public:
     virtual void Finalize() {};
     virtual std::complex<double> Interpolate(double t) = 0;
     virtual ContourPolygon* Subdivide(int res) = 0;
+    int PointCount() { return points.size(); }
 
     void DrawCtrlPoint(wxDC* dc, wxPoint p);
     wxColor color = *wxRED;
 protected:
     std::vector<std::complex<double>> points;
 };
+
+double DistancePointToLine(std::complex<double> pt,
+    std::complex<double> z1, std::complex<double>z2);
+bool IsInsideLine(std::complex<double> pt,
+    std::complex<double> z1, std::complex<double>z2);

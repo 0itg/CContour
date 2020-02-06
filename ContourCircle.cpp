@@ -9,7 +9,7 @@ ContourCircle::ContourCircle(std::complex<double> c, double r) : radius(r)
 	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
 }
 
-void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas, Axes axes)
+void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
 {
 	wxPoint p = canvas->ComplexToScreen(points[0]);
 	dc->DrawCircle(p, canvas->LengthToScreen(radius));

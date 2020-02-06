@@ -8,7 +8,7 @@ public:
     ContourPolygon();
     virtual ContourPolygon* Clone() { return new ContourPolygon(*this); };
 
-    virtual void Draw(wxDC* dc, ComplexPlane* canvas, Axes axes);
+    virtual void Draw(wxDC* dc, ComplexPlane* canvas);
     virtual void ActionNoCtrlPoint(std::complex<double> mousePos,
         std::complex<double> lastPointClicked);
     virtual bool IsClosed();

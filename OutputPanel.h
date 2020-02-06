@@ -11,11 +11,14 @@ class Contour;
 
 class OutputPanel : public ComplexPlane
 {
+    friend class InputPanel;
 public:
-    Axes axes;
-
     OutputPanel(wxWindow* parent, InputPanel* In);
     //~OutputPanel();
+    void OnMouseLeftUp(wxMouseEvent& mouse);
+    void OnMouseRightUp(wxMouseEvent& mouse);
+    void OnMouseRightDown(wxMouseEvent& mouse);
+    void OnMouseMoving(wxMouseEvent& mouse);
     void OnPaint(wxPaintEvent& paint);
 
     int resolution = 100;

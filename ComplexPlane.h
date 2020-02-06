@@ -14,13 +14,22 @@
 #include <complex>
 #include <functional>
 
-enum
+enum enum_buttons
 {
     ID_Hello,
     ID_toolBar,
     ID_Circle,
     ID_Rect,
-    ID_Polygon
+    ID_Polygon,
+    ID_Line
+};
+
+enum enum_states
+{
+    // values of state >= 0 represent contour indices.
+    STATE_IDLE = -1,
+    STATE_PANNING = -2,
+    STATE_INVERSEPANNING = -3
 };
 
 class Contour;
@@ -30,18 +39,20 @@ class ComplexPlane;
 struct Axes {
     Axes(ComplexPlane* p) : parent(p) {};
     ComplexPlane* parent;
-    double realMin = -10;
-    double realMax = 10;
-    double imagMin = -10;
-    double imagMax = 10;
+    union {
+        double c[4] = { -10, 10, -10, 10 };
+        struct {
+            double realMin;
+            double realMax;
+            double imagMin;
+            double imagMax;
+        };
+    };
     double reStep = 1;
     double imStep = 1;
     void Draw(wxDC* dc);
-    const int HASH_WIDTH = 10;
+    const int HASH_WIDTH = 8;
 };
-
-// Left Panel in UI. User draws on the panel, then the points are stored as
-// complex numbers and mapped to the ouput panel under some complex function. 
 
 class ComplexPlane : public wxPanel
 {
@@ -49,17 +60,34 @@ public:
     ComplexPlane(wxWindow* parent) : axes(this),
         wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
         wxFULL_REPAINT_ON_RESIZE) { SetBackgroundStyle(wxBG_STYLE_CUSTOM); }
-    virtual ~ComplexPlane() {}
+    virtual ~ComplexPlane();
 
     std::complex<double> ScreenToComplex(wxPoint P);
     wxPoint ComplexToScreen(std::complex<double> C);
     double LengthToScreen(double r);
     double ScreenToLength(double r);
 
+    void OnMouseWheel(wxMouseEvent& mouse);
+    void OnMouseRightUp(wxMouseEvent& mouse);
+    void OnMouseRightDown(wxMouseEvent& mouse);
+
+    void CaptureMouseIfAble() { if (!HasCapture()) CaptureMouse(); }
+    void ReleaseMouseIfAble() { if (HasCapture())  ReleaseMouse(); }
+
+    void Highlight(wxPoint mousePos);
+    void Pan(wxPoint mousePos);
+    //void InversePan(wxPoint mousePos);
+    void Zoom(wxPoint mousePos, int zoomSteps);
+
     Axes axes;
+
 protected:
+    std::vector<Contour*> drawnContours;
     int highlightedContour = -1;
-    int activeContour = -1;
+    int state = -1;
     int highlightedCtrlPoint = -1;
     int res = 100;
+    const double zoomFactor = 1.1;
+    std::complex<double> lastMousePos;
+    std::complex<double> lastMidClick;
 };

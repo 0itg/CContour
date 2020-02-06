@@ -6,14 +6,37 @@
 #include "wxMemDbg.h"
 
 wxBEGIN_EVENT_TABLE(OutputPanel, wxPanel)
-//EVT_MOTION(OutputPanel::OnPaint)
+EVT_LEFT_UP(OutputPanel::OnMouseLeftUp)
+EVT_RIGHT_UP(ComplexPlane::OnMouseRightUp)
+EVT_RIGHT_DOWN(ComplexPlane::OnMouseRightDown)
+EVT_MOUSEWHEEL(ComplexPlane::OnMouseWheel)
+EVT_MOTION(OutputPanel::OnMouseMoving)
 EVT_PAINT(OutputPanel::OnPaint)
 wxEND_EVENT_TABLE()
 
 OutputPanel::OutputPanel(wxWindow* parent, InputPanel* In) :
-    ComplexPlane(parent), in(In), axes(this) {
+    ComplexPlane(parent), in(In) {
     In->outputs.push_back(this);
 };
+
+void OutputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
+{
+    if (state == STATE_PANNING) state = STATE_IDLE;
+}
+
+void OutputPanel::OnMouseMoving(wxMouseEvent& mouse)
+{
+    if (state == STATE_PANNING) Pan(mouse.GetPosition());
+    lastMousePos = ScreenToComplex(mouse.GetPosition());
+    Highlight(mouse.GetPosition());
+    int temp = in->highlightedContour;
+    in->highlightedContour = highlightedContour;
+    if (temp != highlightedContour)
+    {
+        in->Refresh();
+        in->Update();
+    }
+}
 
 void OutputPanel::OnPaint(wxPaintEvent& paint)
 {
@@ -24,25 +47,27 @@ void OutputPanel::OnPaint(wxPaintEvent& paint)
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    std::vector<Contour*> mappedContours;
+    for (auto C : drawnContours) delete C;
+    drawnContours.clear();
 
     for (auto C : in->subDivContours)
     {
-        mappedContours.emplace_back(C->Apply(f));
+        drawnContours.emplace_back(C->Apply(f));
     }
-    for (auto C : mappedContours)
+
+    for (auto C : drawnContours)
     {
         pen.SetColour(C->color);
         dc.SetPen(pen);
-        C->Draw(&dc, this, axes);
+        C->Draw(&dc, this);
     }
-    if (in->highlightedContour > -1)
+    if (highlightedContour > -1)
     {
-        pen.SetColour(mappedContours[in->highlightedContour]->color);
+        pen.SetColour(drawnContours[highlightedContour]->color);
         pen.SetWidth(2);
         dc.SetPen(pen);
-        mappedContours[in->highlightedContour]->Draw(&dc, this, axes);
+        drawnContours[highlightedContour]->Draw(&dc, this);
     }
+
     axes.Draw(&dc);
-    for (auto C : mappedContours) delete C;
 }

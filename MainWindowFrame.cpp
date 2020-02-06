@@ -13,13 +13,11 @@
 #include "InputPanel.h"
 #include "OutputPanel.h"
 
-//wxDECLARE_EVENT(EVT_CONTOUR_MOD, wxCommandEvent);
-
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
 EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
 EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
-EVT_TOOL_RANGE(ID_Circle, ID_Polygon, MainWindowFrame::OnToolbarContourSelect)
+EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 wxEND_EVENT_TABLE()
 
 MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
@@ -52,6 +50,9 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolBar->AddTool(ID_Polygon, "Polygonal Contour",
         wxBitmap(wxT("icons/draw-polygon.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_RADIO, "Draws a polygonal contour");
+    toolBar->AddTool(ID_Line, "Polygonal Contour",
+        wxBitmap(wxT("icons/draw-line.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_RADIO, "Draws a straight line");
     SetToolBar(toolBar);
     toolBar->Realize();
     CreateStatusBar();

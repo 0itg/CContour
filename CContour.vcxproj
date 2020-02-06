@@ -133,8 +133,11 @@
     <ClCompile Include="CContour.cpp" />
     <ClCompile Include="ContourCircle.cpp" />
     <ClCompile Include="Contour.cpp" />
+    <ClCompile Include="ContourLine.cpp" />
+    <ClCompile Include="Grid.cpp" />
     <ClCompile Include="ContourPolygon.cpp" />
     <ClCompile Include="ContourRect.cpp" />
+    <ClCompile Include="GridLine.cpp" />
     <ClCompile Include="InputPanel.cpp" />
     <ClCompile Include="MainWindowFrame.cpp" />
     <ClCompile Include="OutputPanel.cpp" />
@@ -143,8 +146,11 @@
   <ItemGroup>
     <ClInclude Include="ContourCircle.h" />
     <ClInclude Include="Contour.h" />
+    <ClInclude Include="ContourLine.h" />
+    <ClInclude Include="Grid.h" />
     <ClInclude Include="ContourPolygon.h" />
     <ClInclude Include="ContourRect.h" />
+    <ClInclude Include="GridLine.h" />
     <ClInclude Include="InputPanel.h" />
     <ClInclude Include="MainWindowFrame.h" />
     <ClInclude Include="OutputPanel.h" />

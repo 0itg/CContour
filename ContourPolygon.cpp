@@ -13,7 +13,7 @@ ContourPolygon::ContourPolygon()
 	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
 }
 
-void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas, Axes axes)
+void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
 {
 	std::vector<wxPoint> p;
 	p.resize(points.size());
@@ -40,34 +40,18 @@ bool ContourPolygon::IsClosed() //Name Misleading; fix
 bool ContourPolygon::IsOnContour(std::complex<double> pt,
 	ComplexPlane* canvas, int pixPrecision)
 {
-	auto DistancePointToLine = [&](std::complex<double> z1, std::complex<double> z2)
-	{
-		double n = abs((z2.imag() - z1.imag()) * pt.real()
-			- (z2.real() - z1.real()) * pt.imag()
-			+ z2.real() * z1.imag() - z1.real() * z2.imag());
-		double d = abs(z2 - z1);
-		if (d != 0) return n / d;
-		else return abs(z2 - pt);
-	};
-	auto IsInsideLine = [&](std::complex<double> z1, std::complex<double> z2)
-	{
-		double Dz1z2 = abs(z2 - z1);
-		double Dz1pt = abs(pt - z1);
-		double Dz2pt = abs(pt - z2);
-		return (Dz1pt < Dz1z2 && Dz2pt < Dz1z2);
-	};
 	int i;
 	for (i = 0; i < points.size() - 1; i++)
 	{
-		if (DistancePointToLine(points[i + 1], points[i]) <
+		if (DistancePointToLine(pt, points[i + 1], points[i]) <
 			canvas->ScreenToLength(pixPrecision) &&
-			IsInsideLine(points[i + 1], points[i]))
+			IsInsideLine(pt, points[i + 1], points[i]))
 			return true;
 	}
 	// Check the line from last point to first
-	if (DistancePointToLine(points[0], points[i]) <
+	if (DistancePointToLine(pt, points[0], points[i]) <
 		canvas->ScreenToLength(pixPrecision) &&
-		IsInsideLine(points[0], points[i]))
+		IsInsideLine(pt, points[0], points[i]))
 		return true;
 	else return false;
 }

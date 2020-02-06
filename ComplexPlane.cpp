@@ -50,6 +50,12 @@ void Axes::Draw(wxDC* dc)
     }
 }
 
+ComplexPlane::~ComplexPlane()
+{
+    for (auto C : drawnContours)
+        delete C;
+}
+
 std::complex<double> ComplexPlane::ScreenToComplex(wxPoint P)
 {
     return std::complex<double>((double)P.x /
@@ -73,6 +79,115 @@ double ComplexPlane::LengthToScreen(double r)
 double ComplexPlane::ScreenToLength(double r)
 {
     return r * (axes.realMax - axes.realMin) / GetClientSize().x;
+}
+
+void ComplexPlane::OnMouseWheel(wxMouseEvent& mouse)
+{
+    int rot = mouse.GetWheelRotation() / mouse.GetWheelDelta();
+    Zoom(mouse.GetPosition(), rot);
+}
+
+void ComplexPlane::OnMouseRightUp(wxMouseEvent& mouse)
+{
+    ReleaseMouseIfAble();
+    if (state == STATE_PANNING) state = STATE_IDLE;
+}
+
+void ComplexPlane::OnMouseRightDown(wxMouseEvent& mouse)
+{
+    CaptureMouseIfAble();
+    if (state == STATE_IDLE)
+        state = STATE_PANNING;
+}
+
+void ComplexPlane::Highlight(wxPoint mousePos)
+{
+    bool notOnAnyContour = true;
+    int lastHC = highlightedContour;
+    int lastHCP = highlightedCtrlPoint;
+
+    for (int i = 0; i < drawnContours.size(); i++)
+    {
+        int CtrlPtIndex = drawnContours[i]->
+            OnCtrlPoint(ScreenToComplex(mousePos), this);
+        if (CtrlPtIndex > -1)
+        {
+            notOnAnyContour = false;
+            highlightedCtrlPoint = CtrlPtIndex;
+            highlightedContour = i;
+        }
+        else if (drawnContours[i]->
+            IsOnContour(ScreenToComplex(mousePos), this))
+        {
+            notOnAnyContour = false;
+            highlightedContour = i;
+            highlightedCtrlPoint = -1;
+        }
+    }
+    // Unhighlight the previously highlighted contour if the mouse
+    // is not over one anymore.
+    if (highlightedContour > -1 && notOnAnyContour)
+    {
+        highlightedContour = -1;
+        highlightedCtrlPoint = -1;
+    }
+    // Only update the screen if different things are highlighted.
+    // Theoretically more efficient.
+    if (highlightedContour != lastHC || highlightedCtrlPoint != lastHCP)
+    {
+        Refresh();
+        Update();
+    }
+}
+
+void ComplexPlane::Pan(wxPoint mousePos)
+{
+    std::complex<double> displacement =
+        lastMousePos - ScreenToComplex(mousePos);
+    axes.realMax += displacement.real();
+    axes.realMin += displacement.real();
+    axes.imagMax += displacement.imag();
+    axes.imagMin += displacement.imag();
+    Refresh();
+    Update();
+}
+
+//void ComplexPlane::InversePan(wxPoint mousePos)
+//{
+//    std::complex<double> displacement =
+//        lastMousePos - ScreenToComplex(mousePos);
+//    axes.realMax -= displacement.real();
+//    axes.realMin -= displacement.real();
+//    axes.imagMax -= displacement.imag();
+//    axes.imagMin -= displacement.imag();
+//    Refresh();
+//    Update();
+//}
+
+void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
+{
+    axes.realMax -= lastMousePos.real();
+    axes.realMin -= lastMousePos.real();
+    axes.imagMax -= lastMousePos.imag();
+    axes.imagMin -= lastMousePos.imag();
+    for (int i = 0; i < 4; i++)
+    {
+        axes.c[i] *= pow(zoomFactor, zoomSteps);
+    }
+    axes.realMax += lastMousePos.real();
+    axes.realMin += lastMousePos.real();
+    axes.imagMax += lastMousePos.imag();
+    axes.imagMin += lastMousePos.imag();
+
+    int MaxMark = GetClientSize().x / 3;
+    const int MinMark = GetClientSize().x / 30;
+
+    if (LengthToScreen(axes.reStep) < MinMark) axes.reStep *= 2;
+    else if (LengthToScreen(axes.reStep) > MaxMark) axes.reStep /= 2;
+    if (LengthToScreen(axes.imStep) < MinMark) axes.imStep *= 2;
+    else if (LengthToScreen(axes.imStep) > MaxMark) axes.imStep /= 2;
+    Refresh();
+    Update();
 }
 
 //double Dist(wxPoint X, wxPoint Y)

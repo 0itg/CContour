@@ -9,7 +9,7 @@ public:
     ContourCircle(std::complex<double> c, double r = 0);
     virtual ContourCircle* Clone() { return new ContourCircle(*this); };
 
-    void Draw(wxDC* dc, ComplexPlane* canvas, Axes axes);
+    void Draw(wxDC* dc, ComplexPlane* canvas);
     void moveCtrlPoint(std::complex<double> mousePos, int ptIndex = -1);
     void ActionNoCtrlPoint(std::complex<double> mousePos,
         std::complex<double> lastPointClicked);
