@@ -1,4 +1,5 @@
 #include "ContourRect.h"
+#include "ComplexPlane.h"
 
 ContourRect::ContourRect(std::complex<double> c) : ContourPolygon(c)
 {
@@ -15,6 +16,11 @@ void ContourRect::Draw(wxDC* dc, ComplexPlane* canvas)
 	int height = canvas->LengthToScreen(points[2].imag() - points[0].imag());
 	dc->DrawRectangle(canvas->
 		ComplexToScreen(points[0]), wxSize(width, height));
+}
+
+void ContourRect::RemovePoint(int index)
+{
+	points.clear(); // Removing a point means it's no longer a rectangle
 }
 
 void ContourRect::moveCtrlPoint(std::complex<double> mousePos, int ptIndex)

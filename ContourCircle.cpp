@@ -1,7 +1,6 @@
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
-
-class ComplexPlane;
+#include "ComplexPlane.h"
 
 ContourCircle::ContourCircle(std::complex<double> c, double r) : radius(r)
 {

@@ -10,8 +10,8 @@
 //#include "wx/aui/auibar.h"
 
 #include "MainWindowFrame.h"
-#include "InputPanel.h"
-#include "OutputPanel.h"
+#include "InputPlane.h"
+#include "OutputPlane.h"
 
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
 EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
@@ -57,14 +57,14 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolBar->Realize();
     CreateStatusBar();
 
-    InputPlane = new InputPanel(this);
-    OutputPanel* OutputPlane = new OutputPanel(this, InputPlane);
-    OutputPlane->Refresh(); // Forces it to show mapped inputs.
+    input = new InputPlane(this);
+    OutputPlane* outputPanel = new OutputPlane(this, input);
+    outputPanel->Refresh(); // Forces it to show mapped inputs.
     wxBoxSizer* ComplexPlanes = new wxBoxSizer(wxHORIZONTAL);
     wxSizerFlags PlaneFlags(1);
     PlaneFlags.Shaped().Border(wxALL, 10).Center();
-    ComplexPlanes->Add(InputPlane, PlaneFlags);
-    ComplexPlanes->Add(OutputPlane, PlaneFlags);
+    ComplexPlanes->Add(input, PlaneFlags);
+    ComplexPlanes->Add(outputPanel, PlaneFlags);
    SetSizer(ComplexPlanes);
 }
 void MainWindowFrame::OnExit(wxCommandEvent& event)
@@ -78,7 +78,7 @@ void MainWindowFrame::OnAbout(wxCommandEvent& event)
 }
 void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event)
 {
-    InputPlane->SetContourStyle(event.GetId());
+    input->SetContourType(event.GetId());
 }
 void MainWindowFrame::OnHello(wxCommandEvent& event)
 {
