@@ -137,9 +137,9 @@
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="ContourPolygon.cpp" />
     <ClCompile Include="ContourRect.cpp" />
-    <ClCompile Include="InputPanel.cpp" />
+    <ClCompile Include="InputPlane.cpp" />
     <ClCompile Include="MainWindowFrame.cpp" />
-    <ClCompile Include="OutputPanel.cpp" />
+    <ClCompile Include="OutputPlane.cpp" />
     <ClCompile Include="ComplexPlane.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -149,9 +149,9 @@
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ContourPolygon.h" />
     <ClInclude Include="ContourRect.h" />
-    <ClInclude Include="InputPanel.h" />
+    <ClInclude Include="InputPlane.h" />
     <ClInclude Include="MainWindowFrame.h" />
-    <ClInclude Include="OutputPanel.h" />
+    <ClInclude Include="OutputPlane.h" />
     <ClInclude Include="ComplexPlane.h" />
   </ItemGroup>
   <ItemGroup>

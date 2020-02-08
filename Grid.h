@@ -22,10 +22,10 @@ public:
     ~Grid();
 
 	virtual void Draw(wxDC* dc, ComplexPlane* canvas);
-    void CalcVisibleGrid();
 
-    //std::complex<double> Interpolate(double t);
-    //ContourPolygon* Subdivide(int res);
+    // Sets up the grid lines based on the current viewport
+    // and stores them as ContourLines so TransformedGrid can use them.
+    void CalcVisibleGrid();
 
     double hStep = 1;
     double vStep = 1;
@@ -43,7 +43,10 @@ public:
     TransformedGrid(ComplexPlane* par) : Grid(par) {}
     ~TransformedGrid();
     void Draw(wxDC* dc, ComplexPlane* canvas);
-    void CalcVisibleGrid(Grid* grid,
+
+    // applies a function to the lines of the input grid and stores them
+    // as open polygons in this object.
+    void MapGrid(Grid* grid,
         std::function<std::complex<double>(std::complex<double>)> f);
     int res = 80;
 private:

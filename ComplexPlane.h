@@ -33,7 +33,7 @@ enum enum_states
 };
 
 class Contour;
-class OutputPanel;
+class OutputPlane;
 class ComplexPlane;
 class Grid;
 
@@ -52,8 +52,11 @@ struct Axes {
     double reStep = 1;
     double imStep = 1;
     void Draw(wxDC* dc);
-    const int HASH_WIDTH = 8;
-    const int TARGET_HASH_COUNT = 20;
+    const int TICK_WIDTH = 8;
+    // Used to determine when the Step values should be automatically increased
+    // So the tick marks don't get too close together or too far apart during
+    // zoom. Min number of ticks is value / 2, max is value * 2.
+    const int TARGET_TICK_COUNT = 20;
 };
 
 class ComplexPlane : public wxPanel
@@ -62,6 +65,7 @@ public:
     ComplexPlane(wxWindow* parent);
     virtual ~ComplexPlane();
 
+    // Functions for converting between screen and mathematical coordinates.
     std::complex<double> ScreenToComplex(wxPoint P);
     wxPoint ComplexToScreen(std::complex<double> C);
     double LengthToScreen(double r);
@@ -71,10 +75,15 @@ public:
     void OnMouseRightUp(wxMouseEvent& mouse);
     void OnMouseRightDown(wxMouseEvent& mouse);
 
+    // For convenience
     void CaptureMouseIfAble() { if (!HasCapture()) CaptureMouse(); }
     void ReleaseMouseIfAble() { if (HasCapture())  ReleaseMouse(); }
 
+    // Flags the contour/control point under this point as highlighted,
+    // which marks it for special treatment in the user input and paint
+    // routines
     void Highlight(wxPoint mousePos);
+
     void Pan(wxPoint mousePos);
     //void InversePan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);

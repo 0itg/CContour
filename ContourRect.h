@@ -10,7 +10,7 @@ public:
     void Draw(wxDC* dc, ComplexPlane* canvas);
     void RemovePoint(int index);
     void moveCtrlPoint(std::complex<double> mousePos, int ptIndex = -1);
-    bool IsClosed() { return true; }
+    bool IsDone() { return true; }
     void Finalize() {};
 private:
     double perimeter;

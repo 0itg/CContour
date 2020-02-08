@@ -13,7 +13,7 @@ public:
     virtual void ActionNoCtrlPoint(std::complex<double> mousePos,
         std::complex<double> lastPointClicked)
         { Translate(mousePos, lastPointClicked); };
-    virtual bool IsClosed() { return true; };
+    virtual bool IsDone() { return true; };
     virtual bool IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
         int pixPrecision = 3);
     virtual std::complex<double> Interpolate(double t);

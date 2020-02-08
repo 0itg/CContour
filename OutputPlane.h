@@ -3,31 +3,30 @@
 #include "ComplexPlane.h"
 #include <complex>
 
-class InputPanel;
+class InputPlane;
 class Contour;
 class TransformedGrid;
 
 // Right Panel in UI. Displays the mapping of input point sets under
 // some complex function.
 
-class OutputPanel : public ComplexPlane
+class OutputPlane : public ComplexPlane
 {
-    friend class InputPanel;
+    friend class InputPlane;
 public:
-    OutputPanel(wxWindow* parent, InputPanel* In);
-    ~OutputPanel();
+    OutputPlane(wxWindow* parent, InputPlane* In);
+    ~OutputPlane();
     void OnMouseLeftUp(wxMouseEvent& mouse);
     //void OnMouseRightUp(wxMouseEvent& mouse);
     //void OnMouseRightDown(wxMouseEvent& mouse);
     void OnMouseMoving(wxMouseEvent& mouse);
     void OnPaint(wxPaintEvent& paint);
 
-    int resolution = 100;
+    int res = 100;
     std::function<std::complex<double>(std::complex<double>)> f =
         [](std::complex<double> z) { return z * z; };
 private:
-    InputPanel* in;
+    InputPlane* in;
     TransformedGrid* tGrid;
-    //std::vector<Contour*> mappedContours;
     wxDECLARE_EVENT_TABLE();
 };

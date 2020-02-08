@@ -13,7 +13,7 @@ void Contour::RemovePoint(int index)
 	points.erase(points.begin() + index);
 }
 
-int Contour::OnCtrlPoint(std::complex<double> pt,
+int Contour::IsOnCtrlPoint(std::complex<double> pt,
 	ComplexPlane* canvas, int pixPrecision)
 {
 	for (int i = 0; i < points.size(); i++)
@@ -35,6 +35,7 @@ void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p)
 	pen.SetWidth(2);
 	wxDCPenChanger temp(*dc, pen);
 
+	// Draws a sort of asterisk on the point. Didn't like it much.
 	/*dc->DrawLine(p + wxPoint(3, 2), p - wxPoint(3, 2));
 	dc->DrawLine(p + wxPoint(-3, 2), p - wxPoint(-3, 2));
 	dc->DrawLine(p + wxPoint(0, 3), p - wxPoint(0, 3));*/

@@ -1,5 +1,5 @@
 #include "ComplexPlane.h"
-#include "OutputPanel.h"
+#include "OutputPlane.h"
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
@@ -71,7 +71,7 @@ void ComplexPlane::Highlight(wxPoint mousePos)
     for (int i = 0; i < contours.size(); i++)
     {
         int CtrlPtIndex = contours[i]->
-            OnCtrlPoint(ScreenToComplex(mousePos), this);
+            IsOnCtrlPoint(ScreenToComplex(mousePos), this);
         if (CtrlPtIndex > -1)
         {
             notOnAnyContour = false;
@@ -129,6 +129,8 @@ void ComplexPlane::Pan(wxPoint mousePos)
 
 void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
 {
+    // Zoom around the mouse position. To this, first translate the viewport
+    // so mousePos is at the origin, then apply the zoom, then translate back.
     axes.realMax -= lastMousePos.real();
     axes.realMin -= lastMousePos.real();
     axes.imagMax -= lastMousePos.imag();
@@ -142,8 +144,12 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
     axes.imagMax += lastMousePos.imag();
     axes.imagMin += lastMousePos.imag();
 
-    int MaxMark = GetClientSize().x / (axes.TARGET_HASH_COUNT / 2);
-    const int MinMark = GetClientSize().x / (axes.TARGET_HASH_COUNT * 2);
+    // If the user zooms in or out too far, the tick marks will get too
+    // far apart or too close together. Rescale when they are more than twice
+    // as far apart or half as far apart.
+
+    int MaxMark = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
+    const int MinMark = GetClientSize().x / (axes.TARGET_TICK_COUNT * 2);
 
     if (LengthToScreen(axes.reStep) < MinMark)
     { 
@@ -173,8 +179,10 @@ void Axes::Draw(wxDC* dc)
     wxPen pen(2);
     pen.SetColour(*wxBLACK);
     dc->SetPen(pen);
+    // CrossHair = axes through the given point
     dc->CrossHair(center);
 
+    // Draw the tick marks on the axes.
     wxSize size = parent->GetClientSize();
     std::complex<double> cMark = 0;
     wxPoint mark;
@@ -182,32 +190,32 @@ void Axes::Draw(wxDC* dc)
     {
         cMark += reStep;
         mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x, mark.y + HASH_WIDTH / 2),
-            wxPoint(mark.x, mark.y - HASH_WIDTH / 2));
+        dc->DrawLine(wxPoint(mark.x, mark.y + TICK_WIDTH / 2),
+            wxPoint(mark.x, mark.y - TICK_WIDTH / 2));
     }
     cMark = 0;
     while (cMark.real() > realMin)
     {
         cMark -= reStep;
         mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x, mark.y + HASH_WIDTH / 2),
-            wxPoint(mark.x, mark.y - HASH_WIDTH / 2));
+        dc->DrawLine(wxPoint(mark.x, mark.y + TICK_WIDTH / 2),
+            wxPoint(mark.x, mark.y - TICK_WIDTH / 2));
     }
     cMark = 0;
     while (cMark.imag() < imagMax)
     {
         cMark += imStep * 1i;
         mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x + HASH_WIDTH / 2, mark.y),
-            wxPoint(mark.x - HASH_WIDTH / 2, mark.y));
+        dc->DrawLine(wxPoint(mark.x + TICK_WIDTH / 2, mark.y),
+            wxPoint(mark.x - TICK_WIDTH / 2, mark.y));
     }
     cMark = 0;
     while (cMark.imag() > imagMin)
     {
         cMark -= imStep * 1i;
         mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x + HASH_WIDTH / 2, mark.y),
-            wxPoint(mark.x - HASH_WIDTH / 2, mark.y));
+        dc->DrawLine(wxPoint(mark.x + TICK_WIDTH / 2, mark.y),
+            wxPoint(mark.x - TICK_WIDTH / 2, mark.y));
     }
 }
 

@@ -1,45 +1,45 @@
-#include "OutputPanel.h"
-#include "InputPanel.h"
+#include "OutputPlane.h"
+#include "InputPlane.h"
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
 #include "ContourLine.h"
 #include "Grid.h"
 
-wxBEGIN_EVENT_TABLE(InputPanel, wxPanel)
-EVT_LEFT_UP(InputPanel::OnMouseLeftUp)
+wxBEGIN_EVENT_TABLE(InputPlane, wxPanel)
+EVT_LEFT_UP(InputPlane::OnMouseLeftUp)
 //EVT_LEFT_DOWN(InputPanel::OnMouseLeftDown)
-EVT_RIGHT_UP(InputPanel::OnMouseRightUp)
+EVT_RIGHT_UP(InputPlane::OnMouseRightUp)
 EVT_RIGHT_DOWN(ComplexPlane::OnMouseRightDown)
 //EVT_MIDDLE_DOWN(InputPanel::OnMouseMiddleDown)
 //EVT_MIDDLE_UP(InputPanel::OnMouseMiddleUp)
-EVT_MOUSEWHEEL(InputPanel::OnMouseWheel)
-EVT_MOTION(InputPanel::OnMouseMoving)
-EVT_KEY_UP(InputPanel::OnKeyDelete)
-EVT_PAINT(InputPanel::OnPaint)
+EVT_MOUSEWHEEL(InputPlane::OnMouseWheel)
+EVT_MOTION(InputPlane::OnMouseMoving)
+EVT_KEY_UP(InputPlane::OnKeyUp)
+EVT_PAINT(InputPlane::OnPaint)
 wxEND_EVENT_TABLE()
 
-InputPanel::~InputPanel()
+InputPlane::~InputPlane()
 {
     for (auto C : subDivContours)
         delete C;
     delete grid;
 }
 
-InputPanel::InputPanel(wxWindow* parent)
+InputPlane::InputPlane(wxWindow* parent)
     : ComplexPlane(parent)
 {
     grid = new Grid(this);
 }
 
-void InputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
+void InputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 {
     // if state > STATE_IDLE, then a contour is selected for editing
     // and state equals the index of the contour.
     if (state > STATE_IDLE)
     {
         // If the contour is closed, finalize and deselect it
-        if (contours[state]->IsClosed())
+        if (contours[state]->IsDone())
         {
             ReleaseMouseIfAble();
             contours[state]->Finalize();
@@ -84,13 +84,16 @@ void InputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
     }
 }
 
-void InputPanel::OnMouseRightUp(wxMouseEvent& mouse)
+void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
 {
     ReleaseMouseIfAble();
     if (state > STATE_IDLE && highlightedCtrlPoint > -1)
     {
+        // Remove the selected point if the contour is done. If it is still
+        // being edited, the selected point is temporary, so remove the
+        // previous one.
         int nextState = state;
-        if (contours[state]->IsClosed())
+        if (contours[state]->IsDone())
         {
             contours[state]->RemovePoint(highlightedCtrlPoint);
             highlightedCtrlPoint = -1;
@@ -114,19 +117,21 @@ void InputPanel::OnMouseRightUp(wxMouseEvent& mouse)
     ComplexPlane::OnMouseRightUp(mouse);
 }
 
-void InputPanel::OnMouseWheel(wxMouseEvent& mouse)
+void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
 {
-    ComplexPlane::OnMouseWheel(mouse);
+    ComplexPlane::OnMouseWheel(mouse); // Calls the Zoom function.
     if (linkGridToAxes)
     {
         grid->hStep = axes.reStep;
         grid->vStep = axes.imStep;
     }
+    for (auto out : outputs)
+        out->movedViewPort = true;
     Refresh();
     Update();
 }
 
-void InputPanel::OnMouseMoving(wxMouseEvent& mouse)
+void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
 {
     // When the mouse moves, take contour-dependent action
     // depending on whether a control point is select or just part of
@@ -168,21 +173,24 @@ void InputPanel::OnMouseMoving(wxMouseEvent& mouse)
     lastMousePos = ScreenToComplex(mouse.GetPosition());
 }
 
-void InputPanel::OnKeyDelete(wxKeyEvent& Key)
+void InputPlane::OnKeyUp(wxKeyEvent& Key)
 {
-    ReleaseMouseIfAble(); // Captured by OnMouseRightDown
-
-    // Right click while editing will delete the active contour
-    if (highlightedContour > -1)
+    switch (Key.GetKeyCode())
     {
-        RemoveContour(highlightedContour);
-        state = STATE_IDLE;
-        Refresh();
-        Update();
+    case WXK_DELETE:
+        ReleaseMouseIfAble(); // Captured by OnMouseRightDown
+        if (highlightedContour > -1)
+        {
+            RemoveContour(highlightedContour);
+            state = STATE_IDLE;
+            Refresh();
+            Update();
+        }
+        break;
     }
 }
 
-void InputPanel::OnPaint(wxPaintEvent& paint)
+void InputPlane::OnPaint(wxPaintEvent& paint)
 {
     wxAutoBufferedPaintDC dc(this);
     dc.Clear();
@@ -200,6 +208,8 @@ void InputPanel::OnPaint(wxPaintEvent& paint)
         C->Draw(&dc, this);
     }
 
+    // Redraw the highlighted contour with thicker pen.
+    // If a control point is highlighted, circle it with thin pen first.
     if (highlightedContour > -1)
     {
         pen.SetColour(contours[highlightedContour]->color);
@@ -218,17 +228,17 @@ void InputPanel::OnPaint(wxPaintEvent& paint)
 
     for (auto out : outputs)
     {
-        out->Update();
         out->Refresh();
+        out->Update();
     }
 }
 
-void InputPanel::SetContourStyle(int id)
+void InputPlane::SetContourType(int id)
 {
-    contourStyle = id;
+    contourType = id;
 }
 
-void InputPanel::RemoveContour(int index)
+void InputPlane::RemoveContour(int index)
 {
     delete contours[index];
     contours.erase(contours.begin() + index);
@@ -246,9 +256,9 @@ void InputPanel::RemoveContour(int index)
     highlightedCtrlPoint = -1;
 }
 
-Contour* InputPanel::CreateContour(wxPoint mousePos)
+Contour* InputPlane::CreateContour(wxPoint mousePos)
 {
-    switch (contourStyle)
+    switch (contourType)
     {
     case ID_Circle:
         return new ContourCircle(ScreenToComplex(mousePos));

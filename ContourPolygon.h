@@ -11,7 +11,7 @@ public:
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);
     virtual void ActionNoCtrlPoint(std::complex<double> mousePos,
         std::complex<double> lastPointClicked);
-    virtual bool IsClosed();
+    virtual bool IsDone();
     virtual bool IsOnContour(std::complex<double> pt,
         ComplexPlane* canvas, int pixPrecision = 3);
     virtual void Finalize();

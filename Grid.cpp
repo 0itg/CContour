@@ -3,10 +3,6 @@
 #include "ContourPolygon.h"
 #include "ComplexPlane.h"
 
-//Grid::Grid(ComplexPlane* parent, double hStep, double vStep)
-//{
-//}
-
 Grid::~Grid()
 {
 	for (auto h : horiz) delete h;
@@ -22,6 +18,8 @@ void Grid::Draw(wxDC* dc, ComplexPlane* canvas)
 
 void Grid::CalcVisibleGrid()
 {
+	// Draws gridlines every hStep x VStep, offset to line up with the origin
+	// If the viewport has been panned around.
 	for (auto h : horiz) delete h;
 	horiz.clear();
 	for (auto v : vert) delete v;
@@ -46,16 +44,6 @@ void Grid::CalcVisibleGrid()
 	}
 }
 
-//std::complex<double> Grid::Interpolate(double t)
-//{
-//	return std::complex<double>();
-//}
-//
-//ContourPolygon* Grid::Subdivide(int res)
-//{
-//	return nullptr;
-//}
-
 TransformedGrid::~TransformedGrid()
 {
 	for (auto h : horiz) delete h;
@@ -69,13 +57,16 @@ void TransformedGrid::Draw(wxDC* dc, ComplexPlane* canvas)
 	for (auto v : vert) v->Draw(dc, canvas);
 }
 
-void TransformedGrid::CalcVisibleGrid(Grid* grid,
+void TransformedGrid::MapGrid(Grid* grid,
 	std::function<std::complex<double>(std::complex<double>)> f)
 {
 	for (auto h : horiz) delete h;
 	horiz.clear();
 	for (auto v : vert) delete v;
 	vert.clear();
+
+	// For each input grid line, linearly interpolate the points and
+	// apply the function f.
 	for (auto h : grid->horiz)
 	{
 		horiz.push_back(new ContourPolygon());

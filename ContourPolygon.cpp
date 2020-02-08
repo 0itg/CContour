@@ -16,10 +16,14 @@ ContourPolygon::ContourPolygon()
 
 void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
 {
+	// Create a vector of screen points from the mathematical ones.
 	std::vector<wxPoint> p;
 	p.resize(points.size());
 	std::transform(points.begin(), points.end(), p.begin(),
-		[canvas](std::complex<double> z) {return canvas->ComplexToScreen(z); });
+		[canvas](std::complex<double> z) {return canvas->ComplexToScreen(z);});
+
+	// if "closed" is true, the line segment from the last 
+	// point to the first will be drawn. 
 	if (closed)
 		dc->DrawPolygon(p.size(), &p[0]);
 	else
@@ -32,7 +36,7 @@ void ContourPolygon::ActionNoCtrlPoint(
 	Translate(mousePos, lastPointClicked);
 }
 
-bool ContourPolygon::IsClosed() //Name Misleading; fix
+bool ContourPolygon::IsDone()
 {
 	if (closed) return true;
 	return abs(points[points.size() - 1] - points[0]) < 0.3;
@@ -41,6 +45,8 @@ bool ContourPolygon::IsClosed() //Name Misleading; fix
 bool ContourPolygon::IsOnContour(std::complex<double> pt,
 	ComplexPlane* canvas, int pixPrecision)
 {
+	// Check each line segment of the polygon until the distance to the point.
+	// is within pixPrecision. This could probably be made more efficient.
 	int i;
 	for (i = 0; i < points.size() - 1; i++)
 	{
@@ -59,6 +65,9 @@ bool ContourPolygon::IsOnContour(std::complex<double> pt,
 
 void ContourPolygon::Finalize()
 {
+	// Mark the polygon as closed and pop the last point, because during
+	// editing, closing the polygon would make the last point a
+	// duplicate of the first.
 	if (!closed)
 	{
 		closed = true;
@@ -109,26 +118,31 @@ std::complex<double> ContourPolygon::Interpolate(double t)
 ContourPolygon* ContourPolygon::Subdivide(int res)
 {
 	ContourPolygon* D = new ContourPolygon();
+	res = std::max(points.size(), res - points.size());
 	int sideIndex = 0;
 	double t = 0;
 	CalcSideLengths();
 	double lengthTraversed = sideLengths[0];
 
-	for (int i = 0; i <= res; i++)
+	// Parameterize the contour in terms of perimeter, e.g. t is the
+	// proportion of the contour traversed from the first point.
+	for (double i = 0; i <= res; i++)
 	{
-		t = (double)i / res;
+		t = i / res;
 		if (lengthTraversed < t * perimeter)
 		{
+			// t just passed the edge of one side.
 			sideIndex++;
 			lengthTraversed += sideLengths[sideIndex];
-			if (sideIndex < points.size())
-				D->AddPoint(points[sideIndex]); // add the endpoint of each segment
+			D->AddPoint(points[sideIndex]); // add the endpoint of each segment
 		}
+		// Within one side, linearly interpolate the points
+		// such that we get res points in total.
 		if (sideIndex < sideLengths.size())
 			if (sideLengths[sideIndex] > 0)
 			{
-				double sideParam =
-					abs(t * perimeter - lengthTraversed) / sideLengths[sideIndex];
+				double sideParam = abs(t * perimeter - lengthTraversed) 
+					/ sideLengths[sideIndex];
 				if (sideIndex < points.size()-1)
 					D->AddPoint(points[sideIndex + 1] * (1 - sideParam) +
 						points[sideIndex] * sideParam);
@@ -154,7 +168,8 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
 	return D;
 }
 
-ContourPolygon* ContourPolygon::Apply(std::function<std::complex<double>(std::complex<double>)> f)
+ContourPolygon* ContourPolygon::Apply(
+	std::function<std::complex<double>(std::complex<double>)> f)
 {
 	ContourPolygon* C = Clone();
 	for (auto& z : C->points)

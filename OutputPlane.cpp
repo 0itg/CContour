@@ -1,36 +1,36 @@
-#include "OutputPanel.h"
-#include "InputPanel.h"
+#include "OutputPlane.h"
+#include "InputPlane.h"
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
 #include "Grid.h"
 
-wxBEGIN_EVENT_TABLE(OutputPanel, wxPanel)
-EVT_LEFT_UP(OutputPanel::OnMouseLeftUp)
+wxBEGIN_EVENT_TABLE(OutputPlane, wxPanel)
+EVT_LEFT_UP(OutputPlane::OnMouseLeftUp)
 EVT_RIGHT_UP(ComplexPlane::OnMouseRightUp)
 EVT_RIGHT_DOWN(ComplexPlane::OnMouseRightDown)
 EVT_MOUSEWHEEL(ComplexPlane::OnMouseWheel)
-EVT_MOTION(OutputPanel::OnMouseMoving)
-EVT_PAINT(OutputPanel::OnPaint)
+EVT_MOTION(OutputPlane::OnMouseMoving)
+EVT_PAINT(OutputPlane::OnPaint)
 wxEND_EVENT_TABLE()
 
-OutputPanel::OutputPanel(wxWindow* parent, InputPanel* In) :
+OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In) :
     ComplexPlane(parent), in(In) {
     In->outputs.push_back(this);
     tGrid = new TransformedGrid(this);
 };
 
-OutputPanel::~OutputPanel()
+OutputPlane::~OutputPlane()
 {
     delete tGrid;
 }
 
-void OutputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
+void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 {
     if (state == STATE_PANNING) state = STATE_IDLE;
 }
 
-void OutputPanel::OnMouseMoving(wxMouseEvent& mouse)
+void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
 {
     if (state == STATE_PANNING) Pan(mouse.GetPosition());
     lastMousePos = ScreenToComplex(mouse.GetPosition());
@@ -44,7 +44,7 @@ void OutputPanel::OnMouseMoving(wxMouseEvent& mouse)
     }
 }
 
-void OutputPanel::OnPaint(wxPaintEvent& paint)
+void OutputPlane::OnPaint(wxPaintEvent& paint)
 {
     wxAutoBufferedPaintDC dc(this);
     dc.Clear();
@@ -53,7 +53,8 @@ void OutputPanel::OnPaint(wxPaintEvent& paint)
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    if (movedViewPort) tGrid->CalcVisibleGrid(in->grid, f);
+    // Only recalculate the mapping if the viewport changed.
+    if (movedViewPort) tGrid->MapGrid(in->grid, f);
 
     tGrid->Draw(&dc, this);
 
@@ -62,7 +63,7 @@ void OutputPanel::OnPaint(wxPaintEvent& paint)
 
     for (auto C : in->subDivContours)
     {
-        contours.emplace_back(C->Apply(f));
+        contours.push_back(C->Apply(f));
     }
 
     for (auto C : contours)

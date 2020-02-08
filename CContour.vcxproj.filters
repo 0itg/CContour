@@ -33,12 +33,6 @@
     <ClCompile Include="ContourRect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OutputPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InputPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ComplexPlane.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,6 +40,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ContourLine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InputPlane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputPlane.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,12 +65,6 @@
     <ClInclude Include="ContourRect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OutputPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InputPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComplexPlane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -78,6 +72,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ContourLine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputPlane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputPlane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
