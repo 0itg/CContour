@@ -5,6 +5,7 @@
 
 class InputPanel;
 class Contour;
+class TransformedGrid;
 
 // Right Panel in UI. Displays the mapping of input point sets under
 // some complex function.
@@ -14,10 +15,10 @@ class OutputPanel : public ComplexPlane
     friend class InputPanel;
 public:
     OutputPanel(wxWindow* parent, InputPanel* In);
-    //~OutputPanel();
+    ~OutputPanel();
     void OnMouseLeftUp(wxMouseEvent& mouse);
-    void OnMouseRightUp(wxMouseEvent& mouse);
-    void OnMouseRightDown(wxMouseEvent& mouse);
+    //void OnMouseRightUp(wxMouseEvent& mouse);
+    //void OnMouseRightDown(wxMouseEvent& mouse);
     void OnMouseMoving(wxMouseEvent& mouse);
     void OnPaint(wxPaintEvent& paint);
 
@@ -26,6 +27,7 @@ public:
         [](std::complex<double> z) { return z * z; };
 private:
     InputPanel* in;
+    TransformedGrid* tGrid;
     //std::vector<Contour*> mappedContours;
     wxDECLARE_EVENT_TABLE();
 };

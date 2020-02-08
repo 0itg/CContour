@@ -1,5 +1,6 @@
 #include "ContourLine.h"
 #include "ContourPolygon.h"
+#include "ComplexPlane.h"
 
 
 ContourLine::ContourLine(std::complex<double> c)
@@ -7,6 +8,13 @@ ContourLine::ContourLine(std::complex<double> c)
 	points.push_back(c);
 	points.push_back(c);
 	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+}
+
+ContourLine::ContourLine(std::complex<double> c, std::complex<double> d)
+{
+	points.push_back(c);
+	points.push_back(d);
+	color = wxColor(0, 0, 0);
 }
 
 ContourLine::ContourLine()

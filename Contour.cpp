@@ -1,10 +1,16 @@
 #include "Contour.h"
+#include "ComplexPlane.h"
 #include <numeric>
 #include <algorithm>
 
 void Contour::AddPoint(std::complex<double> mousePos)
 {
 	points.push_back(mousePos);
+}
+
+void Contour::RemovePoint(int index)
+{
+	points.erase(points.begin() + index);
 }
 
 int Contour::OnCtrlPoint(std::complex<double> pt,

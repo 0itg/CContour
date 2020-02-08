@@ -29,12 +29,13 @@ enum enum_states
     // values of state >= 0 represent contour indices.
     STATE_IDLE = -1,
     STATE_PANNING = -2,
-    STATE_INVERSEPANNING = -3
+    //STATE_INVERSEPANNING = -3
 };
 
 class Contour;
 class OutputPanel;
 class ComplexPlane;
+class Grid;
 
 struct Axes {
     Axes(ComplexPlane* p) : parent(p) {};
@@ -52,14 +53,13 @@ struct Axes {
     double imStep = 1;
     void Draw(wxDC* dc);
     const int HASH_WIDTH = 8;
+    const int TARGET_HASH_COUNT = 20;
 };
 
 class ComplexPlane : public wxPanel
 {
 public:
-    ComplexPlane(wxWindow* parent) : axes(this),
-        wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-        wxFULL_REPAINT_ON_RESIZE) { SetBackgroundStyle(wxBG_STYLE_CUSTOM); }
+    ComplexPlane(wxWindow* parent);
     virtual ~ComplexPlane();
 
     std::complex<double> ScreenToComplex(wxPoint P);
@@ -82,7 +82,7 @@ public:
     Axes axes;
 
 protected:
-    std::vector<Contour*> drawnContours;
+    std::vector<Contour*> contours;
     int highlightedContour = -1;
     int state = -1;
     int highlightedCtrlPoint = -1;
@@ -90,4 +90,6 @@ protected:
     const double zoomFactor = 1.1;
     std::complex<double> lastMousePos;
     std::complex<double> lastMidClick;
+
+    bool movedViewPort = true;
 };

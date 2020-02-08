@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ComplexPlane.h"
+//#include "ComplexPlane.h"
 
 #define WXUSINGDLL
 #include <wx/wxprec.h>
@@ -13,6 +13,7 @@
 struct Axes;
 class InputPanel;
 class ContourPolygon;
+class ComplexPlane;
 
 // All contours include a set of points, may be open or closed,
 // and need to define a function for interpolating the points
@@ -26,6 +27,7 @@ public:
 
     virtual void Draw(wxDC* dc, ComplexPlane* canvas) = 0;
     virtual void AddPoint(std::complex<double> mousePos);
+    virtual void RemovePoint(int index);
     virtual void moveCtrlPoint(std::complex<double> mousePos, int ptIndex = -1);
     virtual void ActionNoCtrlPoint(std::complex<double> mousePos,
         std::complex<double> lastPointClicked) = 0;

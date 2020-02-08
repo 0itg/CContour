@@ -4,6 +4,7 @@ class ContourLine : public Contour
 {
 public:
     ContourLine(std::complex<double> c);
+    ContourLine(std::complex<double> c, std::complex<double> d);
     ContourLine();
     virtual ContourLine* Clone() { return new ContourLine(*this); };
 

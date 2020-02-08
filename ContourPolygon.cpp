@@ -1,4 +1,5 @@
 #include "ContourPolygon.h"
+#include "ComplexPlane.h"
 #include <numeric>
 
 
@@ -137,6 +138,14 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
 			}
 	}
 	D->color = color;
+	// Degenerate polygons may occur but are discarded by the code above.
+	// In that case, put in two points so the drawing
+	// functions have what they expect. 
+	if (D->points.size() == 0)
+	{
+		D->AddPoint(points[0]);
+		D->AddPoint(points[0]);
+	}
 	if (closed)
 	{
 		D->AddPoint(0); // Because ContourPolygon's Finalize() pops last point.

@@ -3,7 +3,7 @@
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
-#include "wxMemDbg.h"
+#include "Grid.h"
 
 wxBEGIN_EVENT_TABLE(OutputPanel, wxPanel)
 EVT_LEFT_UP(OutputPanel::OnMouseLeftUp)
@@ -17,7 +17,13 @@ wxEND_EVENT_TABLE()
 OutputPanel::OutputPanel(wxWindow* parent, InputPanel* In) :
     ComplexPlane(parent), in(In) {
     In->outputs.push_back(this);
+    tGrid = new TransformedGrid(this);
 };
+
+OutputPanel::~OutputPanel()
+{
+    delete tGrid;
+}
 
 void OutputPanel::OnMouseLeftUp(wxMouseEvent& mouse)
 {
@@ -42,20 +48,24 @@ void OutputPanel::OnPaint(wxPaintEvent& paint)
 {
     wxAutoBufferedPaintDC dc(this);
     dc.Clear();
-    wxPen pen(*wxRED, 1);
+    wxPen pen(tGrid->color, 1);
     wxBrush brush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    for (auto C : drawnContours) delete C;
-    drawnContours.clear();
+    if (movedViewPort) tGrid->CalcVisibleGrid(in->grid, f);
+
+    tGrid->Draw(&dc, this);
+
+    for (auto C : contours) delete C;
+    contours.clear();
 
     for (auto C : in->subDivContours)
     {
-        drawnContours.emplace_back(C->Apply(f));
+        contours.emplace_back(C->Apply(f));
     }
 
-    for (auto C : drawnContours)
+    for (auto C : contours)
     {
         pen.SetColour(C->color);
         dc.SetPen(pen);
@@ -63,11 +73,12 @@ void OutputPanel::OnPaint(wxPaintEvent& paint)
     }
     if (highlightedContour > -1)
     {
-        pen.SetColour(drawnContours[highlightedContour]->color);
+        pen.SetColour(contours[highlightedContour]->color);
         pen.SetWidth(2);
         dc.SetPen(pen);
-        drawnContours[highlightedContour]->Draw(&dc, this);
+        contours[highlightedContour]->Draw(&dc, this);
     }
 
     axes.Draw(&dc);
+    movedViewPort = false;
 }
