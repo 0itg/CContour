@@ -73,6 +73,8 @@ void InputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
             subDivContours.push_back(contours.back()->Subdivide(res));
             state = contours.size() - 1;
             highlightedContour = state;
+            for (auto out : outputs)
+                out->highlightedContour = state;
         }
         // If not, then make the highlighted contour active.
         else
@@ -163,7 +165,11 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
     {
         Highlight(mouse.GetPosition());
         for (auto out : outputs)
+        {
             out->highlightedContour = highlightedContour;
+            Refresh();
+            Update();
+        }
     }
     else if (state == STATE_PANNING)
     {
