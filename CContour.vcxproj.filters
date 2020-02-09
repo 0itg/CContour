@@ -94,5 +94,14 @@
     <Image Include="icons\draw-polygon.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="icons\color-randomizer.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\draw-line.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\paint-brush.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
