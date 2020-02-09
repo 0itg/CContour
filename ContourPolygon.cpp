@@ -3,13 +3,13 @@
 #include <numeric>
 
 
-ContourPolygon::ContourPolygon(std::complex<double> c)
+ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col)
 {
 	points.push_back(c);
 	points.push_back(c);
-	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+	color = col;
 }
-ContourPolygon::ContourPolygon()
+ContourPolygon::ContourPolygon(wxColor col)
 {
 	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
 }

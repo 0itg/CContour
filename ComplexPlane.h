@@ -16,12 +16,16 @@
 
 enum enum_buttons
 {
-    ID_Hello,
     ID_toolBar,
+
     ID_Circle,
     ID_Rect,
     ID_Polygon,
-    ID_Line
+    ID_Line,
+
+    ID_Paintbrush,
+    ID_Color_Randomizer,
+    ID_Color_Picker,
 };
 
 enum enum_states
@@ -62,7 +66,7 @@ struct Axes {
 class ComplexPlane : public wxPanel
 {
 public:
-    ComplexPlane(wxWindow* parent);
+    ComplexPlane(wxFrame* parent);
     virtual ~ComplexPlane();
 
     // Functions for converting between screen and mathematical coordinates.
@@ -101,4 +105,5 @@ protected:
     std::complex<double> lastMidClick;
 
     bool movedViewPort = true;
+    wxStatusBar* statBar;
 };

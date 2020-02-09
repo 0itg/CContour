@@ -6,7 +6,8 @@ class ContourPolygon;
 class ContourCircle : public Contour
 {
 public:
-    ContourCircle(std::complex<double> c, double r = 0);
+    ContourCircle(std::complex<double> c, double r = 0,
+        wxColor col = wxColor(255, 255, 255));
     virtual ContourCircle* Clone() { return new ContourCircle(*this); };
 
     void Draw(wxDC* dc, ComplexPlane* canvas);

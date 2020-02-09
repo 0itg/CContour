@@ -1,5 +1,6 @@
 #pragma once
 #include "ComplexPlane.h"
+#include "wx/clrpicker.h"
 
 class ContourPolygon;
 class OutputPlane;
@@ -12,10 +13,11 @@ class InputPlane : public ComplexPlane
 {
     friend class OutputPlane;
 public:
-    InputPlane(wxWindow* parent);
+    InputPlane(wxFrame* parent);
     ~InputPlane();
 
-    void OnMouseLeftUp(wxMouseEvent& mouse);
+    void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
+    void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
     void OnMouseRightUp(wxMouseEvent& mouse);
     //void OnMouseRightDown(wxMouseEvent& mouse);
     //void OnMouseMiddleDown(wxMouseEvent& mouse);
@@ -24,23 +26,34 @@ public:
     void OnMouseMoving(wxMouseEvent& mouse);
     void OnKeyUp(wxKeyEvent& Key);
     void OnPaint(wxPaintEvent& paint);
+    void OnColorPicked(wxColourPickerEvent& colorPicked);
+    void OnColorRandomizer(wxCommandEvent& event);
 
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
     void RemoveContour(int index);
     Contour* CreateContour(wxPoint mousePos);
+
+    void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
+    wxColor RandomColor();
     
     // If true, when axes step values change, grid step values
     // change accordingly
     bool linkGridToAxes = true;
     bool showGrid = true;
+    bool randomizeColor = false;
+    wxColor color = wxColor(0, 0, 200);
+
+    const wxColor BGcolor = *wxWHITE;
+    const int COLOR_SIMILARITY_THRESHOLD = 64;
 private:
     // drawnContours stores contours in original form for editing.
     // subDivContours stores them as approximating polygons for mapping 
     std::vector<ContourPolygon*> subDivContours;
     // Pointers to outputs for or sending refresh signals.
     // App only uses one output for now, but more might be nice later.
-    std::vector<OutputPlane*> outputs; 
+    std::vector<OutputPlane*> outputs;
+    wxColourPickerCtrl* colorPicker;
 
     Grid* grid;
     int contourType = ID_Circle;

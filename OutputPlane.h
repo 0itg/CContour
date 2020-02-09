@@ -14,7 +14,7 @@ class OutputPlane : public ComplexPlane
 {
     friend class InputPlane;
 public:
-    OutputPlane(wxWindow* parent, InputPlane* In);
+    OutputPlane(wxFrame* parent, InputPlane* In);
     ~OutputPlane();
     void OnMouseLeftUp(wxMouseEvent& mouse);
     //void OnMouseRightUp(wxMouseEvent& mouse);

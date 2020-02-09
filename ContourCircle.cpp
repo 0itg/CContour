@@ -2,10 +2,11 @@
 #include "ContourPolygon.h"
 #include "ComplexPlane.h"
 
-ContourCircle::ContourCircle(std::complex<double> c, double r) : radius(r)
+ContourCircle::ContourCircle(std::complex<double> c, double r,
+	wxColor col) : radius(r)
 {
 	points.push_back(c);
-	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+	color = col;
 }
 
 void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)

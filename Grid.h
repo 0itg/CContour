@@ -29,7 +29,7 @@ public:
 
     double hStep = 1;
     double vStep = 1;
-    wxColor color = wxColor(225, 225, 225);
+    wxColor color = wxColor(216, 216, 216);
 protected:
     ComplexPlane* parent;
 private:
