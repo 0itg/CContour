@@ -3,9 +3,10 @@
 class ContourLine : public Contour
 {
 public:
-    ContourLine(std::complex<double> c);
-    ContourLine(std::complex<double> c, std::complex<double> d);
-    ContourLine();
+    ContourLine(std::complex<double> c, wxColor col = wxColor(255, 255, 255));
+    ContourLine(std::complex<double> c, std::complex<double> d,
+        wxColor col = wxColor(255, 255, 255));
+    ContourLine(wxColor col = wxColor(255, 255, 255));
     virtual ContourLine* Clone() { return new ContourLine(*this); };
 
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);

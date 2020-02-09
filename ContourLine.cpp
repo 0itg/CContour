@@ -3,21 +3,22 @@
 #include "ComplexPlane.h"
 
 
-ContourLine::ContourLine(std::complex<double> c)
+ContourLine::ContourLine(std::complex<double> c, wxColor col)
 {
 	points.push_back(c);
 	points.push_back(c);
-	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+	color = col;
 }
 
-ContourLine::ContourLine(std::complex<double> c, std::complex<double> d)
+ContourLine::ContourLine(std::complex<double> c,
+	std::complex<double> d, wxColor col)
 {
 	points.push_back(c);
 	points.push_back(d);
-	color = wxColor(0, 0, 0);
+	color = col;
 }
 
-ContourLine::ContourLine()
+ContourLine::ContourLine(wxColor col)
 {
 	color = wxColor(rand() % 255, rand() % 255, rand() % 255);
 }

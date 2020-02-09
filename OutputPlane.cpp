@@ -14,7 +14,7 @@ EVT_MOTION(OutputPlane::OnMouseMoving)
 EVT_PAINT(OutputPlane::OnPaint)
 wxEND_EVENT_TABLE()
 
-OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In) :
+OutputPlane::OutputPlane(wxFrame* parent, InputPlane* In) :
     ComplexPlane(parent), in(In) {
     In->outputs.push_back(this);
     tGrid = new TransformedGrid(this);
@@ -32,6 +32,13 @@ void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 
 void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
 {
+    std::complex<double> outCoord = f(ScreenToComplex(mouse.GetPosition()));
+    std::string inputCoord = "f(z) = z^2"; // TEMPORARY
+    std::string outputCoord = "f(z) = " + std::to_string(outCoord.real()) +
+        " + " + std::to_string(outCoord.imag()) + "i";
+    statBar->SetStatusText(inputCoord, 0);
+    statBar->SetStatusText(outputCoord, 1);
+
     if (state == STATE_PANNING) Pan(mouse.GetPosition());
     lastMousePos = ScreenToComplex(mouse.GetPosition());
     Highlight(mouse.GetPosition());
@@ -60,11 +67,11 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
 
     for (auto C : contours) delete C;
     contours.clear();
-
     for (auto C : in->subDivContours)
     {
         contours.push_back(C->Apply(f));
     }
+    pen.SetWidth(2);
 
     for (auto C : contours)
     {
@@ -75,7 +82,7 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
     if (highlightedContour > -1)
     {
         pen.SetColour(contours[highlightedContour]->color);
-        pen.SetWidth(2);
+        pen.SetWidth(3);
         dc.SetPen(pen);
         contours[highlightedContour]->Draw(&dc, this);
     }

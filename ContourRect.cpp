@@ -1,7 +1,8 @@
 #include "ContourRect.h"
 #include "ComplexPlane.h"
 
-ContourRect::ContourRect(std::complex<double> c) : ContourPolygon(c)
+ContourRect::ContourRect(std::complex<double> c,
+	wxColor col) : ContourPolygon(c, col)
 {
 	// Two corner points define the rectangle, but adding the other two
 	// points allows all corners to be used for resizing it
@@ -13,7 +14,7 @@ ContourRect::ContourRect(std::complex<double> c) : ContourPolygon(c)
 void ContourRect::Draw(wxDC* dc, ComplexPlane* canvas)
 {
 	int width = canvas->LengthToScreen(points[2].real() - points[0].real());
-	int height = canvas->LengthToScreen(points[2].imag() - points[0].imag());
+	int height = -canvas->LengthToScreen(points[2].imag() - points[0].imag());
 	dc->DrawRectangle(canvas->
 		ComplexToScreen(points[0]), wxSize(width, height));
 }

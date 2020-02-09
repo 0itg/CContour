@@ -1,4 +1,5 @@
 #pragma once
+#include "wx/clrpicker.h"
 
 class InputPlane;
 
@@ -9,9 +10,11 @@ public:
         const wxSize& size, const long style = wxDEFAULT_FRAME_STYLE);
 private:
     InputPlane* input;
-    void OnHello(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnToolbarContourSelect(wxCommandEvent& event);
+    void OnColorPicked(wxColourPickerEvent& col);
+    void OnButtonColorRandomizer(wxCommandEvent& event);
+    void OnButtonPaintbrush(wxCommandEvent& event);
     wxDECLARE_EVENT_TABLE();
 };

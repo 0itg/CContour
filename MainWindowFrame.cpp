@@ -14,10 +14,13 @@
 #include "OutputPlane.h"
 
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
-EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
+//EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
 EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
 EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
+EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
+EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
+EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainWindowFrame::OnColorPicked)
 wxEND_EVENT_TABLE()
 
 MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
@@ -50,14 +53,30 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolBar->AddTool(ID_Polygon, "Polygonal Contour",
         wxBitmap(wxT("icons/draw-polygon.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_RADIO, "Draws a polygonal contour");
-    toolBar->AddTool(ID_Line, "Polygonal Contour",
+    toolBar->AddTool(ID_Line, "Line Contour",
         wxBitmap(wxT("icons/draw-line.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_RADIO, "Draws a straight line");
+    toolBar->AddTool(ID_Paintbrush, "Paintbrush",
+        wxBitmap(wxT("icons/paint-brush.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_RADIO, "Recolor a contour");
+
+    toolBar->AddSeparator();
+
+    toolBar->AddTool(ID_Color_Randomizer, "Color Randomizer",
+        wxBitmap(wxT("icons/color-randomizer.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_CHECK,
+        "Randomizes color after a contour is drawn");
+    wxColourPickerCtrl* colorCtrl =
+        new wxColourPickerCtrl(toolBar, ID_Color_Picker, wxColor(0, 0, 200));
+    toolBar->AddControl(colorCtrl);
+
     SetToolBar(toolBar);
     toolBar->Realize();
-    CreateStatusBar();
+
+    wxStatusBar* statBar = CreateStatusBar(2);
 
     input = new InputPlane(this);
+    input->SetColorPicker(colorCtrl);
     OutputPlane* outputPanel = new OutputPlane(this, input);
     outputPanel->Refresh(); // Forces it to show mapped inputs.
     wxBoxSizer* ComplexPlanes = new wxBoxSizer(wxHORIZONTAL);
@@ -65,7 +84,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     PlaneFlags.Shaped().Border(wxALL, 10).Center();
     ComplexPlanes->Add(input, PlaneFlags);
     ComplexPlanes->Add(outputPanel, PlaneFlags);
-   SetSizer(ComplexPlanes);
+    SetSizer(ComplexPlanes);
 }
 void MainWindowFrame::OnExit(wxCommandEvent& event)
 {
@@ -78,9 +97,20 @@ void MainWindowFrame::OnAbout(wxCommandEvent& event)
 }
 void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event)
 {
+    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpContourTools, input);
     input->SetContourType(event.GetId());
 }
-void MainWindowFrame::OnHello(wxCommandEvent& event)
+void MainWindowFrame::OnColorPicked(wxColourPickerEvent& col)
 {
-    wxLogMessage("Hello world from wxWidgets!");
+    input->OnColorPicked(col);
+}
+
+void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event)
+{
+    input->OnColorRandomizer(event);
+}
+
+void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event)
+{
+    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
 }

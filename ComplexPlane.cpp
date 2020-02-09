@@ -6,9 +6,9 @@
 #include "Grid.h"
 #include <complex>
 
-ComplexPlane::ComplexPlane(wxWindow* parent) : axes(this),
+ComplexPlane::ComplexPlane(wxFrame* parent) : axes(this),
 wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-    wxFULL_REPAINT_ON_RESIZE) {
+    wxFULL_REPAINT_ON_RESIZE), statBar(parent->GetStatusBar()) {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
 
@@ -22,15 +22,15 @@ std::complex<double> ComplexPlane::ScreenToComplex(wxPoint P)
 {
     return std::complex<double>((double)P.x /
         GetClientSize().x * (axes.realMax - axes.realMin)
-        + axes.realMin, (double)P.y / GetClientSize().y
+        + axes.realMin, (1 - (double)P.y / GetClientSize().y)
         * (axes.imagMax - axes.imagMin) + axes.imagMin);
 }
 
 wxPoint ComplexPlane::ComplexToScreen(std::complex<double> C)
 {
     return wxPoint((C.real() - axes.realMin) / (axes.realMax - axes.realMin)
-        * GetClientSize().x, (C.imag() - axes.imagMin) /
-        (axes.imagMax - axes.imagMin) * GetClientSize().y);
+        * GetClientSize().x, (axes.imagMin - C.imag()) /
+        (axes.imagMax - axes.imagMin) * GetClientSize().y + GetClientSize().y);
 }
 
 double ComplexPlane::LengthToScreen(double r)
