@@ -24,9 +24,10 @@ void Grid::CalcVisibleGrid()
 	horiz.clear();
 	for (auto v : vert) delete v;
 	vert.clear();
-	double hOffset = fmod(parent->ScreenToComplex(wxPoint(0,0)).real(), hStep);
-	double vOffset = fmod(parent->ScreenToComplex(wxPoint(0,0)).imag(), vStep);
+
 	wxPoint corner(parent->GetClientSize().x, parent->GetClientSize().y);
+	double hOffset = fmod(parent->ScreenToComplex(wxPoint(0,0)).real(), hStep);
+	double vOffset = fmod(parent->ScreenToComplex(corner).imag(), vStep);
 
 	for (double y = parent->axes.imagMin - vOffset;
 		y < parent->axes.imagMax; y += vStep)

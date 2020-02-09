@@ -129,20 +129,21 @@ void ComplexPlane::Pan(wxPoint mousePos)
 
 void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
 {
+    std::complex<double> zoomCenter = ScreenToComplex(mousePos);
     // Zoom around the mouse position. To this, first translate the viewport
     // so mousePos is at the origin, then apply the zoom, then translate back.
-    axes.realMax -= lastMousePos.real();
-    axes.realMin -= lastMousePos.real();
-    axes.imagMax -= lastMousePos.imag();
-    axes.imagMin -= lastMousePos.imag();
+    axes.realMax -= zoomCenter.real();
+    axes.realMin -= zoomCenter.real();
+    axes.imagMax -= zoomCenter.imag();
+    axes.imagMin -= zoomCenter.imag();
     for (int i = 0; i < 4; i++)
     {
         axes.c[i] *= pow(zoomFactor, zoomSteps);
     }
-    axes.realMax += lastMousePos.real();
-    axes.realMin += lastMousePos.real();
-    axes.imagMax += lastMousePos.imag();
-    axes.imagMin += lastMousePos.imag();
+    axes.realMax += zoomCenter.real();
+    axes.realMin += zoomCenter.real();
+    axes.imagMax += zoomCenter.imag();
+    axes.imagMin += zoomCenter.imag();
 
     // If the user zooms in or out too far, the tick marks will get too
     // far apart or too close together. Rescale when they are more than twice
