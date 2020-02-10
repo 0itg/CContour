@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "ComplexPlane.h"
-
 #define WXUSINGDLL
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -45,9 +43,10 @@ public:
         int pixPrecision = 3) = 0;
 
     // Returns the index of the control point under the mouse, -1 if none.
-    virtual int IsOnCtrlPoint(std::complex<double> pt, ComplexPlane* canvas,
+    virtual int OnCtrlPoint(std::complex<double> pt, ComplexPlane* canvas,
         int pixPrecision = 3);
     virtual std::complex<double> GetCtrlPoint(int index);
+    virtual void SetCtrlPoint(int index, std::complex<double> c);
 
     // Any actions to be taken when editing is finished.
     virtual void Finalize() {};

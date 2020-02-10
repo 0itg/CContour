@@ -17,6 +17,7 @@ EVT_MOUSEWHEEL(InputPlane::OnMouseWheel)
 EVT_MOTION(InputPlane::OnMouseMoving)
 EVT_KEY_UP(InputPlane::OnKeyUp)
 EVT_PAINT(InputPlane::OnPaint)
+EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE()
 
 InputPlane::~InputPlane()
@@ -65,11 +66,28 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
     else if (state == STATE_IDLE)
     {
         CaptureMouseIfAble();
+
+        wxPoint pt = mouse.GetPosition();
+
         // If a contour is not highlighted (< 0), then create a new one
-        // And set to be the active contour.
-        if (highlightedContour < 0)
-        {
-            contours.push_back(CreateContour(mouse.GetPosition()));
+        // And set to be the active contour. If a contour is highlighted,
+        // User can still create a new one with Ctrl-click
+        if (highlightedContour < 0 || mouse.ControlDown())
+        {       
+            std::complex<double> c;
+            bool snap = false;
+
+            // Snap to control point if Ctrl key is down
+            if (highlightedCtrlPoint > 0 && mouse.ControlDown())
+            {
+                snap = true;
+                c = contours[highlightedContour]->
+                    GetCtrlPoint(highlightedCtrlPoint);
+            }
+            contours.push_back(CreateContour(pt));
+
+            if (snap) contours.back()->SetCtrlPoint(0, c);
+
             subDivContours.push_back(contours.back()->Subdivide(res));
             state = contours.size() - 1;
             highlightedContour = state;
@@ -89,7 +107,12 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
 {
     if (highlightedContour > -1)
+    {
         contours[highlightedContour]->color = color;
+        subDivContours[highlightedContour]->color = color;
+    }
+    Refresh();
+    Update();
 }
 
 void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
@@ -158,6 +181,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
     // translate the contour, but it adjusts the radius of a circle.
     if (state > STATE_IDLE)
     {
+        CaptureMouseIfAble();
         if (highlightedCtrlPoint < 0)
         {
             contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos);
@@ -185,7 +209,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
             Update();
         }
     }
-    else if (state == STATE_PANNING)
+    if (panning)
     {
         Pan(mouse.GetPosition());
     }

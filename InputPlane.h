@@ -41,11 +41,11 @@ public:
     // change accordingly
     bool linkGridToAxes = true;
     bool showGrid = true;
-    bool randomizeColor = false;
+    bool randomizeColor = true;
     wxColor color = wxColor(0, 0, 200);
 
     const wxColor BGcolor = *wxWHITE;
-    const int COLOR_SIMILARITY_THRESHOLD = 64;
+    const int COLOR_SIMILARITY_THRESHOLD = 96;
 private:
     // drawnContours stores contours in original form for editing.
     // subDivContours stores them as approximating polygons for mapping 

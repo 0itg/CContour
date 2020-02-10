@@ -5,6 +5,8 @@
 #include "ContourRect.h"
 #include "Grid.h"
 #include <complex>
+#include <sstream>
+#include <iomanip>
 
 ComplexPlane::ComplexPlane(wxFrame* parent) : axes(this),
 wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
@@ -52,14 +54,19 @@ void ComplexPlane::OnMouseWheel(wxMouseEvent& mouse)
 void ComplexPlane::OnMouseRightUp(wxMouseEvent& mouse)
 {
     ReleaseMouseIfAble();
-    if (state == STATE_PANNING) state = STATE_IDLE;
+    panning = false;
 }
 
 void ComplexPlane::OnMouseRightDown(wxMouseEvent& mouse)
 {
     CaptureMouseIfAble();
-    if (state == STATE_IDLE)
-        state = STATE_PANNING;
+    panning = true;
+}
+
+void ComplexPlane::OnMouseCapLost(wxMouseCaptureLostEvent& mouse)
+{
+        ReleaseMouseIfAble();
+        panning = false;
 }
 
 void ComplexPlane::Highlight(wxPoint mousePos)
@@ -71,7 +78,7 @@ void ComplexPlane::Highlight(wxPoint mousePos)
     for (int i = 0; i < contours.size(); i++)
     {
         int CtrlPtIndex = contours[i]->
-            IsOnCtrlPoint(ScreenToComplex(mousePos), this);
+            OnCtrlPoint(ScreenToComplex(mousePos), this);
         if (CtrlPtIndex > -1)
         {
             notOnAnyContour = false;
@@ -183,40 +190,90 @@ void Axes::Draw(wxDC* dc)
     // CrossHair = axes through the given point
     dc->CrossHair(center);
 
+    wxFont font = wxFont(wxFontInfo(8));
+
     // Draw the tick marks on the axes.
     wxSize size = parent->GetClientSize();
-    std::complex<double> cMark = 0;
     wxPoint mark;
+
+    // Get offset and adjust tick mark count so text aligns with zero.
+    int count = realMin / reStep;
+    std::complex<double> cMark = realMin - fmod(realMin, reStep);
+
     while (cMark.real() < realMax)
     {
+        count++;
         cMark += reStep;
         mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x, mark.y + TICK_WIDTH / 2),
-            wxPoint(mark.x, mark.y - TICK_WIDTH / 2));
+
+        wxSize textOffset = font.GetPixelSize();
+        int textTopEdge = -TICK_WIDTH;
+        int textBottomEdge = parent->GetClientSize().y - TICK_WIDTH - font.GetPixelSize().y;
+
+        // Draw the labels near the axis if it's on screen. Otherwise, draw
+        // them at the top or bottom, depending on which side is closer
+        // to the axis.
+        if (center.y > 0 && center.y < parent->GetClientSize().y)
+        {
+            dc->DrawLine(mark.x, mark.y + TICK_WIDTH / 2,
+                mark.x, mark.y - TICK_WIDTH / 2);
+        }
+        if (center.y <= textTopEdge + LABEL_PADDING)
+        {
+            mark.y = textTopEdge + LABEL_PADDING;
+        }
+        else if (center.y > textBottomEdge - LABEL_PADDING)
+        {
+            mark.y = textBottomEdge - LABEL_PADDING;
+        }
+
+        if (count % LABEL_SPACING == 0 && count != 0)
+        {
+            std::ostringstream oss;
+            oss << std::setprecision(4) << std::noshowpoint << cMark.real();
+            std::string label = oss.str();
+            dc->DrawText(label, mark.x - textOffset.x / 2,
+                mark.y + TICK_WIDTH / 2 + 2);
+        }
     }
-    cMark = 0;
-    while (cMark.real() > realMin)
-    {
-        cMark -= reStep;
-        mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x, mark.y + TICK_WIDTH / 2),
-            wxPoint(mark.x, mark.y - TICK_WIDTH / 2));
-    }
-    cMark = 0;
+
+    // Treat the vertical axis similarly.
+
+    count = imagMin / imStep;
+    cMark = (imagMin - fmod(imagMin, imStep)) * 1i;
+    
     while (cMark.imag() < imagMax)
     {
+        count++;
         cMark += imStep * 1i;
         mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x + TICK_WIDTH / 2, mark.y),
-            wxPoint(mark.x - TICK_WIDTH / 2, mark.y));
-    }
-    cMark = 0;
-    while (cMark.imag() > imagMin)
-    {
-        cMark -= imStep * 1i;
-        mark = parent->ComplexToScreen(cMark);
-        dc->DrawLine(wxPoint(mark.x + TICK_WIDTH / 2, mark.y),
-            wxPoint(mark.x - TICK_WIDTH / 2, mark.y));
+        std::ostringstream oss;
+        oss << std::setprecision(4) << std::noshowpoint << cMark.imag();
+        std::string label = oss.str();
+        wxSize textOffset = dc->GetTextExtent(label);
+
+        int textLeftEdge = textOffset.x + TICK_WIDTH;
+        int textRightEdge = parent->GetClientSize().x + TICK_WIDTH;
+
+        if (center.x > 0 && center.x < parent->GetClientSize().x)
+        {
+            dc->DrawLine(wxPoint(mark.x + TICK_WIDTH / 2, mark.y),
+                wxPoint(mark.x - TICK_WIDTH / 2, mark.y));
+        }
+        if (center.x <= textLeftEdge + LABEL_PADDING)
+        {
+            mark.x = textLeftEdge + LABEL_PADDING;
+        }
+        else if (center.x > textRightEdge - LABEL_PADDING)
+        {
+            mark.x = textRightEdge - LABEL_PADDING;
+        }
+
+        if (count % LABEL_SPACING == 0 && count != 0)
+        {
+            dc->DrawText(label, mark.x - textLeftEdge,
+                mark.y - textOffset.y / 2);
+        }
     }
 }
 

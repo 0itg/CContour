@@ -13,7 +13,7 @@ void Contour::RemovePoint(int index)
 	points.erase(points.begin() + index);
 }
 
-int Contour::IsOnCtrlPoint(std::complex<double> pt,
+int Contour::OnCtrlPoint(std::complex<double> pt,
 	ComplexPlane* canvas, int pixPrecision)
 {
 	for (int i = 0; i < points.size(); i++)
@@ -27,6 +27,11 @@ int Contour::IsOnCtrlPoint(std::complex<double> pt,
 std::complex<double> Contour::GetCtrlPoint(int index)
 {
 	return points[index];
+}
+
+void Contour::SetCtrlPoint(int index, std::complex<double> c)
+{
+	points[index] = c;
 }
 
 void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p)

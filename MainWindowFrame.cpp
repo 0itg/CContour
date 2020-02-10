@@ -59,13 +59,13 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolBar->AddTool(ID_Paintbrush, "Paintbrush",
         wxBitmap(wxT("icons/paint-brush.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_RADIO, "Recolor a contour");
-
     toolBar->AddSeparator();
 
     toolBar->AddTool(ID_Color_Randomizer, "Color Randomizer",
         wxBitmap(wxT("icons/color-randomizer.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_CHECK,
         "Randomizes color after a contour is drawn");
+    toolBar->ToggleTool(ID_Color_Randomizer, true);
     wxColourPickerCtrl* colorCtrl =
         new wxColourPickerCtrl(toolBar, ID_Color_Picker, wxColor(0, 0, 200));
     toolBar->AddControl(colorCtrl);
