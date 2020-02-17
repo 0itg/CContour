@@ -21,6 +21,7 @@ EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
 EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainWindowFrame::OnColorPicked)
+EVT_TEXT_ENTER(ID_Function_Entry, MainWindowFrame::OnFunctionEntry)
 wxEND_EVENT_TABLE()
 
 MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
@@ -69,6 +70,11 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     wxColourPickerCtrl* colorCtrl =
         new wxColourPickerCtrl(toolBar, ID_Color_Picker, wxColor(0, 0, 200));
     toolBar->AddControl(colorCtrl);
+    wxTextCtrl* funcEntry = new wxTextCtrl(toolBar, ID_Function_Entry,
+        wxString("z*z"), wxDefaultPosition,
+        wxSize(toolBar->GetSize().x / 4, wxDefaultSize.y), wxTE_PROCESS_ENTER);
+    toolBar->AddStretchableSpace();
+    toolBar->AddControl(funcEntry);
 
     SetToolBar(toolBar);
     toolBar->Realize();
@@ -77,13 +83,14 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
     input = new InputPlane(this);
     input->SetColorPicker(colorCtrl);
-    OutputPlane* outputPanel = new OutputPlane(this, input);
-    outputPanel->Refresh(); // Forces it to show mapped inputs.
+    output = new OutputPlane(this, input);
+    output->SetFuncInput(funcEntry);
+    output->Refresh(); // Forces it to show mapped inputs.
     wxBoxSizer* ComplexPlanes = new wxBoxSizer(wxHORIZONTAL);
     wxSizerFlags PlaneFlags(1);
     PlaneFlags.Shaped().Border(wxALL, 10).Center();
     ComplexPlanes->Add(input, PlaneFlags);
-    ComplexPlanes->Add(outputPanel, PlaneFlags);
+    ComplexPlanes->Add(output, PlaneFlags);
     SetSizer(ComplexPlanes);
 }
 void MainWindowFrame::OnExit(wxCommandEvent& event)
@@ -113,4 +120,9 @@ void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event)
 void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event)
 {
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
+}
+
+void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event)
+{
+    output->OnFunctionEntry(event);
 }

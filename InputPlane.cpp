@@ -17,6 +17,7 @@ EVT_MOUSEWHEEL(InputPlane::OnMouseWheel)
 EVT_MOTION(InputPlane::OnMouseMoving)
 EVT_KEY_UP(InputPlane::OnKeyUp)
 EVT_PAINT(InputPlane::OnPaint)
+EVT_LEAVE_WINDOW(ComplexPlane::OnMouseLeaving)
 EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE()
 
@@ -212,6 +213,12 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
     if (panning)
     {
         Pan(mouse.GetPosition());
+        for (auto out : outputs)
+        {
+            out->movedViewPort = true;
+            Refresh();
+            Update();
+        }
     }
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());

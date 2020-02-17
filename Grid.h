@@ -11,6 +11,8 @@
 class ContourLine;
 class ContourPolygon;
 class ComplexPlane;
+template<class T>
+class Parser;
 
 class Grid
 {
@@ -46,8 +48,7 @@ public:
 
     // applies a function to the lines of the input grid and stores them
     // as open polygons in this object.
-    void MapGrid(Grid* grid,
-        std::function<std::complex<double>(std::complex<double>)> f);
+    void MapGrid(Grid* grid, Parser<std::complex<double>>& f);
     int res = 80;
 private:
     std::vector<ContourPolygon*> horiz;

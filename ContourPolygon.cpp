@@ -1,5 +1,6 @@
 #include "ContourPolygon.h"
 #include "ComplexPlane.h"
+#include "Parser.h"
 #include <numeric>
 
 
@@ -168,8 +169,7 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
 	return D;
 }
 
-ContourPolygon* ContourPolygon::Apply(
-	std::function<std::complex<double>(std::complex<double>)> f)
+ContourPolygon* ContourPolygon::Apply(Parser<std::complex<double>>& f)
 {
 	ContourPolygon* C = Clone();
 	for (auto& z : C->points)

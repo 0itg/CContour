@@ -2,6 +2,9 @@
 #include "ContourLine.h"
 #include "ContourPolygon.h"
 #include "ComplexPlane.h"
+#include "Parser.h"
+#include <algorithm>
+#include <execution>
 
 Grid::~Grid()
 {
@@ -30,14 +33,14 @@ void Grid::CalcVisibleGrid()
 	double vOffset = fmod(parent->ScreenToComplex(corner).imag(), vStep);
 
 	for (double y = parent->axes.imagMin - vOffset;
-		y < parent->axes.imagMax; y += vStep)
+		y <= parent->axes.imagMax; y += vStep)
 	{
 		vert.push_back(new ContourLine(std::complex<double>(parent->
 			ScreenToComplex(wxPoint(0, 0)).real(), y),
 			std::complex<double>(parent->ScreenToComplex(corner).real(), y)));
 	}
 	for (double x = parent->axes.realMin - hOffset;
-		x < parent->axes.realMax; x += hStep)
+		x <= parent->axes.realMax; x += hStep)
 	{
 		vert.emplace_back(new ContourLine(std::complex<double>(x,
 			parent->ScreenToComplex(wxPoint(x,0)).imag()),
@@ -58,8 +61,8 @@ void TransformedGrid::Draw(wxDC* dc, ComplexPlane* canvas)
 	for (auto v : vert) v->Draw(dc, canvas);
 }
 
-void TransformedGrid::MapGrid(Grid* grid,
-	std::function<std::complex<double>(std::complex<double>)> f)
+//template<class Functor>
+void TransformedGrid::MapGrid(Grid* grid, Parser<std::complex<double>>& f)
 {
 	for (auto h : horiz) delete h;
 	horiz.clear();
@@ -77,6 +80,20 @@ void TransformedGrid::MapGrid(Grid* grid,
 			t = i / res;
 			horiz.back()->AddPoint(f(h->GetCtrlPoint(0) * t
 				+ h->GetCtrlPoint(1) * (1 - t)));
+			while (horiz.back()->GetCtrlPoint(i).real() == INFINITY)
+			{
+				horiz.back()->RemovePoint(i);
+				double t_avoid_pole = i / res / 100;
+				horiz.back()->AddPoint(f(h->GetCtrlPoint(0) * (t + t_avoid_pole)
+					+ h->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
+			}
+			while (horiz.back()->GetCtrlPoint(i).imag() == INFINITY)
+			{
+				horiz.back()->RemovePoint(i);
+				double t_avoid_pole = i / res / 100;
+				horiz.back()->AddPoint(f(h->GetCtrlPoint(0) * (t + t_avoid_pole)
+					+ h->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
+			}
 		}
 	}
 	for (auto v : grid->vert)

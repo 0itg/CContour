@@ -69,6 +69,17 @@ void ComplexPlane::OnMouseCapLost(wxMouseCaptureLostEvent& mouse)
         panning = false;
 }
 
+//void ComplexPlane::OnMouseEntering(wxMouseEvent& mouse)
+//{
+//    statBar->PushStatusText("", 0);
+//    statBar->PushStatusText("", 1);
+//}
+void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse)
+{
+    statBar->SetStatusText("", 0);
+    statBar->SetStatusText("", 1);
+}
+
 void ComplexPlane::Highlight(wxPoint mousePos)
 {
     bool notOnAnyContour = true;
@@ -190,7 +201,7 @@ void Axes::Draw(wxDC* dc)
     // CrossHair = axes through the given point
     dc->CrossHair(center);
 
-    wxFont font = wxFont(wxFontInfo(8));
+    wxFont font = wxFont(wxFontInfo(6));
 
     // Draw the tick marks on the axes.
     wxSize size = parent->GetClientSize();
@@ -208,7 +219,8 @@ void Axes::Draw(wxDC* dc)
 
         wxSize textOffset = font.GetPixelSize();
         int textTopEdge = -TICK_WIDTH;
-        int textBottomEdge = parent->GetClientSize().y - TICK_WIDTH - font.GetPixelSize().y;
+        int textBottomEdge = parent->GetClientSize().y
+            - TICK_WIDTH - font.GetPixelSize().y;
 
         // Draw the labels near the axis if it's on screen. Otherwise, draw
         // them at the top or bottom, depending on which side is closer
@@ -232,8 +244,8 @@ void Axes::Draw(wxDC* dc)
             std::ostringstream oss;
             oss << std::setprecision(4) << std::noshowpoint << cMark.real();
             std::string label = oss.str();
-            dc->DrawText(label, mark.x - textOffset.x / 2,
-                mark.y + TICK_WIDTH / 2 + 2);
+            dc->DrawText(label, mark.x - parent->GetTextExtent(label).x / 2,
+                mark.y + TICK_WIDTH / 2 + 1);
         }
     }
 
@@ -248,7 +260,7 @@ void Axes::Draw(wxDC* dc)
         cMark += imStep * 1i;
         mark = parent->ComplexToScreen(cMark);
         std::ostringstream oss;
-        oss << std::setprecision(4) << std::noshowpoint << cMark.imag();
+        oss << std::setprecision(4) << std::noshowpoint << cMark.imag() << 'i';
         std::string label = oss.str();
         wxSize textOffset = dc->GetTextExtent(label);
 

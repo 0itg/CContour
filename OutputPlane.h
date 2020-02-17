@@ -2,6 +2,7 @@
 
 #include "ComplexPlane.h"
 #include <complex>
+#include "Parser.h"
 
 class InputPlane;
 class Contour;
@@ -21,12 +22,16 @@ public:
     //void OnMouseRightDown(wxMouseEvent& mouse);
     void OnMouseMoving(wxMouseEvent& mouse);
     void OnPaint(wxPaintEvent& paint);
+    void OnFunctionEntry(wxCommandEvent& event);
 
-    int res = 100;
-    std::function<std::complex<double>(std::complex<double>)> f =
-        [](std::complex<double> z) { return z * z; };
+    void SetFuncInput(wxTextCtrl* fIn) { funcInput = fIn; }
+
+    int res = 200;
+
+    Parser<std::complex<double>> f;
 private:
     InputPlane* in;
     TransformedGrid* tGrid;
+    wxTextCtrl* funcInput;
     wxDECLARE_EVENT_TABLE();
 };

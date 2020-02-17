@@ -26,6 +26,7 @@ enum enum_buttons
     ID_Paintbrush,
     ID_Color_Randomizer,
     ID_Color_Picker,
+    ID_Function_Entry
 };
 
 enum enum_states
@@ -81,6 +82,8 @@ public:
     void OnMouseRightUp(wxMouseEvent& mouse);
     void OnMouseRightDown(wxMouseEvent& mouse);
     void OnMouseCapLost(wxMouseCaptureLostEvent& mouse);
+    //void OnMouseEntering(wxMouseEvent& mouse);
+    void OnMouseLeaving(wxMouseEvent& mouse);
 
     // For convenience
     void CaptureMouseIfAble() { if (!HasCapture()) CaptureMouse(); }
