@@ -18,17 +18,17 @@ ContourPolygon::ContourPolygon(wxColor col)
 void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
 {
 	// Create a vector of screen points from the mathematical ones.
-	std::vector<wxPoint> p;
-	p.resize(points.size());
-	std::transform(points.begin(), points.end(), p.begin(),
+	std::vector<wxPoint> screenPoints;
+	screenPoints.resize(points.size());
+	std::transform(points.begin(), points.end(), screenPoints.begin(),
 		[canvas](std::complex<double> z) {return canvas->ComplexToScreen(z);});
 
-	// if "closed" is true, the line segment from the last 
-	// point to the first will be drawn. 
-	if (closed)
-		dc->DrawPolygon(p.size(), &p[0]);
-	else
-		dc->DrawLines(p.size(), &p[0]);
+	for (auto pt = screenPoints.begin(); pt != screenPoints.end() - 1; pt++)
+	{
+		DrawClippedLine(*pt, *(pt + 1), dc, canvas);
+	}
+	if (closed) DrawClippedLine(screenPoints.back(), screenPoints.front(),
+		dc, canvas);
 }
 
 void ContourPolygon::ActionNoCtrlPoint(
@@ -53,13 +53,13 @@ bool ContourPolygon::IsOnContour(std::complex<double> pt,
 	{
 		if (DistancePointToLine(pt, points[i + 1], points[i]) <
 			canvas->ScreenToLength(pixPrecision) &&
-			IsInsideLine(pt, points[i + 1], points[i]))
+			IsInsideBox(pt, points[i + 1], points[i]))
 			return true;
 	}
 	// Check the line from last point to first
 	if (DistancePointToLine(pt, points[0], points[i]) <
 		canvas->ScreenToLength(pixPrecision) &&
-		IsInsideLine(pt, points[0], points[i]))
+		IsInsideBox(pt, points[0], points[i]))
 		return true;
 	else return false;
 }

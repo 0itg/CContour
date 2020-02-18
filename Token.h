@@ -53,7 +53,6 @@ public:
 
 	bool leftAssoc = true;
 protected:
-	//T val = 0;
 	Parser<T>* parent = nullptr;
 };
 
@@ -114,6 +113,7 @@ public:
 	bool IsMonad() { return true; }
 };
 
+// Generates a sequence of integers for use in other templates
 template<int... Is>
 struct seq {};
 template<int N, int... Is>
@@ -121,22 +121,25 @@ struct int_seq : int_seq<N - 1, N - 1, Is...> {};
 template<int... Is>
 struct int_seq<0, Is...> : seq<Is...> {};
 
+// Helper function overload of callByArray
 template<typename T, typename... Ts, int... Is>
-T callByVector(std::function<T(Ts...)> f, std::array<T,
+T callByArray(std::function<T(Ts...)> f, std::array<T,
 	sizeof...(Ts)>& arguments, seq<Is...>)
 {
 	return f(arguments[Is]...);
 }
 
+// Calls a function with elements of an array pasted into
+// each argument slot.
 template<typename T, typename... Ts>
-T callByVector(std::function<T(Ts...)> f,
+T callByArray(std::function<T(Ts...)> f,
 	std::array<T, sizeof...(Ts)>& arguments)
 {
-	return callByVector(f, arguments, int_seq<sizeof...(Ts)>());
+	return callByArray(f, arguments, int_seq<sizeof...(Ts)>());
 }
 
 // Template class for functions of arbitrary argument count.
-// All data types must be the same, for now
+// All data types must be the same, for now.
 template<typename T, typename... Ts>
 class SymbolFunc : public Symbol<T>
 {
@@ -149,7 +152,7 @@ public:
 	std::function <T(Ts...)> f;
 	virtual SNumPtr Apply(std::array<T, sizeof...(Ts)>& args)
 	{
-		return std::make_unique<SymbolNum<T>>(callByVector(f, args));
+		return std::make_unique<SymbolNum<T>>(callByArray(f, args));
 	}
 	virtual SNumPtr eval()
 	{

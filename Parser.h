@@ -136,15 +136,29 @@ T Parser<T>::Parse(std::string input)
 	};
 
 	// Add white space between tokens for easier stringstream processing
+	size_t pos = 0;
 	std::string inputCopy = input;
-	for (auto tok : tokens)
+	while (pos != std::string::npos)
 	{
-		if (inputCopy.find(tok.first) != std::string::npos)
+		pos = inputCopy.find_first_not_of(
+			"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890_ "
+			, pos);
+		if (pos != std::string::npos)
 		{
-			replaceAll(inputCopy, tok.first, "");
-			replaceAll(input, tok.first, " " + tok.first + " ");
+			std::string y(1, input[pos]);
+			input.replace(pos, 1, " " + y + " ");
+			inputCopy.replace(pos, 1, "   ");
 		}
 	}
+	//std::string inputCopy = input;
+	//for (auto tok : tokens)
+	//{
+	//	if (inputCopy.find(tok.first) != std::string::npos)
+	//	{
+	//		replaceAll(inputCopy, tok.first, "");
+	//		replaceAll(input, tok.first, " " + tok.first + " ");
+	//	}
+	//}
 
 	std::string s;
 	std::stringstream strPre(input);

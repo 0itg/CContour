@@ -33,7 +33,7 @@ bool ContourLine::IsOnContour(std::complex<double> pt, ComplexPlane* canvas, int
 {
 	if (DistancePointToLine(pt, points[0], points[1]) <
 		canvas->ScreenToLength(pixPrecision) &&
-		IsInsideLine(pt, points[0], points[1]))
+		IsInsideBox(pt, points[0], points[1]))
 		return true;
 	else return false;
 }

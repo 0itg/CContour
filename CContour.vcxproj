@@ -152,6 +152,7 @@
     <ClInclude Include="ContourCircle.h" />
     <ClInclude Include="Contour.h" />
     <ClInclude Include="ContourLine.h" />
+    <ClInclude Include="Event_IDs.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ContourPolygon.h" />
     <ClInclude Include="ContourRect.h" />
@@ -163,12 +164,14 @@
     <ClInclude Include="Token.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="icons\axis.png" />
     <Image Include="icons\color-randomizer.png" />
     <Image Include="icons\draw-ellipse.png" />
     <Image Include="icons\draw-line.png" />
     <Image Include="icons\draw-polygon-star.png" />
     <Image Include="icons\draw-polygon.png" />
     <Image Include="icons\draw-rectangle.png" />
+    <Image Include="icons\grid.png" />
     <Image Include="icons\paint-brush.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

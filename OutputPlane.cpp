@@ -7,6 +7,8 @@
 #include "Token.h"
 #include "Parser.h"
 
+#include "Event_IDs.h"
+//#include "wx/dcgraph.h"
 
 wxBEGIN_EVENT_TABLE(OutputPlane, wxPanel)
 EVT_LEFT_UP(OutputPlane::OnMouseLeftUp)
@@ -60,16 +62,19 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
 void OutputPlane::OnPaint(wxPaintEvent& paint)
 {
     wxAutoBufferedPaintDC dc(this);
+    //wxGCDC dc(pdc);
+    //wxDCClipper(dc, GetClientSize());
     dc.Clear();
     wxPen pen(tGrid->color, 1);
     wxBrush brush(*wxTRANSPARENT_BRUSH);
+    //wxBrush brush(wxColor(255, 0, 0, 128), wxBRUSHSTYLE_SOLID);
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
     // Only recalculate the mapping if the viewport changed.
     if (movedViewPort) tGrid->MapGrid(in->grid, f);
 
-    tGrid->Draw(&dc, this);
+    if (showGrid) tGrid->Draw(&dc, this);
 
     for (auto C : contours) delete C;
     contours.clear();
@@ -93,7 +98,7 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
         contours[highlightedContour]->Draw(&dc, this);
     }
 
-    axes.Draw(&dc);
+    if (showAxes)axes.Draw(&dc);
     movedViewPort = false;
 }
 
