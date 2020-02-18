@@ -295,6 +295,21 @@ void InputPlane::OnColorRandomizer(wxCommandEvent& event)
     randomizeColor = event.IsChecked();
 }
 
+void InputPlane::OnContourResCtrl(wxSpinEvent& event)
+{
+    res = resCtrl->GetValue();
+}
+
+void InputPlane::OnContourResCtrl(wxCommandEvent& event)
+{
+    res = resCtrl->GetValue();
+    for (auto C : subDivContours) delete C;
+    std::transform(contours.begin(), contours.end(), subDivContours.begin(),
+        [&](Contour* C){ return C->Subdivide(res); });
+    Update();
+    Refresh();
+}
+
 void InputPlane::SetContourType(int id)
 {
     contourType = id;

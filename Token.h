@@ -26,11 +26,16 @@ enum precedence_list
 	sym_comma = -1
 };
 
+// Base class for parsed symbols. Symbol pointers are stored in a vector, and
+// each symbol has a pointer "parent" to that vector. Symbols recursively
+// evaluate themselves, pulling their arguments from the vector. Any valid
+// calculation will return a SymbolNum<T> unique pointer.
 template<typename T>
 class Symbol
 {
 	typedef std::unique_ptr<SymbolNum<T>> SNumPtr;
 public:
+	// Various flags and virtual "members" used by the parser.
 	virtual int GetPrecedence() = 0;
 	virtual std::string GetToken() = 0;
 	virtual bool IsLeftAssoc() { return true; }
@@ -52,6 +57,7 @@ protected:
 	Parser<T>* parent = nullptr;
 };
 
+// All two-argument operations inherent from this
 template<typename T>
 class Dyad : public Symbol<T>
 {
@@ -63,7 +69,7 @@ public:
 		try
 		{
 			if (this->parent->itr < this->parent->GetMinItr() + 1)
-				throw std::invalid_argument("Error: Mismatched operations\n");
+				throw std::invalid_argument("Error: Mismatched operations.");
 		}
 		catch(std::invalid_argument)
 		{
@@ -73,7 +79,7 @@ public:
 		try
 		{
 			if (this->parent->itr < this->parent->GetMinItr() + 1)
-				throw std::invalid_argument("Error: Mismatched operations\n");
+				throw std::invalid_argument("Error: Mismatched operations.");
 		}
 		catch (std::invalid_argument)
 		{
@@ -83,6 +89,29 @@ public:
 		return Apply(std::move(s1), std::move(s2));
 	}
 	bool IsDyad() { return true; }
+};
+
+// One-argument operations inherit from this
+template<typename T>
+class Monad : public Symbol<T>
+{
+	typedef std::unique_ptr<SymbolNum<T>> SNumPtr;
+public:
+	virtual SNumPtr Apply(SNumPtr t1) = 0;
+	virtual SNumPtr eval()
+	{
+		try
+		{
+			if (this->parent->itr < this->parent->GetMinItr() + 1)
+				throw std::invalid_argument("Error: Mismatched operations.");
+		}
+		catch (std::invalid_argument)
+		{
+			throw;
+		}
+		return Apply(std::move((*(--this->parent->itr))->eval()));
+	}
+	bool IsMonad() { return true; }
 };
 
 template<int... Is>
@@ -106,6 +135,8 @@ T callByVector(std::function<T(Ts...)> f,
 	return callByVector(f, arguments, int_seq<sizeof...(Ts)>());
 }
 
+// Template class for functions of arbitrary argument count.
+// All data types must be the same, for now
 template<typename T, typename... Ts>
 class SymbolFunc : public Symbol<T>
 {
@@ -128,7 +159,7 @@ public:
 			try
 			{
 				if (this->parent->itr < this->parent->GetMinItr() + 1)
-					throw std::invalid_argument("Error: Mismatched operations\n");
+					throw std::invalid_argument("Error: Mismatched operations.");
 			}
 			catch (std::invalid_argument)
 			{
@@ -142,28 +173,6 @@ public:
 	virtual std::string GetToken() { return name; }
 private:
 	std::string name = "f";	
-};
-
-template<typename T>
-class Monad : public Symbol<T>
-{
-	typedef std::unique_ptr<SymbolNum<T>> SNumPtr;
-public:
-	virtual SNumPtr Apply(SNumPtr t1) = 0;
-	virtual SNumPtr eval()
-	{
-		try
-		{
-			if (this->parent->itr < this->parent->GetMinItr() + 1)
-				throw std::invalid_argument("Error: Mismatched operations\n");
-		}
-		catch (std::invalid_argument)
-		{
-			throw;
-		}
-		return Apply(std::move((*(--this->parent->itr))->eval()));
-	}
-	bool IsMonad() { return true; }
 };
 
 // Used for parsing strings. Should never make it to the output queue
@@ -206,27 +215,34 @@ protected:
 	T val;
 };
 
+// Number but with stored name and value can be set after parsing.
 template<typename T>
 class SymbolVar : public SymbolNum<T>
 {
 public:
-	std::string name;
 	SymbolVar(std::string s, T v) : name(s), SymbolNum<T>(v) {}
 	virtual int GetPrecedence() { return sym_num; }
 	virtual std::string GetToken() { return name; }
 	virtual void SetVal(const T& v) { this->val = v; }
+private:
+	std::string name;
 };
 
+// Number with name but value can't be changed.
 template<typename T>
 class SymbolConst : public SymbolNum<T>
 {
 public:
-	std::string name;
 	SymbolConst(std::string s, T v) : name(s), SymbolNum<T>(v) {}
 	virtual int GetPrecedence() { return sym_num; }
 	virtual std::string GetToken() { return name; }
+private:
+	std::string name;
 };
 
+// Separator. Mainly exists because people expect to type it between
+// Function arguments. Also separates numbers from dyadic operations,
+// e.g. allowing a minus sign to be interpreted as a negative sign.
 template<typename T>
 class SymbolComma : public Monad<T>
 {

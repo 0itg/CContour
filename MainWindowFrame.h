@@ -19,5 +19,10 @@ private:
     void OnButtonColorRandomizer(wxCommandEvent& event);
     void OnButtonPaintbrush(wxCommandEvent& event);
     void OnFunctionEntry(wxCommandEvent& event);
+    void OnGridResCtrl(wxSpinEvent& event);
+    void OnGridResCtrl(wxCommandEvent& event);
+    void OnContourResCtrl(wxSpinEvent& event);
+    void OnContourResCtrl(wxCommandEvent& event);
+
     wxDECLARE_EVENT_TABLE();
 };

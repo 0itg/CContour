@@ -35,8 +35,8 @@ public:
 protected:
     ComplexPlane* parent;
 private:
-    std::vector<ContourLine*> horiz;
-    std::vector<ContourLine*> vert;
+    //std::vector<ContourLine*> horiz;
+    std::vector<ContourLine*> lines;
 };
 
 class TransformedGrid : public Grid
@@ -51,6 +51,6 @@ public:
     void MapGrid(Grid* grid, Parser<std::complex<double>>& f);
     int res = 80;
 private:
-    std::vector<ContourPolygon*> horiz;
-    std::vector<ContourPolygon*> vert;
+    //std::vector<ContourPolygon*> horiz;
+    std::vector<ContourPolygon*> lines;
 };

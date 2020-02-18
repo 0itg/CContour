@@ -39,7 +39,7 @@ void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
 {
     std::complex<double> outCoord = (ScreenToComplex(mouse.GetPosition()));
-    std::string inputCoord = "f(z) = z^2"; // TEMPORARY
+    std::string inputCoord = "f(z) = " + f.str();
     std::string outputCoord = "f(z) = " + std::to_string(outCoord.real()) +
         " + " + std::to_string(outCoord.imag()) + "i";
     statBar->SetStatusText(inputCoord, 0);
@@ -95,6 +95,19 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
 
     axes.Draw(&dc);
     movedViewPort = false;
+}
+
+void OutputPlane::OnGridResCtrl(wxSpinEvent& event)
+{
+    tGrid->res = resCtrl->GetValue();
+}
+
+void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
+{
+    tGrid->res = resCtrl->GetValue();
+    movedViewPort = true;
+    Refresh();
+    Update();
 }
 
 void OutputPlane::OnFunctionEntry(wxCommandEvent& event)

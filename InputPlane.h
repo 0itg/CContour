@@ -28,6 +28,8 @@ public:
     void OnPaint(wxPaintEvent& paint);
     void OnColorPicked(wxColourPickerEvent& colorPicked);
     void OnColorRandomizer(wxCommandEvent& event);
+    void OnContourResCtrl(wxSpinEvent& event);
+    void OnContourResCtrl(wxCommandEvent& event);
 
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
@@ -47,6 +49,7 @@ public:
     const wxColor BGcolor = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 private:
+    int res = 100;
     // drawnContours stores contours in original form for editing.
     // subDivContours stores them as approximating polygons for mapping 
     std::vector<ContourPolygon*> subDivContours;

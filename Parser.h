@@ -33,14 +33,15 @@ public:
 		RecognizeToken(new SymbolFunc<T, Ts...>(f, name));
 	}
 	void setVariable(const std::string& name, const T& val);
+	std::string str() { return lastValidInput; }
 	T Parse(std::string str);
-	void Revert() { Parse(lastvalidInput); }
+	void Revert() { Parse(lastValidInput); }
 
 	typename std::vector<Symbol<T>*>::iterator itr;
 	auto GetMinItr() { return out.begin(); }
 	T operator()(T val);
 private:
-	std::string lastvalidInput = "";
+	std::string lastValidInput = "";
 	void PushToken(Symbol<T>* token)
 	{
 		token->SetParent(this);
@@ -75,6 +76,7 @@ inline Parser<T>::Parser()
 
 	RecognizeFunc((std::function<T(T)>)[](T z) {return exp(z); }, "exp");
 	RecognizeFunc((std::function<T(T)>)[](T z) {return log(z); }, "log");
+	RecognizeFunc((std::function<T(T)>)[](T z) {return sqrt(z); }, "sqrt");
 	RecognizeFunc((std::function<T(T)>)[](T z) {return sin(z); }, "sin");
 	RecognizeFunc((std::function<T(T)>)[](T z) {return cos(z); }, "cos");
 	RecognizeFunc((std::function<T(T)>)[](T z) {return tan(z); }, "tan");
@@ -232,10 +234,12 @@ T Parser<T>::Parse(std::string input)
 	// Check for errors
 	try
 	{
+		if (tokenVec.empty()) throw std::invalid_argument(
+			"Error: Empy expression.");
 		if (tokens[tokenVec[0]]->IsDyad() || tokens[tokenVec.back()]->IsDyad())
 		{
 			throw std::invalid_argument(
-				"Error: Expression begins or ends with dyad");
+				"Error: Expression begins or ends with dyad.");
 		}
 		if (tokenVec.size() > 1)
 		{
@@ -249,7 +253,7 @@ T Parser<T>::Parse(std::string input)
 							tokens[*(it + 1)]->IsDyad())
 						{
 							throw std::invalid_argument(
-								"Error: Two adjacent dyads");
+								"Error: Two adjacent dyads.");
 						}
 					}
 				}
@@ -330,7 +334,7 @@ T Parser<T>::Parse(std::string input)
 	T result = eval();
 	// If no exceptions have been thrown by now, the input should be valid,
 	// so store it as the last valid state.
-	lastvalidInput = input;
+	lastValidInput = input;
 	return result;
 }
 
