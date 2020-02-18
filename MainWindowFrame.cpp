@@ -13,6 +13,7 @@
 #include "MainWindowFrame.h"
 #include "InputPlane.h"
 #include "OutputPlane.h"
+#include "Event_IDs.h"
 
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
 //EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
@@ -22,6 +23,7 @@ EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
 EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainWindowFrame::OnColorPicked)
+EVT_TOOL_RANGE(ID_Show_Axes,ID_Show_Grid, MainWindowFrame::OnShowAxes_ShowGrid)
 EVT_SPINCTRL(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
 EVT_TEXT_ENTER(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
 EVT_SPINCTRL(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
@@ -65,16 +67,31 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
         wxBitmap(wxT("icons/draw-line.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_RADIO, "Draws a straight line");
 
-    toolbar->AddSeparator();
-
-    // Color tools. Paintbrush recolors the highlighted contour with
-    // the current color. Randomizer, if toggled, picks a new color 
-    // after any contour is drawn. Color Picker lets the user
-    // choose the current color.
+    //Paintbrush recolors the highlighted contour with the current color.
 
     toolbar->AddTool(ID_Paintbrush, "Paintbrush",
         wxBitmap(wxT("icons/paint-brush.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_RADIO, "Recolor a contour");
+    toolbar->AddSeparator();
+
+    // Toggle axes and grid lines.
+
+    toolbar->AddTool(ID_Show_Axes, "Show/Hide Axes",
+        wxBitmap(wxT("icons/axis.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_CHECK,
+        "Show or Hide Axes");
+    toolbar->ToggleTool(ID_Show_Axes, true);
+    toolbar->AddTool(ID_Show_Grid, "Show/Hide Grid",
+        wxBitmap(wxT("icons/grid.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_CHECK,
+        "Show or Hide Grid");
+    toolbar->ToggleTool(ID_Show_Grid, true);
+    toolbar->AddSeparator();
+
+    // Color tools. Randomizer, if toggled, picks a new color 
+    // after any contour is drawn. Color Picker lets the user
+    // choose the current color.
+
     toolbar->AddTool(ID_Color_Randomizer, "Color Randomizer",
         wxBitmap(wxT("icons/color-randomizer.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_CHECK,
@@ -196,4 +213,10 @@ void MainWindowFrame::OnContourResCtrl(wxSpinEvent& event)
 void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event)
 {
     input->OnContourResCtrl(event);
+}
+
+void MainWindowFrame::OnShowAxes_ShowGrid(wxCommandEvent& event)
+{
+    input->OnShowAxes_ShowGrid(event);
+    output->OnShowAxes_ShowGrid(event);
 }

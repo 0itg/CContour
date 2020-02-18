@@ -14,23 +14,6 @@
 #include <complex>
 #include <functional>
 
-enum enum_buttons
-{
-    ID_toolBar,
-
-    ID_Circle,
-    ID_Rect,
-    ID_Polygon,
-    ID_Line,
-
-    ID_Paintbrush,
-    ID_Color_Randomizer,
-    ID_Color_Picker,
-    ID_ContourResCtrl,
-    ID_GridResCtrl,
-    ID_Function_Entry
-};
-
 enum enum_states
 {
     // values of state >= 0 represent contour indices.
@@ -86,6 +69,7 @@ public:
     void OnMouseCapLost(wxMouseCaptureLostEvent& mouse);
     //void OnMouseEntering(wxMouseEvent& mouse);
     void OnMouseLeaving(wxMouseEvent& mouse);
+    void OnShowAxes_ShowGrid(wxCommandEvent& event);
 
     // For convenience
     void CaptureMouseIfAble() { if (!HasCapture()) CaptureMouse(); }
@@ -113,6 +97,8 @@ protected:
 
     bool panning = false;
     bool movedViewPort = true;
+    bool showAxes = true;
+    bool showGrid = true;
     wxSpinCtrl* resCtrl;
     wxStatusBar* statBar;
 };

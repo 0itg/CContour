@@ -23,6 +23,7 @@ private:
     void OnGridResCtrl(wxCommandEvent& event);
     void OnContourResCtrl(wxSpinEvent& event);
     void OnContourResCtrl(wxCommandEvent& event);
+    void OnShowAxes_ShowGrid(wxCommandEvent& event);
 
     wxDECLARE_EVENT_TABLE();
 };

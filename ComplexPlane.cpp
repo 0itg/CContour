@@ -4,6 +4,9 @@
 #include "ContourPolygon.h"
 #include "ContourRect.h"
 #include "Grid.h"
+
+#include "Event_IDs.h"
+
 #include <complex>
 #include <sstream>
 #include <iomanip>
@@ -69,15 +72,24 @@ void ComplexPlane::OnMouseCapLost(wxMouseCaptureLostEvent& mouse)
         panning = false;
 }
 
-//void ComplexPlane::OnMouseEntering(wxMouseEvent& mouse)
-//{
-//    statBar->PushStatusText("", 0);
-//    statBar->PushStatusText("", 1);
-//}
 void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse)
 {
     statBar->SetStatusText("", 0);
     statBar->SetStatusText("", 1);
+}
+
+void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
+{
+    switch (event.GetId())
+    {
+    case ID_Show_Axes:
+        showAxes = !showAxes;
+        break;
+    case ID_Show_Grid:
+        showGrid = !showGrid;
+    }
+    Refresh();
+    Update();
 }
 
 void ComplexPlane::Highlight(wxPoint mousePos)
@@ -288,10 +300,3 @@ void Axes::Draw(wxDC* dc)
         }
     }
 }
-
-//double Dist(wxPoint X, wxPoint Y)
-//{
-//    double Xdist = X.x - Y.x;
-//    double Ydist = X.y - Y.y;
-//    return sqrt(Xdist * Xdist + Ydist * Ydist);
-//}

@@ -1,5 +1,7 @@
 #pragma once
 #include "ComplexPlane.h"
+#include "Event_IDs.h"
+
 #include "wx/clrpicker.h"
 
 class ContourPolygon;
@@ -42,7 +44,6 @@ public:
     // If true, when axes step values change, grid step values
     // change accordingly
     bool linkGridToAxes = true;
-    bool showGrid = true;
     bool randomizeColor = true;
     wxColor color = wxColor(0, 0, 200);
 

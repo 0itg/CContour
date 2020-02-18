@@ -6,6 +6,8 @@
 #include "ContourLine.h"
 #include "Grid.h"
 
+//#include "wx/dcgraph.h"
+
 wxBEGIN_EVENT_TABLE(InputPlane, wxPanel)
 EVT_LEFT_UP(InputPlane::OnMouseLeftUpContourTools)
 //EVT_LEFT_DOWN(InputPanel::OnMouseLeftDown)
@@ -228,6 +230,7 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
 {
     switch (Key.GetKeyCode())
     {
+    case WXK_ESCAPE:
     case WXK_DELETE:
         ReleaseMouseIfAble(); // Captured by OnMouseRightDown
         if (highlightedContour > -1)
@@ -244,13 +247,15 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
 void InputPlane::OnPaint(wxPaintEvent& paint)
 {
     wxAutoBufferedPaintDC dc(this);
+    //wxGCDC dc(pdc);
+    //wxDCClipper(dc, GetClientSize());
     dc.Clear();
     wxPen pen(grid->color, 1);
     wxBrush brush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    grid->Draw(&dc, this);
+    if (showGrid) grid->Draw(&dc, this);
     pen.SetWidth(2);
 
     for (auto C : contours)
@@ -276,7 +281,7 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
         dc.SetPen(pen);
         contours[highlightedContour]->Draw(&dc, this);
     }
-    axes.Draw(&dc);
+    if (showAxes) axes.Draw(&dc);
 
     for (auto out : outputs)
     {

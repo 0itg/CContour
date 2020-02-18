@@ -68,5 +68,7 @@ protected:
 
 double DistancePointToLine(std::complex<double> pt,
     std::complex<double> z1, std::complex<double>z2);
-bool IsInsideLine(std::complex<double> pt,
+bool IsInsideBox(std::complex<double> pt,
     std::complex<double> z1, std::complex<double>z2);
+
+void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas);
