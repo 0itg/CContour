@@ -2,6 +2,7 @@
 #include "wx/clrpicker.h"
 
 class InputPlane;
+class OutputPlane;
 
 class MainWindowFrame : public wxFrame
 {
@@ -10,11 +11,18 @@ public:
         const wxSize& size, const long style = wxDEFAULT_FRAME_STYLE);
 private:
     InputPlane* input;
+    OutputPlane* output;
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnToolbarContourSelect(wxCommandEvent& event);
     void OnColorPicked(wxColourPickerEvent& col);
     void OnButtonColorRandomizer(wxCommandEvent& event);
     void OnButtonPaintbrush(wxCommandEvent& event);
+    void OnFunctionEntry(wxCommandEvent& event);
+    void OnGridResCtrl(wxSpinEvent& event);
+    void OnGridResCtrl(wxCommandEvent& event);
+    void OnContourResCtrl(wxSpinEvent& event);
+    void OnContourResCtrl(wxCommandEvent& event);
+
     wxDECLARE_EVENT_TABLE();
 };

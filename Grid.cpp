@@ -2,44 +2,43 @@
 #include "ContourLine.h"
 #include "ContourPolygon.h"
 #include "ComplexPlane.h"
+#include "Parser.h"
+#include <algorithm>
+#include <execution>
 
 Grid::~Grid()
 {
-	for (auto h : horiz) delete h;
-	for (auto v : vert) delete v;
+	for (auto v : lines) delete v;
 }
 
 void Grid::Draw(wxDC* dc, ComplexPlane* canvas)
 {
 	CalcVisibleGrid();
-	for (auto h : horiz) h->Draw(dc, canvas);
-	for (auto v : vert) v->Draw(dc, canvas);
+	for (auto v : lines) v->Draw(dc, canvas);
 }
 
 void Grid::CalcVisibleGrid()
 {
 	// Draws gridlines every hStep x VStep, offset to line up with the origin
 	// If the viewport has been panned around.
-	for (auto h : horiz) delete h;
-	horiz.clear();
-	for (auto v : vert) delete v;
-	vert.clear();
+	for (auto v : lines) delete v;
+	lines.clear();
 
 	wxPoint corner(parent->GetClientSize().x, parent->GetClientSize().y);
 	double hOffset = fmod(parent->ScreenToComplex(wxPoint(0,0)).real(), hStep);
 	double vOffset = fmod(parent->ScreenToComplex(corner).imag(), vStep);
 
 	for (double y = parent->axes.imagMin - vOffset;
-		y < parent->axes.imagMax; y += vStep)
+		y <= parent->axes.imagMax; y += vStep)
 	{
-		vert.push_back(new ContourLine(std::complex<double>(parent->
+		lines.push_back(new ContourLine(std::complex<double>(parent->
 			ScreenToComplex(wxPoint(0, 0)).real(), y),
 			std::complex<double>(parent->ScreenToComplex(corner).real(), y)));
 	}
 	for (double x = parent->axes.realMin - hOffset;
-		x < parent->axes.realMax; x += hStep)
+		x <= parent->axes.realMax; x += hStep)
 	{
-		vert.emplace_back(new ContourLine(std::complex<double>(x,
+		lines.emplace_back(new ContourLine(std::complex<double>(x,
 			parent->ScreenToComplex(wxPoint(x,0)).imag()),
 			std::complex<double>(x, parent->ScreenToComplex(corner).imag())));
 	}
@@ -47,47 +46,47 @@ void Grid::CalcVisibleGrid()
 
 TransformedGrid::~TransformedGrid()
 {
-	for (auto h : horiz) delete h;
-	for (auto v : vert) delete v;
+	for (auto v : lines) delete v;
 	Grid::~Grid();
 }
 
 void TransformedGrid::Draw(wxDC* dc, ComplexPlane* canvas)
 {
-	for (auto h : horiz) h->Draw(dc, canvas);
-	for (auto v : vert) v->Draw(dc, canvas);
+	for (auto v : lines) v->Draw(dc, canvas);
 }
 
-void TransformedGrid::MapGrid(Grid* grid,
-	std::function<std::complex<double>(std::complex<double>)> f)
+//template<class Functor>
+void TransformedGrid::MapGrid(Grid* grid, Parser<std::complex<double>>& f)
 {
-	for (auto h : horiz) delete h;
-	horiz.clear();
-	for (auto v : vert) delete v;
-	vert.clear();
+	for (auto v : lines) delete v;
+	lines.clear();
 
-	// For each input grid line, linearly interpolate the points and
-	// apply the function f.
-	for (auto h : grid->horiz)
+	for (auto v : grid->lines)
 	{
-		horiz.push_back(new ContourPolygon());
-		double t;
-		for (double i = 0; i < res; i++)
-		{
-			t = i / res;
-			horiz.back()->AddPoint(f(h->GetCtrlPoint(0) * t
-				+ h->GetCtrlPoint(1) * (1 - t)));
-		}
-	}
-	for (auto v : grid->vert)
-	{
-		vert.push_back(new ContourPolygon());
+		lines.push_back(new ContourPolygon());
 		double t;
 		for (double i = 0; i <= res; i++)
 		{
 			t = i / res;
-			vert.back()->AddPoint(f(v->GetCtrlPoint(0) * t
+			lines.back()->AddPoint(f(v->GetCtrlPoint(0) * t
 				+ v->GetCtrlPoint(1) * (1 - t)));
+			// In the case of division by zero, move along the gridline 
+			// a bit further until we find a defined point. 
+			// Rarely should this take more than one step.
+			while (isnan(lines.back()->GetCtrlPoint(i).real()))
+			{
+				lines.back()->RemovePoint(i);
+				double t_avoid_pole = i / res / 100;
+				lines.back()->AddPoint(f(v->GetCtrlPoint(0) * (t + t_avoid_pole)
+					+ v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
+			}
+			while (isnan(lines.back()->GetCtrlPoint(i).imag()))
+			{
+				lines.back()->RemovePoint(i);
+				double t_avoid_pole = i / res / 100;
+				lines.back()->AddPoint(f(v->GetCtrlPoint(0) * (t + t_avoid_pole)
+					+ v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
+			}
 		}
 	}
 }
