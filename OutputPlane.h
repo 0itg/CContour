@@ -2,7 +2,8 @@
 
 #include "ComplexPlane.h"
 #include "Parser.h"
-#include "wx/spinctrl.h"
+
+#include <wx/spinctrl.h>
 #include <complex>
 
 class InputPlane;
@@ -16,7 +17,7 @@ class OutputPlane : public ComplexPlane {
    friend class InputPlane;
 
  public:
-   OutputPlane(wxFrame* parent, InputPlane* In);
+   OutputPlane(wxWindow* parent, InputPlane* In);
    ~OutputPlane();
    void OnMouseLeftUp(wxMouseEvent& mouse);
    // void OnMouseRightUp(wxMouseEvent& mouse);
@@ -31,9 +32,10 @@ class OutputPlane : public ComplexPlane {
 
    // int res = 200;
 
-   Parser<std::complex<double>> f;
+   ParsedFunc<std::complex<double>> f;
 
  private:
+   Parser<std::complex<double>> parser;
    InputPlane* in;
    TransformedGrid* tGrid;
    wxTextCtrl* funcInput;

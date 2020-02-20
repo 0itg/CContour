@@ -11,10 +11,10 @@
 #include <iomanip>
 #include <sstream>
 
-ComplexPlane::ComplexPlane(wxFrame* parent)
+ComplexPlane::ComplexPlane(wxWindow* parent)
     : axes(this), wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                           wxFULL_REPAINT_ON_RESIZE),
-      statBar(parent->GetStatusBar())
+      resCtrl(nullptr)
 {
    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
@@ -170,7 +170,7 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
    axes.imagMax += zoomCenter.imag();
    axes.imagMin += zoomCenter.imag();
 
-   // If the user zooms in or out too far, the tick marks will get too
+   // If the user zooms in or symbolStack too far, the tick marks will get too
    // far apart or too close together. Rescale when they are more than twice
    // as far apart or half as far apart.
 

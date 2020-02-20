@@ -1,5 +1,6 @@
 #pragma once
-#include "wx/clrpicker.h"
+#include <wx/clrpicker.h>
+#include <wx/aui/aui.h>
 
 class InputPlane;
 class OutputPlane;
@@ -9,7 +10,7 @@ class MainWindowFrame : public wxFrame {
    MainWindowFrame(const wxString& title, const wxPoint& pos,
                    const wxSize& size,
                    const long style = wxDEFAULT_FRAME_STYLE);
-
+   ~MainWindowFrame() { aui.UnInit(); }
  private:
    InputPlane* input;
    OutputPlane* output;
@@ -26,5 +27,7 @@ class MainWindowFrame : public wxFrame {
    void OnContourResCtrl(wxCommandEvent& event);
    void OnShowAxes_ShowGrid(wxCommandEvent& event);
 
+   wxAuiManager aui;
+   
    wxDECLARE_EVENT_TABLE();
 };

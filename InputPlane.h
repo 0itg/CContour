@@ -2,7 +2,7 @@
 #include "ComplexPlane.h"
 #include "Event_IDs.h"
 
-#include "wx/clrpicker.h"
+#include <wx/clrpicker.h>
 
 class ContourPolygon;
 class OutputPlane;
@@ -15,7 +15,7 @@ class InputPlane : public ComplexPlane {
    friend class OutputPlane;
 
  public:
-   InputPlane(wxFrame* parent);
+   InputPlane(wxWindow* parent);
    ~InputPlane();
 
    void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
@@ -51,6 +51,7 @@ class InputPlane : public ComplexPlane {
    const int COLOR_SIMILARITY_THRESHOLD = 96;
 
  private:
+   const int CIRCLED_POINT_RADIUS = 7;
    int res = 100;
    // drawnContours stores contours in original form for editing.
    // subDivContours stores them as approximating polygons for mapping
@@ -58,7 +59,7 @@ class InputPlane : public ComplexPlane {
    // Pointers to outputs for or sending refresh signals.
    // App only uses one output for now, but more might be nice later.
    std::vector<OutputPlane*> outputs;
-   wxColourPickerCtrl* colorPicker;
+   wxColourPickerCtrl* colorPicker = nullptr;
 
    Grid* grid;
    int contourType = ID_Circle;

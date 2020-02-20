@@ -13,6 +13,5 @@ class ContourRect : public ContourPolygon {
    void Finalize(){};
 
  private:
-   double perimeter;
    std::vector<double> sideLengths;
 };

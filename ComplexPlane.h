@@ -1,15 +1,16 @@
 #pragma once
-
 #define WXUSINGDLL
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
 
-#include "wx/dcbuffer.h"
-#include "wx/dcclient.h"
-#include "wx/dcmemory.h"
-#include "wx/display.h"
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
+#include <wx/dcmemory.h>
+#include <wx/display.h>
+#include <wx/spinctrl.h>
+#include <wx/aui/aui.h>
 
 #include <complex>
 #include <functional>
@@ -52,7 +53,7 @@ struct Axes {
 
 class ComplexPlane : public wxPanel {
  public:
-   ComplexPlane(wxFrame* parent);
+   ComplexPlane(wxWindow* parent);
    virtual ~ComplexPlane();
 
    // Functions for converting between screen and mathematical coordinates.
@@ -68,6 +69,9 @@ class ComplexPlane : public wxPanel {
    // void OnMouseEntering(wxMouseEvent& mouse);
    void OnMouseLeaving(wxMouseEvent& mouse);
    void OnShowAxes_ShowGrid(wxCommandEvent& event);
+
+   wxSize DoBestClientSize() const { return wxSize(200,200); }
+   void SetStatusBar(wxStatusBar* ptr) { statBar = ptr; };
 
    // For convenience
    void CaptureMouseIfAble()

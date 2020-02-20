@@ -1,7 +1,7 @@
 #pragma once
 #include "Contour.h"
 
-template <class T> class Parser;
+template <class T> class ParsedFunc;
 
 class ContourPolygon : public Contour {
  public:
@@ -18,11 +18,12 @@ class ContourPolygon : public Contour {
    virtual void Finalize();
    std::complex<double> Interpolate(double t);
    ContourPolygon* Subdivide(int res);
-   ContourPolygon* Apply(Parser<std::complex<double>>& f);
+   ContourPolygon* Apply(ParsedFunc<std::complex<double>>& f);
 
  protected:
    bool closed = false;
-   double perimeter;
    std::vector<double> sideLengths;
    void CalcSideLengths();
+ private:
+   double perimeter = 0;
 };

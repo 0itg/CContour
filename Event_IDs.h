@@ -15,5 +15,7 @@ enum enum_buttons {
    ID_Show_Grid,
    ID_ContourResCtrl,
    ID_GridResCtrl,
-   ID_Function_Entry
+   ID_Function_Entry,
+   ID_ToolPanel,
+   ID_Splitter
 };

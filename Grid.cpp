@@ -3,6 +3,7 @@
 #include "ContourLine.h"
 #include "ContourPolygon.h"
 #include "Parser.h"
+
 #include <algorithm>
 #include <execution>
 
@@ -55,8 +56,7 @@ void TransformedGrid::Draw(wxDC* dc, ComplexPlane* canvas)
    for (auto v : lines) v->Draw(dc, canvas);
 }
 
-// template<class Functor>
-void TransformedGrid::MapGrid(Grid* grid, Parser<std::complex<double>>& f)
+void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<std::complex<double>>& f)
 {
    for (auto v : lines) delete v;
    lines.clear();

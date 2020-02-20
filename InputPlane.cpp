@@ -6,7 +6,7 @@
 #include "Grid.h"
 #include "OutputPlane.h"
 
-#include "wx/dcgraph.h"
+#include <wx/dcgraph.h>
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(InputPlane, wxPanel)
@@ -31,7 +31,7 @@ InputPlane::~InputPlane()
    delete grid;
 }
 
-InputPlane::InputPlane(wxFrame* parent) : ComplexPlane(parent)
+InputPlane::InputPlane(wxWindow* parent) : ComplexPlane(parent), colorPicker(nullptr)
 {
    grid = new Grid(this);
 }
@@ -87,7 +87,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
          subDivContours.push_back(contours.back()->Subdivide(res));
          state              = contours.size() - 1;
          highlightedContour = state;
-         for (auto out : outputs) out->highlightedContour = state;
+         for (auto symbolStack : outputs) symbolStack->highlightedContour = state;
       }
       // If not, then make the highlighted contour active.
       else
@@ -144,7 +144,7 @@ void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
       grid->hStep = axes.reStep;
       grid->vStep = axes.imStep;
    }
-   for (auto out : outputs) out->movedViewPort = true;
+   for (auto symbolStack : outputs) symbolStack->movedViewPort = true;
 }
 
 void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
@@ -181,15 +181,15 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
    // and control points (and automatically highlight the contour).
    else if (state == STATE_IDLE) {
       Highlight(mouse.GetPosition());
-      for (auto out : outputs) {
-         out->highlightedContour = highlightedContour;
+      for (auto symbolStack : outputs) {
+         symbolStack->highlightedContour = highlightedContour;
          Refresh();
          Update();
       }
    }
    if (panning) {
       Pan(mouse.GetPosition());
-      for (auto out : outputs) { out->movedViewPort = true; }
+      for (auto symbolStack : outputs) { symbolStack->movedViewPort = true; }
    }
 
    lastMousePos = ScreenToComplex(mouse.GetPosition());
@@ -240,8 +240,7 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
       if (highlightedCtrlPoint > -1) {
          dc.DrawCircle(
              ComplexToScreen(contours[highlightedContour]->GetCtrlPoint(
-                 highlightedCtrlPoint)),
-             7);
+                 highlightedCtrlPoint)), CIRCLED_POINT_RADIUS);
       }
       pen.SetWidth(3);
       dc.SetPen(pen);
@@ -249,9 +248,9 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
    }
    if (showAxes) axes.Draw(&dc);
 
-   for (auto out : outputs) {
-      out->Refresh();
-      out->Update();
+   for (auto symbolStack : outputs) {
+      symbolStack->Refresh();
+      symbolStack->Update();
    }
 }
 
@@ -289,11 +288,11 @@ void InputPlane::RemoveContour(int index)
    delete subDivContours[index];
    subDivContours.erase(subDivContours.begin() + index);
 
-   for (auto out : outputs) {
-      delete out->contours[index];
-      out->contours.erase(out->contours.begin() + index);
-      out->highlightedContour   = -1;
-      out->highlightedCtrlPoint = -1;
+   for (auto symbolStack : outputs) {
+      delete symbolStack->contours[index];
+      symbolStack->contours.erase(symbolStack->contours.begin() + index);
+      symbolStack->highlightedContour   = -1;
+      symbolStack->highlightedCtrlPoint = -1;
    }
    highlightedContour   = -1;
    highlightedCtrlPoint = -1;

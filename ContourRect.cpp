@@ -13,8 +13,9 @@ ContourRect::ContourRect(std::complex<double> c, wxColor col)
 
 void ContourRect::Draw(wxDC* dc, ComplexPlane* canvas)
 {
-   int width  = canvas->LengthToScreen(points[2].real() - points[0].real());
-   int height = -canvas->LengthToScreen(points[2].imag() - points[0].imag());
+   int width = (int)canvas->LengthToScreen(points[2].real() - points[0].real());
+   int height =
+       (int)-canvas->LengthToScreen(points[2].imag() - points[0].imag());
    dc->DrawRectangle(canvas->ComplexToScreen(points[0]), wxSize(width, height));
 }
 

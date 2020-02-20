@@ -6,9 +6,10 @@
 #include "InputPlane.h"
 #include "Parser.h"
 #include "Token.h"
-
 #include "Event_IDs.h"
-#include "wx/dcgraph.h"
+
+#include <wx/dcgraph.h>
+#include <wx/richtooltip.h>
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(OutputPlane, wxPanel)
@@ -23,10 +24,10 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-OutputPlane::OutputPlane(wxFrame* parent, InputPlane* In)
+OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In)
     : ComplexPlane(parent), in(In)
 {
-   f.Parse("z*z");
+   f = parser.Parse("z*z");
    In->outputs.push_back(this);
    tGrid = new TransformedGrid(this);
 };
@@ -111,12 +112,15 @@ void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 
 void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
 {
+   ParsedFunc g = f;
    try {
-      f.Parse(funcInput->GetLineText(0));
+      f = parser.Parse(funcInput->GetLineText(0));
+      f.eval();
    }
    catch (std::invalid_argument& func) {
-      f.Revert();
-      wxMessageBox(func.what(), wxT("Invalid Function"), wxICON_INFORMATION);
+      f = g;
+      wxRichToolTip errormsg(wxT("Invalid Function"), func.what());
+      errormsg.ShowFor(funcInput);
    }
    movedViewPort = true;
    Refresh();

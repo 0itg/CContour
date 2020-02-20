@@ -3,7 +3,7 @@
 #include <complex>
 #include <functional>
 
-template <typename T> class Parser;
+template <typename T> class ParsedFunc;
 template <typename T> class SymbolError;
 template <typename T> class SymbolNum;
 
@@ -39,16 +39,16 @@ template <typename T> class Symbol {
 
    Symbol(){};
    virtual ~Symbol(){};
-   Symbol(Parser<T>* par) : parent(par){};
+   Symbol(ParsedFunc<T>* par) : parent(par){};
 
    virtual SymbolNum<T> eval() { return SymbolError<T>(); }
    virtual void SetVal(const T& v){};
-   void SetParent(Parser<T>* p) { parent = p; }
+   void SetParent(ParsedFunc<T>* p) { parent = p; }
 
    bool leftAssoc = true;
 
  protected:
-   Parser<T>* parent = nullptr;
+   ParsedFunc<T>* parent = nullptr;
 };
 
 // All two-argument operations inherent from this
@@ -181,7 +181,7 @@ template <typename T> class SymbolNum : public Symbol<T> {
  public:
    SymbolNum() : Symbol<T>() {}
    SymbolNum(const T& v) : val(v) {}
-   SymbolNum(const SymbolNum<T>&& S) { val = S.val; }
+   SymbolNum(const SymbolNum<T>&& S) noexcept { val = S.val; }
    SymbolNum(const SymbolNum<T>* ptr) { val = ptr->val; }
 
    virtual int GetPrecedence() { return sym_num; }

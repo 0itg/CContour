@@ -1,10 +1,12 @@
 #pragma once
 
+#pragma warning(push, 0)
 #define WXUSINGDLL
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#pragma warning(pop)
 
 #include <complex>
 
@@ -56,7 +58,7 @@ class Contour {
    // dependent on res. No actual necessity for the number to equal res
    // precisely, but it would be expected from the user.
    virtual ContourPolygon* Subdivide(int res) = 0;
-   int PointCount() { return points.size(); }
+   int PointCount() { return (int)points.size(); }
 
    void DrawCtrlPoint(wxDC* dc, wxPoint p);
    wxColor color = *wxRED;
