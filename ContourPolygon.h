@@ -7,7 +7,9 @@ class ContourPolygon : public Contour {
  public:
    ContourPolygon(std::complex<double> c, wxColor col = wxColor(255, 255, 255));
    ContourPolygon(wxColor col = wxColor(255, 255, 255));
-   virtual ContourPolygon* Clone() { return new ContourPolygon(*this); };
+   virtual ContourPolygon* Clone() {
+      return new ContourPolygon(*this);
+   };
 
    virtual void Draw(wxDC* dc, ComplexPlane* canvas);
    virtual void ActionNoCtrlPoint(std::complex<double> mousePos,
@@ -24,6 +26,7 @@ class ContourPolygon : public Contour {
    bool closed = false;
    std::vector<double> sideLengths;
    void CalcSideLengths();
+
  private:
    double perimeter = 0;
 };

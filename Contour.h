@@ -58,7 +58,9 @@ class Contour {
    // dependent on res. No actual necessity for the number to equal res
    // precisely, but it would be expected from the user.
    virtual ContourPolygon* Subdivide(int res) = 0;
-   int PointCount() { return (int)points.size(); }
+   int PointCount() {
+      return (int)points.size();
+   }
 
    void DrawCtrlPoint(wxDC* dc, wxPoint p);
    wxColor color = *wxRED;

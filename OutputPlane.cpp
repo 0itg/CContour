@@ -2,11 +2,12 @@
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
+#include "Event_IDs.h"
 #include "Grid.h"
 #include "InputPlane.h"
 #include "Parser.h"
 #include "Token.h"
-#include "Event_IDs.h"
+#include "ToolPanel.h"
 
 #include <wx/dcgraph.h>
 #include <wx/richtooltip.h>
@@ -24,23 +25,22 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In)
-    : ComplexPlane(parent), in(In)
-{
+OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, std::string n)
+    : ComplexPlane(parent, n), in(In) {
    f = parser.Parse("z*z");
    In->outputs.push_back(this);
    tGrid = new TransformedGrid(this);
 };
 
-OutputPlane::~OutputPlane() { delete tGrid; }
+OutputPlane::~OutputPlane() {
+   delete tGrid;
+}
 
-void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
-{
+void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse) {
    if (panning) state = STATE_IDLE;
 }
 
-void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
-{
+void OutputPlane::OnMouseMoving(wxMouseEvent& mouse) {
    std::complex<double> outCoord = (ScreenToComplex(mouse.GetPosition()));
    std::string inputCoord        = "f(z) = " + f.str();
    std::string outputCoord       = "f(z) = " + std::to_string(outCoord.real()) +
@@ -59,8 +59,7 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
    }
 }
 
-void OutputPlane::OnPaint(wxPaintEvent& paint)
-{
+void OutputPlane::OnPaint(wxPaintEvent& paint) {
    wxAutoBufferedPaintDC pdc(this);
    wxGCDC dc(pdc);
    // wxDCClipper(dc, GetClientSize());
@@ -95,29 +94,28 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
 
    if (showAxes) axes.Draw(&dc);
    movedViewPort = false;
+
+   toolPanel->Refresh();
+   toolPanel->Update();
 }
 
-void OutputPlane::OnGridResCtrl(wxSpinEvent& event)
-{
+void OutputPlane::OnGridResCtrl(wxSpinEvent& event) {
    tGrid->res = resCtrl->GetValue();
 }
 
-void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
-{
+void OutputPlane::OnGridResCtrl(wxCommandEvent& event) {
    tGrid->res    = resCtrl->GetValue();
    movedViewPort = true;
    Refresh();
    Update();
 }
 
-void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
-{
+void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
    ParsedFunc g = f;
    try {
       f = parser.Parse(funcInput->GetLineText(0));
       f.eval();
-   }
-   catch (std::invalid_argument& func) {
+   } catch (std::invalid_argument& func) {
       f = g;
       wxRichToolTip errormsg(wxT("Invalid Function"), func.what());
       errormsg.ShowFor(funcInput);

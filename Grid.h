@@ -18,9 +18,8 @@ class Grid {
 
  public:
    Grid(ComplexPlane* par) : parent(par) {}
-   Grid(ComplexPlane* par, double h, double v) : hStep(h), vStep(v), parent(par)
-   {
-   }
+   Grid(ComplexPlane* par, double h, double v)
+       : hStep(h), vStep(v), parent(par) {}
    ~Grid();
 
    virtual void Draw(wxDC* dc, ComplexPlane* canvas);

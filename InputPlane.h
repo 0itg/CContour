@@ -15,7 +15,7 @@ class InputPlane : public ComplexPlane {
    friend class OutputPlane;
 
  public:
-   InputPlane(wxWindow* parent);
+   InputPlane(wxWindow* parent, std::string name = "input");
    ~InputPlane();
 
    void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
@@ -38,21 +38,22 @@ class InputPlane : public ComplexPlane {
    void RemoveContour(int index);
    Contour* CreateContour(wxPoint mousePos);
 
-   void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
+   void SetColorPicker(wxColourPickerCtrl* ptr) {
+      colorPicker = ptr;
+   };
    wxColor RandomColor();
 
    // If true, when axes step values change, grid step values
    // change accordingly
-   bool linkGridToAxes = true;
-   bool randomizeColor = true;
-   wxColor color       = wxColor(0, 0, 200);
-
+   bool linkGridToAxes                  = true;
+   bool randomizeColor                  = true;
+   wxColor color                        = wxColor(0, 0, 200);
    const wxColor BGcolor                = *wxWHITE;
    const int COLOR_SIMILARITY_THRESHOLD = 96;
 
  private:
    const int CIRCLED_POINT_RADIUS = 7;
-   int res = 100;
+   int res                        = 100;
    // drawnContours stores contours in original form for editing.
    // subDivContours stores them as approximating polygons for mapping
    std::vector<ContourPolygon*> subDivContours;

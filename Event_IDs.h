@@ -17,5 +17,11 @@ enum enum_buttons {
    ID_GridResCtrl,
    ID_Function_Entry,
    ID_ToolPanel,
-   ID_Splitter
+   ID_Splitter,
+
+   /*ID_InReMin,
+   ID_InReMax,
+   ID_InImMin,
+   ID_InImMax,
+   ID_InAspectRatio*/
 };

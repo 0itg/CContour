@@ -24,10 +24,9 @@ class ContourViewer : public wxApp {
 wxIMPLEMENT_APP(ContourViewer);
 #pragma warning(pop)
 
-bool ContourViewer::OnInit()
-{
+bool ContourViewer::OnInit() {
    MainWindowFrame* frame = new MainWindowFrame(
-       "Complex Contour Visualizer", wxDefaultPosition, wxSize(1250, 650));
+       "Complex Contour Visualizer", wxDefaultPosition, wxSize(1200, 650));
    frame->Show(true);
    return true;
 }

@@ -11,21 +11,18 @@
 #include <iomanip>
 #include <sstream>
 
-ComplexPlane::ComplexPlane(wxWindow* parent)
+ComplexPlane::ComplexPlane(wxWindow* parent, std::string n)
     : axes(this), wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                           wxFULL_REPAINT_ON_RESIZE),
-      resCtrl(nullptr)
-{
+      resCtrl(nullptr), statBar(nullptr), toolPanel(nullptr), name(n) {
    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
 
-ComplexPlane::~ComplexPlane()
-{
+ComplexPlane::~ComplexPlane() {
    for (auto C : contours) delete C;
 }
 
-std::complex<double> ComplexPlane::ScreenToComplex(wxPoint P)
-{
+std::complex<double> ComplexPlane::ScreenToComplex(wxPoint P) {
    return std::complex<double>(
        (double)P.x / GetClientSize().x * (axes.realMax - axes.realMin) +
            axes.realMin,
@@ -33,8 +30,7 @@ std::complex<double> ComplexPlane::ScreenToComplex(wxPoint P)
            axes.imagMin);
 }
 
-wxPoint ComplexPlane::ComplexToScreen(std::complex<double> C)
-{
+wxPoint ComplexPlane::ComplexToScreen(std::complex<double> C) {
    return wxPoint((C.real() - axes.realMin) / (axes.realMax - axes.realMin) *
                       GetClientSize().x,
                   (axes.imagMin - C.imag()) / (axes.imagMax - axes.imagMin) *
@@ -42,48 +38,40 @@ wxPoint ComplexPlane::ComplexToScreen(std::complex<double> C)
                       GetClientSize().y);
 }
 
-double ComplexPlane::LengthToScreen(double r)
-{
+double ComplexPlane::LengthToScreen(double r) {
    return r * GetClientSize().x / (axes.realMax - axes.realMin);
 }
 
-double ComplexPlane::ScreenToLength(double r)
-{
+double ComplexPlane::ScreenToLength(double r) {
    return r * (axes.realMax - axes.realMin) / GetClientSize().x;
 }
 
-void ComplexPlane::OnMouseWheel(wxMouseEvent& mouse)
-{
+void ComplexPlane::OnMouseWheel(wxMouseEvent& mouse) {
    int rot = mouse.GetWheelRotation() / mouse.GetWheelDelta();
    Zoom(mouse.GetPosition(), rot);
 }
 
-void ComplexPlane::OnMouseRightUp(wxMouseEvent& mouse)
-{
+void ComplexPlane::OnMouseRightUp(wxMouseEvent& mouse) {
    ReleaseMouseIfAble();
    panning = false;
 }
 
-void ComplexPlane::OnMouseRightDown(wxMouseEvent& mouse)
-{
+void ComplexPlane::OnMouseRightDown(wxMouseEvent& mouse) {
    CaptureMouseIfAble();
    panning = true;
 }
 
-void ComplexPlane::OnMouseCapLost(wxMouseCaptureLostEvent& mouse)
-{
+void ComplexPlane::OnMouseCapLost(wxMouseCaptureLostEvent& mouse) {
    ReleaseMouseIfAble();
    panning = false;
 }
 
-void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse)
-{
+void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse) {
    statBar->SetStatusText("", 0);
    statBar->SetStatusText("", 1);
 }
 
-void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
-{
+void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event) {
    switch (event.GetId()) {
    case ID_Show_Axes:
       showAxes = !showAxes;
@@ -95,8 +83,7 @@ void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
    Update();
 }
 
-void ComplexPlane::Highlight(wxPoint mousePos)
-{
+void ComplexPlane::Highlight(wxPoint mousePos) {
    bool notOnAnyContour = true;
    int lastHC           = highlightedContour;
    int lastHCP          = highlightedCtrlPoint;
@@ -108,8 +95,7 @@ void ComplexPlane::Highlight(wxPoint mousePos)
          notOnAnyContour      = false;
          highlightedCtrlPoint = CtrlPtIndex;
          highlightedContour   = i;
-      }
-      else if (contours[i]->IsOnContour(ScreenToComplex(mousePos), this)) {
+      } else if (contours[i]->IsOnContour(ScreenToComplex(mousePos), this)) {
          notOnAnyContour      = false;
          highlightedContour   = i;
          highlightedCtrlPoint = -1;
@@ -129,8 +115,7 @@ void ComplexPlane::Highlight(wxPoint mousePos)
    }
 }
 
-void ComplexPlane::Pan(wxPoint mousePos)
-{
+void ComplexPlane::Pan(wxPoint mousePos) {
    std::complex<double> displacement = lastMousePos - ScreenToComplex(mousePos);
    axes.realMax += displacement.real();
    axes.realMin += displacement.real();
@@ -153,8 +138,7 @@ void ComplexPlane::Pan(wxPoint mousePos)
 //    Update();
 //}
 
-void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
-{
+void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps) {
    std::complex<double> zoomCenter = ScreenToComplex(mousePos);
    // Zoom around the mouse position. To this, first translate the viewport
    // so mousePos is at the origin, then apply the zoom, then translate back.
@@ -177,12 +161,14 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
    int MaxMark       = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
    const int MinMark = GetClientSize().x / (axes.TARGET_TICK_COUNT * 2);
 
-   if (LengthToScreen(axes.reStep) < MinMark) { axes.reStep *= 2; }
-   else if (LengthToScreen(axes.reStep) > MaxMark) {
+   if (LengthToScreen(axes.reStep) < MinMark) {
+      axes.reStep *= 2;
+   } else if (LengthToScreen(axes.reStep) > MaxMark) {
       axes.reStep /= 2;
    }
-   if (LengthToScreen(axes.imStep) < MinMark) { axes.imStep *= 2; }
-   else if (LengthToScreen(axes.imStep) > MaxMark) {
+   if (LengthToScreen(axes.imStep) < MinMark) {
+      axes.imStep *= 2;
+   } else if (LengthToScreen(axes.imStep) > MaxMark) {
       axes.imStep /= 2;
    }
    movedViewPort = true;
@@ -190,8 +176,7 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
    Update();
 }
 
-void Axes::Draw(wxDC* dc)
-{
+void Axes::Draw(wxDC* dc) {
    using namespace std::complex_literals;
    wxPoint center = parent->ComplexToScreen(0);
    wxPen pen(2);
@@ -229,8 +214,7 @@ void Axes::Draw(wxDC* dc)
       }
       if (center.y <= textTopEdge + LABEL_PADDING) {
          mark.y = textTopEdge + LABEL_PADDING;
-      }
-      else if (center.y > textBottomEdge - LABEL_PADDING) {
+      } else if (center.y > textBottomEdge - LABEL_PADDING) {
          mark.y = textBottomEdge - LABEL_PADDING;
       }
 
@@ -266,8 +250,7 @@ void Axes::Draw(wxDC* dc)
       }
       if (center.x <= textLeftEdge + LABEL_PADDING) {
          mark.x = textLeftEdge + LABEL_PADDING;
-      }
-      else if (center.x > textRightEdge - LABEL_PADDING) {
+      } else if (center.x > textRightEdge - LABEL_PADDING) {
          mark.x = textRightEdge - LABEL_PADDING;
       }
 

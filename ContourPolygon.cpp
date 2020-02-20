@@ -3,19 +3,16 @@
 #include "Parser.h"
 #include <numeric>
 
-ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col)
-{
+ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col) {
    points.push_back(c);
    points.push_back(c);
    color = col;
 }
-ContourPolygon::ContourPolygon(wxColor col)
-{
+ContourPolygon::ContourPolygon(wxColor col) {
    color = wxColor(rand() % 255, rand() % 255, rand() % 255);
 }
 
-void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
-{
+void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas) {
    // Create a vector of screen points from the mathematical ones.
    std::vector<wxPoint> screenPoints;
    screenPoints.resize(points.size());
@@ -31,20 +28,17 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
 }
 
 void ContourPolygon::ActionNoCtrlPoint(std::complex<double> mousePos,
-                                       std::complex<double> lastPointClicked)
-{
+                                       std::complex<double> lastPointClicked) {
    Translate(mousePos, lastPointClicked);
 }
 
-bool ContourPolygon::IsDone()
-{
+bool ContourPolygon::IsDone() {
    if (closed) return true;
    return abs(points[points.size() - 1] - points[0]) < 0.3;
 }
 
 bool ContourPolygon::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
-                                 int pixPrecision)
-{
+                                 int pixPrecision) {
    // Check each line segment of the polygon until the distance to the point.
    // is within pixPrecision. This could probably be made more efficient.
    int i;
@@ -63,8 +57,7 @@ bool ContourPolygon::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
       return false;
 }
 
-void ContourPolygon::Finalize()
-{
+void ContourPolygon::Finalize() {
    // Mark the polygon as closed and pop the last point, because during
    // editing, closing the polygon would make the last point a
    // duplicate of the first.
@@ -74,8 +67,7 @@ void ContourPolygon::Finalize()
    }
 }
 
-void ContourPolygon::CalcSideLengths()
-{
+void ContourPolygon::CalcSideLengths() {
    sideLengths.clear();
    for (int i = 0; i < points.size() - 1; i++)
       sideLengths.push_back(abs(points[(__int64)i + 1] - points[i]));
@@ -88,8 +80,7 @@ void ContourPolygon::CalcSideLengths()
 // arc length, e.g. the path from t = 0 to t = 0.5 would be the same
 // length as t = .5 to t = 1.
 
-std::complex<double> ContourPolygon::Interpolate(double t)
-{
+std::complex<double> ContourPolygon::Interpolate(double t) {
    int sideIndex          = 0;
    double lengthTraversed = 0;
    CalcSideLengths();
@@ -106,13 +97,11 @@ std::complex<double> ContourPolygon::Interpolate(double t)
                 points[sideIndex] * sideParam;
       else
          return points[0] * (1 - sideParam) + points[sideIndex] * sideParam;
-   }
-   else
+   } else
       return points[0];
 }
 
-ContourPolygon* ContourPolygon::Subdivide(int res)
-{
+ContourPolygon* ContourPolygon::Subdivide(int res) {
    ContourPolygon* D = new ContourPolygon();
    res               = (int)(std::max(points.size(), res - points.size()));
    int sideIndex     = 0;
@@ -159,8 +148,7 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
    return D;
 }
 
-ContourPolygon* ContourPolygon::Apply(ParsedFunc<std::complex<double>>& f)
-{
+ContourPolygon* ContourPolygon::Apply(ParsedFunc<std::complex<double>>& f) {
    ContourPolygon* C = Clone();
    for (auto& z : C->points) z = f(z);
    return C;

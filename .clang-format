@@ -14,7 +14,7 @@ AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: Always
 AllowShortLoopsOnASingleLine: true
@@ -42,7 +42,7 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Stroustrup
+BreakBeforeBraces: Attach
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true

@@ -5,6 +5,7 @@
 #include "ContourRect.h"
 #include "Grid.h"
 #include "OutputPlane.h"
+#include "ToolPanel.h"
 
 #include <wx/dcgraph.h>
 
@@ -25,19 +26,17 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-InputPlane::~InputPlane()
-{
+InputPlane::~InputPlane() {
    for (auto C : subDivContours) delete C;
    delete grid;
 }
 
-InputPlane::InputPlane(wxWindow* parent) : ComplexPlane(parent), colorPicker(nullptr)
-{
+InputPlane::InputPlane(wxWindow* parent, std::string n)
+    : ComplexPlane(parent, n), colorPicker(nullptr) {
    grid = new Grid(this);
 }
 
-void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
-{
+void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse) {
    // if state > STATE_IDLE, then a contour is selected for editing
    // and state equals the index of the contour.
    if (state > STATE_IDLE) {
@@ -61,8 +60,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
       }
       Refresh();
       Update();
-   }
-   else if (state == STATE_IDLE) {
+   } else if (state == STATE_IDLE) {
       CaptureMouseIfAble();
 
       wxPoint pt = mouse.GetPosition();
@@ -87,19 +85,18 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
          subDivContours.push_back(contours.back()->Subdivide(res));
          state              = contours.size() - 1;
          highlightedContour = state;
-         for (auto symbolStack : outputs) symbolStack->highlightedContour = state;
+         for (auto symbolStack : outputs)
+            symbolStack->highlightedContour = state;
       }
       // If not, then make the highlighted contour active.
       else
          state = highlightedContour;
-   }
-   else {
+   } else {
       state = STATE_IDLE;
    }
 }
 
-void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
-{
+void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse) {
    if (highlightedContour > -1) {
       contours[highlightedContour]->color       = color;
       subDivContours[highlightedContour]->color = color;
@@ -108,8 +105,7 @@ void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
    Update();
 }
 
-void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
-{
+void InputPlane::OnMouseRightUp(wxMouseEvent& mouse) {
    ReleaseMouseIfAble();
    if (state > STATE_IDLE && highlightedCtrlPoint > -1) {
       // Remove the selected point if the contour is done. If it is still
@@ -121,8 +117,7 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
          highlightedCtrlPoint = -1;
          highlightedContour   = -1;
          nextState            = STATE_IDLE;
-      }
-      else {
+      } else {
          contours[state]->RemovePoint(highlightedCtrlPoint - 1);
          highlightedCtrlPoint--;
       }
@@ -137,8 +132,7 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
    ComplexPlane::OnMouseRightUp(mouse);
 }
 
-void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
-{
+void InputPlane::OnMouseWheel(wxMouseEvent& mouse) {
    ComplexPlane::OnMouseWheel(mouse); // Calls the Zoom function.
    if (linkGridToAxes) {
       grid->hStep = axes.reStep;
@@ -147,8 +141,7 @@ void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
    for (auto symbolStack : outputs) symbolStack->movedViewPort = true;
 }
 
-void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
-{
+void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
    // NOTE: Status bar code will need to change for multiple output windows
    std::complex<double> mousePos = ScreenToComplex(mouse.GetPosition());
    std::complex<double> outCoord = outputs[0]->f(mousePos);
@@ -168,8 +161,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
       CaptureMouseIfAble();
       if (highlightedCtrlPoint < 0) {
          contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos);
-      }
-      else {
+      } else {
          contours[state]->moveCtrlPoint(mousePos, highlightedCtrlPoint);
       }
       delete subDivContours[state];
@@ -195,8 +187,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
    lastMousePos = ScreenToComplex(mouse.GetPosition());
 }
 
-void InputPlane::OnKeyUp(wxKeyEvent& Key)
-{
+void InputPlane::OnKeyUp(wxKeyEvent& Key) {
    switch (Key.GetKeyCode()) {
    case WXK_ESCAPE:
    case WXK_DELETE:
@@ -211,8 +202,7 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
    }
 }
 
-void InputPlane::OnPaint(wxPaintEvent& paint)
-{
+void InputPlane::OnPaint(wxPaintEvent& paint) {
    wxAutoBufferedPaintDC pdc(this);
    wxGCDC dc(pdc);
    // wxDCClipper(dc, GetClientSize());
@@ -240,7 +230,8 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
       if (highlightedCtrlPoint > -1) {
          dc.DrawCircle(
              ComplexToScreen(contours[highlightedContour]->GetCtrlPoint(
-                 highlightedCtrlPoint)), CIRCLED_POINT_RADIUS);
+                 highlightedCtrlPoint)),
+             CIRCLED_POINT_RADIUS);
       }
       pen.SetWidth(3);
       dc.SetPen(pen);
@@ -252,25 +243,24 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
       symbolStack->Refresh();
       symbolStack->Update();
    }
+
+   toolPanel->Refresh();
+   toolPanel->Update();
 }
 
-void InputPlane::OnColorPicked(wxColourPickerEvent& colorPicked)
-{
+void InputPlane::OnColorPicked(wxColourPickerEvent& colorPicked) {
    color = colorPicked.GetColour();
 }
 
-void InputPlane::OnColorRandomizer(wxCommandEvent& event)
-{
+void InputPlane::OnColorRandomizer(wxCommandEvent& event) {
    randomizeColor = event.IsChecked();
 }
 
-void InputPlane::OnContourResCtrl(wxSpinEvent& event)
-{
+void InputPlane::OnContourResCtrl(wxSpinEvent& event) {
    res = resCtrl->GetValue();
 }
 
-void InputPlane::OnContourResCtrl(wxCommandEvent& event)
-{
+void InputPlane::OnContourResCtrl(wxCommandEvent& event) {
    res = resCtrl->GetValue();
    for (auto C : subDivContours) delete C;
    std::transform(contours.begin(), contours.end(), subDivContours.begin(),
@@ -279,10 +269,11 @@ void InputPlane::OnContourResCtrl(wxCommandEvent& event)
    Refresh();
 }
 
-void InputPlane::SetContourType(int id) { contourType = id; }
+void InputPlane::SetContourType(int id) {
+   contourType = id;
+}
 
-void InputPlane::RemoveContour(int index)
-{
+void InputPlane::RemoveContour(int index) {
    delete contours[index];
    contours.erase(contours.begin() + index);
    delete subDivContours[index];
@@ -298,8 +289,7 @@ void InputPlane::RemoveContour(int index)
    highlightedCtrlPoint = -1;
 }
 
-Contour* InputPlane::CreateContour(wxPoint mousePos)
-{
+Contour* InputPlane::CreateContour(wxPoint mousePos) {
    wxColor colorToDraw = color;
    if (randomizeColor) {
       color = RandomColor();
@@ -327,8 +317,7 @@ Contour* InputPlane::CreateContour(wxPoint mousePos)
    return new ContourCircle(ScreenToComplex(mousePos), 0, colorToDraw);
 }
 
-wxColor InputPlane::RandomColor()
-{
+wxColor InputPlane::RandomColor() {
    // Crude color randomizer. Generates RGB values at random, then rerolls
    // until the color is not too similar to the current color or the BG color.
    auto dist = [](wxColor c1, wxColor c2) {

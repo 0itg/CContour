@@ -151,6 +151,7 @@
     <ClCompile Include="MainWindowFrame.cpp" />
     <ClCompile Include="OutputPlane.cpp" />
     <ClCompile Include="ComplexPlane.cpp" />
+    <ClCompile Include="ToolPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ContourCircle.h" />
@@ -166,17 +167,36 @@
     <ClInclude Include="ComplexPlane.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Token.h" />
+    <ClInclude Include="ToolPanel.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icons\axis.png" />
-    <Image Include="icons\color-randomizer.png" />
-    <Image Include="icons\draw-ellipse.png" />
-    <Image Include="icons\draw-line.png" />
-    <Image Include="icons\draw-polygon-star.png" />
-    <Image Include="icons\draw-polygon.png" />
-    <Image Include="icons\draw-rectangle.png" />
-    <Image Include="icons\grid.png" />
-    <Image Include="icons\paint-brush.png" />
+    <Image Include="icons\axis.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\color-randomizer.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\draw-ellipse.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\draw-line.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\draw-polygon-star.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\draw-polygon.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\draw-rectangle.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\grid.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="icons\paint-brush.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
