@@ -1,13 +1,16 @@
 #include "ContourRect.h"
 #include "ComplexPlane.h"
+#include "ToolPanel.h"
 
-ContourRect::ContourRect(std::complex<double> c, wxColor col)
+ContourRect::ContourRect(std::complex<double> c, wxColor col,
+                         std::string n)
     : ContourPolygon(c, col) {
    // Two corner points define the rectangle, but adding the other two
    // points allows all corners to be used for resizing it
    points.push_back(c);
    points.push_back(c);
    closed = true;
+   name   = n;
 }
 
 void ContourRect::Draw(wxDC* dc, ComplexPlane* canvas) {
@@ -33,3 +36,25 @@ void ContourRect::moveCtrlPoint(std::complex<double> mousePos, int ptIndex) {
       points[3] = std::complex<double>(points[2].real(), points[0].imag());
    }
 }
+
+//void ContourRect::PopulateMenu(ToolPanel* TP) {
+//   int distFromTop = 18;
+//   TP->AddDecoration(new wxStaticText(
+//       TP, wxID_ANY, wxString(GetName() + ":"),
+//       wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
+//   distFromTop += 24;
+//
+//   distFromTop += PopulateSupplementalMenu(TP, wxPoint(0, distFromTop)).y;
+//
+//   for (int i = 0; i < GetPointCount(); i += 2) {
+//      std::string c = std::to_string(GetCtrlPoint(i).real()) + " + " +
+//                      std::to_string(GetCtrlPoint(i).imag()) + "i";
+//      TP->AddDecoration(new wxStaticText(
+//          TP, wxID_ANY, wxString("Ctrl Point " + std::to_string(i)),
+//          wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
+//      TP->AddLinkedTextCtrl(new LinkedCtrlPointTextCtrl(
+//          TP, wxID_ANY, c, wxDefaultPosition + wxPoint(12, distFromTop + 18),
+//          wxDefaultSize, wxTE_PROCESS_ENTER, points, (size_t)i));
+//      distFromTop += TP->SPACING;
+//   }
+//}

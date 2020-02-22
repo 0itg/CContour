@@ -3,13 +3,16 @@
 #include "Parser.h"
 #include <numeric>
 
-ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col) {
+ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col,
+                               std::string n) {
    points.push_back(c);
    points.push_back(c);
    color = col;
+   name  = n;
 }
-ContourPolygon::ContourPolygon(wxColor col) {
+ContourPolygon::ContourPolygon(wxColor col, std::string n) {
    color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+   name  = n;
 }
 
 void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas) {
@@ -32,12 +35,12 @@ void ContourPolygon::ActionNoCtrlPoint(std::complex<double> mousePos,
    Translate(mousePos, lastPointClicked);
 }
 
-bool ContourPolygon::IsDone() {
+inline bool ContourPolygon::IsDone() {
    if (closed) return true;
    return abs(points[points.size() - 1] - points[0]) < 0.3;
 }
 
-bool ContourPolygon::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
+bool ContourPolygon::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
                                  int pixPrecision) {
    // Check each line segment of the polygon until the distance to the point.
    // is within pixPrecision. This could probably be made more efficient.
@@ -57,7 +60,7 @@ bool ContourPolygon::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
       return false;
 }
 
-void ContourPolygon::Finalize() {
+inline void ContourPolygon::Finalize() {
    // Mark the polygon as closed and pop the last point, because during
    // editing, closing the polygon would make the last point a
    // duplicate of the first.
@@ -148,8 +151,13 @@ ContourPolygon* ContourPolygon::Subdivide(int res) {
    return D;
 }
 
-ContourPolygon* ContourPolygon::Apply(ParsedFunc<std::complex<double>>& f) {
+inline void ContourPolygon::Apply(ParsedFunc<std::complex<double>>& f) {
+   for (auto& z : points)
+      z = f(z);
+}
+
+ContourPolygon* ContourPolygon::ApplyToClone(ParsedFunc<std::complex<double>>& f) {
    ContourPolygon* C = Clone();
-   for (auto& z : C->points) z = f(z);
+   C->Apply(f);
    return C;
 }

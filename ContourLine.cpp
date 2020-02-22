@@ -2,21 +2,24 @@
 #include "ComplexPlane.h"
 #include "ContourPolygon.h"
 
-ContourLine::ContourLine(std::complex<double> c, wxColor col) {
+ContourLine::ContourLine(std::complex<double> c, wxColor col, std::string n) {
    points.push_back(c);
    points.push_back(c);
    color = col;
+   name  = n;
 }
 
 ContourLine::ContourLine(std::complex<double> c, std::complex<double> d,
-                         wxColor col) {
+                         wxColor col, std::string n) {
    points.push_back(c);
    points.push_back(d);
    color = col;
+   name  = n;
 }
 
 ContourLine::ContourLine(wxColor col) {
    color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+   name  = "Line";
 }
 
 void ContourLine::Draw(wxDC* dc, ComplexPlane* canvas) {
@@ -24,7 +27,7 @@ void ContourLine::Draw(wxDC* dc, ComplexPlane* canvas) {
                 canvas->ComplexToScreen(points[1]));
 }
 
-bool ContourLine::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
+bool ContourLine::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
                               int pixPrecision) {
    if (DistancePointToLine(pt, points[0], points[1]) <
            canvas->ScreenToLength(pixPrecision) &&

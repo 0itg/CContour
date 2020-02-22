@@ -20,8 +20,9 @@ class InputPlane : public ComplexPlane {
 
    void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
    void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
+   void OnMouseLeftUpSelectionTool(wxMouseEvent& mouse);
    void OnMouseRightUp(wxMouseEvent& mouse);
-   // void OnMouseRightDown(wxMouseEvent& mouse);
+   //void OnMouseRightDown(wxMouseEvent& mouse);
    // void OnMouseMiddleDown(wxMouseEvent& mouse);
    // void OnMouseMiddleUp(wxMouseEvent& mouse);
    void OnMouseWheel(wxMouseEvent& mouse);
@@ -32,6 +33,9 @@ class InputPlane : public ComplexPlane {
    void OnColorRandomizer(wxCommandEvent& event);
    void OnContourResCtrl(wxSpinEvent& event);
    void OnContourResCtrl(wxCommandEvent& event);
+
+   int GetState() { return state; }
+   void RecalcAll();
 
    // "Type" meaning Circle, Polygon, Rectangle, etc.
    void SetContourType(int id);

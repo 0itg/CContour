@@ -1,5 +1,6 @@
 #include "Contour.h"
 #include "ComplexPlane.h"
+#include "ToolPanel.h"
 #include <algorithm>
 #include <numeric>
 
@@ -26,6 +27,28 @@ std::complex<double> Contour::GetCtrlPoint(int index) {
 
 void Contour::SetCtrlPoint(int index, std::complex<double> c) {
    points[index] = c;
+}
+
+void Contour::PopulateMenu(ToolPanel* TP) {
+   int distFromTop = 18;
+   TP->AddDecoration(new wxStaticText(
+       TP, wxID_ANY, wxString(GetName() + ":"),
+       wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
+   distFromTop += 24;
+
+   distFromTop += PopulateSupplementalMenu(TP, wxPoint(0,distFromTop)).y;
+
+   for (int i = 0; i < GetPointCount(); i++) {
+      std::string c = std::to_string(GetCtrlPoint(i).real()) + " + " +
+                      std::to_string(GetCtrlPoint(i).imag()) + "i";
+     TP->AddDecoration(new wxStaticText(
+          TP, wxID_ANY, wxString("Ctrl Point " + std::to_string(i)),
+          wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
+      TP->AddLinkedTextCtrl(new LinkedCtrlPointTextCtrl(
+          TP, wxID_ANY, c, wxDefaultPosition + wxPoint(12, distFromTop + 18),
+          wxDefaultSize, wxTE_PROCESS_ENTER, this, (size_t)i));
+      distFromTop += TP->SPACING;
+   }
 }
 
 void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p) {

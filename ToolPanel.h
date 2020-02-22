@@ -13,10 +13,12 @@
 #include <wx/aui/aui.h>
 #include <wx/vscroll.h>
 
+#include <complex>
+
 class Contour;
 class InputPlane;
 class OutputPlane;
-template <typename T> class LinkedTextCtrl;
+class LinkedTextCtrl;
 
 class ToolPanel : public wxVScrolledWindow {
  public:
@@ -26,6 +28,16 @@ class ToolPanel : public wxVScrolledWindow {
    void OnTextEntry(wxCommandEvent& event);
    void OnPaintEvent(wxPaintEvent& event);
    void PopulateAxisTextCtrls();
+   void PopulateContourTextCtrls(Contour* C);
+   void ClearPanel();
+
+   void AddDecoration(wxControl* D) {
+      decorations.push_back(D);
+   }
+   void AddLinkedTextCtrl(LinkedTextCtrl* L) {
+      controls.push_back(L);
+   }
+
    virtual wxCoord OnGetRowHeight(size_t row) const {
       return 24;
    }
@@ -36,10 +48,11 @@ class ToolPanel : public wxVScrolledWindow {
    void SetOutputPlane(OutputPlane* out) {
       outputs.push_back(out);
    }
+   const int SPACING = 48;
 
  private:
    std::vector<wxControl*> decorations;
-   std::vector<LinkedTextCtrl<double>*> controls;
+   std::vector<LinkedTextCtrl*> controls;
    InputPlane* input;
    std::vector<OutputPlane*> outputs;
    // Contour* menuContour;
@@ -48,23 +61,46 @@ class ToolPanel : public wxVScrolledWindow {
 };
 
 // Wrapper for wxTextCtrl which stores a pointer to its input's
-// intended destination. Template currently useless, but maybe if I
-// figure out a convenient way to convert a string to a generic type...
-template <typename T> class LinkedTextCtrl : public wxTextCtrl {
+// intended destination.
+// Lazy implementation. This should be an abstract base class, with
+// double version inheriting from it. Later.
+class LinkedTextCtrl : virtual public wxTextCtrl {
  public:
+   LinkedTextCtrl() {}
    LinkedTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
-                  wxPoint defaultPos, wxSize defSize, int style, T* p)
+                  wxPoint defaultPos, wxSize defSize, int style, double* p)
        : wxTextCtrl(par, ID, str, defaultPos, defSize, style), data(p) {}
-   void Link(T* ptr) {
+   virtual ~LinkedTextCtrl() {}
+
+   virtual void Link(double* ptr) {
       data = ptr;
    }
-   void WriteLinked() {
-      *data = std::stod((std::string)GetValue());
-   }
-   void ReadLinked() {
+   virtual void WriteLinked();
+   virtual void ReadLinked() {
       ChangeValue(std::to_string(*data));
    }
 
  private:
-   T* data;
+   double* data;
+};
+
+//
+class LinkedCtrlPointTextCtrl : public LinkedTextCtrl {
+ public:
+   LinkedCtrlPointTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
+                          wxPoint defaultPos, wxSize defSize, int style,
+                          Contour* C, size_t index)
+       : wxTextCtrl(par, ID, str, defaultPos, defSize, style),
+         parent(C), i(index) {
+   }
+   //void Link(std::vector<std::complex<double>>& ref) {
+   //   dataVec = ref;
+   //}
+   void WriteLinked();
+   void ReadLinked();
+
+ private:
+   Contour* parent;
+   size_t i;
+   //std::vector<std::complex<double>>& dataVec;
 };

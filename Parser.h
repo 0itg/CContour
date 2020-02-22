@@ -32,6 +32,7 @@ template <typename T> class Parser {
                       const std::string& name) {
       RecognizeToken(new SymbolFunc<T, Ts...>(f, name));
    }
+   void Initialize();
    ParsedFunc<T> Parse(std::string str);
 
  private:
@@ -103,7 +104,8 @@ template <typename T> class ParsedFunc {
 };
 
 template <typename T> inline Parser<T>::Parser() {
-   RecognizeToken(new SymbolAdd<T>);
+   Initialize();
+   /*RecognizeToken(new SymbolAdd<T>);
    RecognizeToken(new SymbolSub<T>);
    RecognizeToken(new SymbolMul<T>);
    RecognizeToken(new SymbolDiv<T>);
@@ -131,7 +133,7 @@ template <typename T> inline Parser<T>::Parser() {
    RecognizeFunc((std::function<T(T)>)[](T z) { return atan(z); }, "atan");
    RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
    RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");*/
 }
 
 template <typename T> inline Parser<T>::~Parser() {
@@ -217,7 +219,8 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
       // wouldn't work, i.e. if the left token is dyadic or doesn't exist.
       if (tokenVec[i] == "-") {
          if (i > 0) {
-            if (tokenLibrary[tokenVec[i - 1]]->IsPunctuation()) {
+            if (tokenLibrary[tokenVec[i - 1]]->IsPunctuation() ||
+                tokenLibrary[tokenVec[i - 1]]->IsDyad()) {
                tokenVec[i] = "~";
             }
          } else if (i == 0) {
@@ -371,4 +374,67 @@ inline void ParsedFunc<T>::setVariable(const std::string& name, const T& val) {
 template <typename T> inline T ParsedFunc<T>::operator()(T val) {
    setVariable("z", val);
    return eval();
+}
+
+template <typename T> inline void Parser<T>::Initialize() {
+   RecognizeToken(new SymbolAdd<T>);
+   RecognizeToken(new SymbolSub<T>);
+   RecognizeToken(new SymbolMul<T>);
+   RecognizeToken(new SymbolDiv<T>);
+   RecognizeToken(new SymbolPow<T>);
+   RecognizeToken(new SymbolNeg<T>);
+   RecognizeToken(new SymbolLParen<T>);
+   RecognizeToken(new SymbolRParen<T>);
+   RecognizeToken(new SymbolComma<T>);
+   RecognizeToken(new SymbolConst<T>("pi", M_PI));
+   RecognizeToken(new SymbolConst<T>("e", exp(1)));
+
+   RecognizeFunc((std::function<T(T)>)[](T z) { return exp(z); }, "exp");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return log(z); }, "log");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return sqrt(z); }, "sqrt");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return sin(z); }, "sin");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return cos(z); }, "cos");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return tan(z); }, "tan");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return sinh(z); }, "sinh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return cosh(z); }, "cosh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return tanh(z); }, "tanh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return asin(z); }, "asin");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return acos(z); }, "acos");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return atan(z); }, "atan");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");
+}
+
+template <> inline void Parser<typename std::complex<double>>::Initialize() {
+   typedef typename std::complex<double> T;
+   RecognizeToken(new SymbolAdd<T>);
+   RecognizeToken(new SymbolSub<T>);
+   RecognizeToken(new SymbolMul<T>);
+   RecognizeToken(new SymbolDiv<T>);
+   RecognizeToken(new SymbolPow<T>);
+   RecognizeToken(new SymbolNeg<T>);
+   RecognizeToken(new SymbolLParen<T>);
+   RecognizeToken(new SymbolRParen<T>);
+   RecognizeToken(new SymbolComma<T>);
+   RecognizeToken(new SymbolConst<T>("pi", M_PI));
+   RecognizeToken(new SymbolConst<T>("e", exp(1)));
+   RecognizeToken(new SymbolConst<T>("i", T(0, 1)));
+
+   RecognizeFunc((std::function<T(T)>)[](T z) { return exp(z); }, "exp");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return log(z); }, "log");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return sqrt(z); }, "sqrt");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return conj(z); }, "conj");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return sin(z); }, "sin");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return cos(z); }, "cos");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return tan(z); }, "tan");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return sinh(z); }, "sinh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return cosh(z); }, "cosh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return tanh(z); }, "tanh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return asin(z); }, "asin");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return acos(z); }, "acos");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return atan(z); }, "atan");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");
 }

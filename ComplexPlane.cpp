@@ -95,7 +95,7 @@ void ComplexPlane::Highlight(wxPoint mousePos) {
          notOnAnyContour      = false;
          highlightedCtrlPoint = CtrlPtIndex;
          highlightedContour   = i;
-      } else if (contours[i]->IsOnContour(ScreenToComplex(mousePos), this)) {
+      } else if (contours[i]->IsPointOnContour(ScreenToComplex(mousePos), this)) {
          notOnAnyContour      = false;
          highlightedContour   = i;
          highlightedCtrlPoint = -1;

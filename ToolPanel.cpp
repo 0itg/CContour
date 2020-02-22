@@ -1,6 +1,10 @@
 #include "ToolPanel.h"
+#include "Contour.h"
 #include "InputPlane.h"
 #include "OutputPlane.h"
+#include "Parser.h"
+
+#include <wx/richtooltip.h>
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(ToolPanel, wxVScrolledWindow)
@@ -16,23 +20,30 @@ ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
 
 void ToolPanel::OnTextEntry(wxCommandEvent& event) {
    for (auto ctrl : controls) {
-      if (ctrl->GetId() == event.GetId()) { ctrl->WriteLinked(); }
+      if (ctrl->GetId() == event.GetId()) {
+         ctrl->WriteLinked();
+      }
    }
    input->Update();
    input->Refresh();
    for (auto out : outputs) {
+      out->MarkAllForRedraw();
       out->Update();
       out->Refresh();
    }
 }
 
 void ToolPanel::OnPaintEvent(wxPaintEvent& event) {
-   for (auto ctrl : controls) { ctrl->ReadLinked(); }
+   if (input->GetState() > -1 || input->movedViewPort == true)
+       for (auto ctrl : controls) {
+          ctrl->ReadLinked();
+       }
 }
 
 void ToolPanel::PopulateAxisTextCtrls() {
-   int distFromTop   = 18;
-   const int SPACING = 48;
+   ClearPanel();
+   SetRowCount(4 * (1 + outputs.size()) + 5);
+   int distFromTop = 18;
 
    std::string buttonText[] = {
        "Real Min:", "Real Max:", "Imag Min:", "Imag Max:"};
@@ -73,5 +84,54 @@ void ToolPanel::PopulateAxisTextCtrls() {
              wxTE_PROCESS_ENTER, outputs[i / 4]->axes.c + (i % 4)));
          distFromTop += SPACING;
       }
+   }
+}
+
+void ToolPanel::PopulateContourTextCtrls(Contour* C) {
+   ClearPanel();
+   SetRowCount(2 * C->points.size());
+
+   C->PopulateMenu(this);
+}
+
+void ToolPanel::ClearPanel() {
+   for (auto C : controls) {
+      C->Destroy();
+   }
+   for (auto D : decorations) {
+      D->Destroy();
+   }
+   controls.clear();
+   decorations.clear();
+}
+
+void LinkedCtrlPointTextCtrl::WriteLinked() {
+   Parser<std::complex<double>> parser;
+   try {
+      std::complex<double> val = parser.Parse(GetValue()).eval();
+      parent->moveCtrlPoint(val, i);
+   }
+   catch (std::invalid_argument& func) {
+      wxRichToolTip errormsg(wxT("Invalid Input"), func.what());
+      errormsg.ShowFor(this);
+      ReadLinked();
+   }
+}
+
+void LinkedCtrlPointTextCtrl::ReadLinked() {
+   ChangeValue(std::to_string(parent->GetCtrlPoint(i).real()) + " + " +
+               std::to_string(parent->GetCtrlPoint(i).imag()) + "i");
+}
+
+void LinkedTextCtrl::WriteLinked() {
+   Parser<double> parser;
+   try {
+      double val = parser.Parse(GetValue()).eval();
+      *data = val;
+   }
+   catch (std::invalid_argument& func) {
+   wxRichToolTip errormsg(wxT("Invalid Input"), func.what());
+   errormsg.ShowFor(this);
+   ReadLinked();
    }
 }

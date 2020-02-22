@@ -27,7 +27,8 @@ wxEND_EVENT_TABLE();
 // clang-format on
 
 InputPlane::~InputPlane() {
-   for (auto C : subDivContours) delete C;
+   for (auto C : subDivContours)
+      delete C;
    delete grid;
 }
 
@@ -44,6 +45,8 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse) {
       if (contours[state]->IsDone()) {
          ReleaseMouseIfAble();
          contours[state]->Finalize();
+
+         toolPanel->PopulateContourTextCtrls(contours[state]);
          // For now delete the whole subvidived contour and recalculate.
          // Later, could recalculate only the affected portion.
          delete subDivContours[state];
@@ -56,6 +59,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse) {
       // so move on to the next one
       else {
          contours[state]->AddPoint(ScreenToComplex(mouse.GetPosition()));
+         toolPanel->PopulateContourTextCtrls(contours[state]);
          highlightedCtrlPoint++;
       }
       Refresh();
@@ -80,19 +84,27 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse) {
          }
          contours.push_back(CreateContour(pt));
 
-         if (snap) contours.back()->SetCtrlPoint(0, c);
+         if (snap)
+            contours.back()->SetCtrlPoint(0, c);
 
          subDivContours.push_back(contours.back()->Subdivide(res));
          state              = contours.size() - 1;
          highlightedContour = state;
-         for (auto symbolStack : outputs)
-            symbolStack->highlightedContour = state;
+         toolPanel->PopulateContourTextCtrls(contours[state]);
+
+         for (auto out : outputs) {
+            out->highlightedContour = state;
+            out->contours.push_back(CreateContour(wxPoint(0, 0)));
+         }
       }
       // If not, then make the highlighted contour active.
-      else
+      else {
          state = highlightedContour;
+         toolPanel->PopulateContourTextCtrls(contours[highlightedContour]);
+      }
    } else {
       state = STATE_IDLE;
+      toolPanel->PopulateAxisTextCtrls();
    }
 }
 
@@ -103,6 +115,24 @@ void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse) {
    }
    Refresh();
    Update();
+}
+
+void InputPlane::OnMouseLeftUpSelectionTool(wxMouseEvent& mouse) {
+   wxPoint mousePos(mouse.GetPosition());
+   int i = 0;
+
+   for (i = 0; i < contours.size(); i++) {
+      if (contours[i]->IsPointOnContour(ScreenToComplex(mousePos), this)) {
+         highlightedContour = i;
+         break;
+      }
+   }
+   if (i == contours.size()) {
+      highlightedContour = -1;
+      toolPanel->PopulateAxisTextCtrls();
+   } else {
+      toolPanel->PopulateContourTextCtrls(contours[i]);
+   }
 }
 
 void InputPlane::OnMouseRightUp(wxMouseEvent& mouse) {
@@ -121,7 +151,7 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse) {
          contours[state]->RemovePoint(highlightedCtrlPoint - 1);
          highlightedCtrlPoint--;
       }
-      if (contours[state]->PointCount() < 2) {
+      if (contours[state]->GetPointCount() < 2) {
          RemoveContour(state);
          nextState = STATE_IDLE;
       }
@@ -138,7 +168,8 @@ void InputPlane::OnMouseWheel(wxMouseEvent& mouse) {
       grid->hStep = axes.reStep;
       grid->vStep = axes.imStep;
    }
-   for (auto symbolStack : outputs) symbolStack->movedViewPort = true;
+   for (auto symbolStack : outputs)
+      symbolStack->movedViewPort = true;
 }
 
 void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
@@ -173,15 +204,17 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
    // and control points (and automatically highlight the contour).
    else if (state == STATE_IDLE) {
       Highlight(mouse.GetPosition());
-      for (auto symbolStack : outputs) {
-         symbolStack->highlightedContour = highlightedContour;
+      for (auto out : outputs) {
+         out->highlightedContour = highlightedContour;
          Refresh();
          Update();
       }
    }
    if (panning) {
       Pan(mouse.GetPosition());
-      for (auto symbolStack : outputs) { symbolStack->movedViewPort = true; }
+      for (auto out : outputs) {
+         out->movedViewPort = true;
+      }
    }
 
    lastMousePos = ScreenToComplex(mouse.GetPosition());
@@ -191,10 +224,12 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key) {
    switch (Key.GetKeyCode()) {
    case WXK_ESCAPE:
    case WXK_DELETE:
+      toolPanel->PopulateAxisTextCtrls();
       ReleaseMouseIfAble(); // Captured by OnMouseRightDown
       if (highlightedContour > -1) {
          RemoveContour(highlightedContour);
-         state = STATE_IDLE;
+         state              = STATE_IDLE;
+         highlightedContour = -1;
          Refresh();
          Update();
       }
@@ -205,14 +240,15 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key) {
 void InputPlane::OnPaint(wxPaintEvent& paint) {
    wxAutoBufferedPaintDC pdc(this);
    wxGCDC dc(pdc);
-   // wxDCClipper(dc, GetClientSize());
+   wxDCClipper(dc, GetClientSize());
    dc.Clear();
    wxPen pen(grid->color, 1);
    wxBrush brush(*wxTRANSPARENT_BRUSH);
    dc.SetPen(pen);
    dc.SetBrush(brush);
 
-   if (showGrid) grid->Draw(&dc, this);
+   if (showGrid)
+      grid->Draw(&dc, this);
    pen.SetWidth(2);
 
    for (auto C : contours) {
@@ -237,11 +273,12 @@ void InputPlane::OnPaint(wxPaintEvent& paint) {
       dc.SetPen(pen);
       contours[highlightedContour]->Draw(&dc, this);
    }
-   if (showAxes) axes.Draw(&dc);
+   if (showAxes)
+      axes.Draw(&dc);
 
-   for (auto symbolStack : outputs) {
-      symbolStack->Refresh();
-      symbolStack->Update();
+   for (auto out : outputs) {
+      out->Refresh();
+      out->Update();
    }
 
    toolPanel->Refresh();
@@ -262,11 +299,22 @@ void InputPlane::OnContourResCtrl(wxSpinEvent& event) {
 
 void InputPlane::OnContourResCtrl(wxCommandEvent& event) {
    res = resCtrl->GetValue();
-   for (auto C : subDivContours) delete C;
+   for (auto C : subDivContours)
+      delete C;
    std::transform(contours.begin(), contours.end(), subDivContours.begin(),
-                  [&](Contour* C) { return C->Subdivide(res); });
+                  [&](Contour* C) {
+                     return C->Subdivide(res);
+                  });
    Update();
    Refresh();
+}
+
+void InputPlane::RecalcAll() {
+   for (auto C : subDivContours)
+      delete C;
+   for (int i = 0; i < contours.size(); i++) {
+      subDivContours[i] = contours[i]->Subdivide(res);
+   }
 }
 
 void InputPlane::SetContourType(int id) {
@@ -279,11 +327,11 @@ void InputPlane::RemoveContour(int index) {
    delete subDivContours[index];
    subDivContours.erase(subDivContours.begin() + index);
 
-   for (auto symbolStack : outputs) {
-      delete symbolStack->contours[index];
-      symbolStack->contours.erase(symbolStack->contours.begin() + index);
-      symbolStack->highlightedContour   = -1;
-      symbolStack->highlightedCtrlPoint = -1;
+   for (auto out : outputs) {
+      delete out->contours[index];
+      out->contours.erase(out->contours.begin() + index);
+      out->highlightedContour   = -1;
+      out->highlightedCtrlPoint = -1;
    }
    highlightedContour   = -1;
    highlightedCtrlPoint = -1;
@@ -293,7 +341,8 @@ Contour* InputPlane::CreateContour(wxPoint mousePos) {
    wxColor colorToDraw = color;
    if (randomizeColor) {
       color = RandomColor();
-      if (colorPicker != nullptr) colorPicker->SetColour(color);
+      if (colorPicker != nullptr)
+         colorPicker->SetColour(color);
    }
 
    switch (contourType) {

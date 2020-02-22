@@ -21,6 +21,7 @@ wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
 //EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
 EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
+EVT_TOOL(ID_Select, MainWindowFrame::OnButtonSelectionTool)
 EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
@@ -57,6 +58,9 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
    wxToolBar* toolbar = new wxToolBar(this, ID_toolBar);
    toolbar->SetToolBitmapSize(wxSize(24, 24));
+   toolbar->AddTool(ID_Select, "Select Contour",
+                    wxBitmap(wxT("icons/tool-pointer.png"), wxBITMAP_TYPE_PNG),
+                    wxNullBitmap, wxITEM_RADIO, "Select contour for numerical editing");
    toolbar->AddTool(ID_Circle, "Circular Contour",
                     wxBitmap(wxT("icons/draw-ellipse.png"), wxBITMAP_TYPE_PNG),
                     wxNullBitmap, wxITEM_RADIO, "Draws a circular contour");
@@ -76,6 +80,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    toolbar->AddTool(ID_Paintbrush, "Paintbrush",
                     wxBitmap(wxT("icons/paint-brush.png"), wxBITMAP_TYPE_PNG),
                     wxNullBitmap, wxITEM_RADIO, "Recolor a contour");
+   toolbar->ToggleTool(ID_Circle, true);
    toolbar->AddSeparator();
 
    // Toggle axes and grid lines.
@@ -190,6 +195,9 @@ void MainWindowFrame::OnExit(wxCommandEvent& event) {
 void MainWindowFrame::OnAbout(wxCommandEvent& event) {
    wxMessageBox("Lorem Ipsum", "Complex Contour Visualizer",
                 wxOK | wxICON_INFORMATION);
+}
+void MainWindowFrame::OnButtonSelectionTool(wxCommandEvent& event) {
+   input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpSelectionTool, input);
 }
 void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event) {
    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpContourTools, input);

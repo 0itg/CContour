@@ -7,7 +7,7 @@
 #include <wx/spinctrl.h>
 
 class InputPlane;
-class Contour;
+class ContourPolygon;
 class TransformedGrid;
 
 // Right Panel in UI. Displays the mapping of input point sets under
@@ -28,6 +28,7 @@ class OutputPlane : public ComplexPlane {
    void OnGridResCtrl(wxCommandEvent& event);
    void OnFunctionEntry(wxCommandEvent& event);
 
+   void MarkAllForRedraw();
    void SetFuncInput(wxTextCtrl* fIn) {
       funcInput = fIn;
    }
@@ -39,6 +40,7 @@ class OutputPlane : public ComplexPlane {
  private:
    Parser<std::complex<double>> parser;
    InputPlane* in;
+   std::vector<ContourPolygon*>& inputContours;
    TransformedGrid* tGrid;
    wxTextCtrl* funcInput;
    wxDECLARE_EVENT_TABLE();

@@ -12,6 +12,8 @@
 #include <wx/dcgraph.h>
 #include <wx/richtooltip.h>
 
+#include <algorithm>
+
 // clang-format off
 wxBEGIN_EVENT_TABLE(OutputPlane, wxPanel)
 EVT_LEFT_UP(OutputPlane::OnMouseLeftUp)
@@ -26,7 +28,7 @@ wxEND_EVENT_TABLE();
 // clang-format on
 
 OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, std::string n)
-    : ComplexPlane(parent, n), in(In) {
+    : ComplexPlane(parent, n), in(In), inputContours((In->subDivContours)) {
    f = parser.Parse("z*z");
    In->outputs.push_back(this);
    tGrid = new TransformedGrid(this);
@@ -37,7 +39,8 @@ OutputPlane::~OutputPlane() {
 }
 
 void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse) {
-   if (panning) state = STATE_IDLE;
+   if (panning)
+      state = STATE_IDLE;
 }
 
 void OutputPlane::OnMouseMoving(wxMouseEvent& mouse) {
@@ -48,7 +51,8 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse) {
    statBar->SetStatusText(inputCoord, 0);
    statBar->SetStatusText(outputCoord, 1);
 
-   if (panning) Pan(mouse.GetPosition());
+   if (panning)
+      Pan(mouse.GetPosition());
    lastMousePos = ScreenToComplex(mouse.GetPosition());
    Highlight(mouse.GetPosition());
    int temp               = in->highlightedContour;
@@ -71,13 +75,24 @@ void OutputPlane::OnPaint(wxPaintEvent& paint) {
    dc.SetBrush(brush);
 
    // Only recalculate the mapping if the viewport changed.
-   if (movedViewPort) tGrid->MapGrid(in->grid, f);
+   if (movedViewPort)
+      tGrid->MapGrid(in->grid, f);
 
-   if (showGrid) tGrid->Draw(&dc, this);
+   if (showGrid)
+      tGrid->Draw(&dc, this);
 
-   for (auto C : contours) delete C;
-   contours.clear();
-   for (auto C : in->subDivContours) { contours.push_back(C->Apply(f)); }
+   // for (auto C : contours) delete C;
+   // contours.clear();
+   // for (auto C : in->subDivContours) {
+   // contours.push_back(C->ApplyToClone(f)); }
+
+   for (int i = 0; i < inputContours.size(); i++) {
+      if (inputContours[i]->markedForRedraw) {
+         delete contours[i];
+         contours[i]                       = inputContours[i]->ApplyToClone(f);
+         inputContours[i]->markedForRedraw = false;
+      }
+   }
    pen.SetWidth(2);
 
    for (auto C : contours) {
@@ -92,7 +107,8 @@ void OutputPlane::OnPaint(wxPaintEvent& paint) {
       contours[highlightedContour]->Draw(&dc, this);
    }
 
-   if (showAxes) axes.Draw(&dc);
+   if (showAxes)
+      axes.Draw(&dc);
    movedViewPort = false;
 
    toolPanel->Refresh();
@@ -123,4 +139,14 @@ void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
    movedViewPort = true;
    Refresh();
    Update();
+}
+
+void OutputPlane::MarkAllForRedraw() {
+   // std::transform(inputContours.begin(), inputContours.end(), contours)
+   for (auto C : contours)
+      delete C;
+   in->RecalcAll();
+   for (int i = 0; i < contours.size(); i++) {
+      contours[i] = inputContours[i]->ApplyToClone(f);
+   }
 }

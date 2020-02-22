@@ -3,7 +3,8 @@
 
 class ContourRect : public ContourPolygon {
  public:
-   ContourRect(std::complex<double> c, wxColor col = wxColor(255, 255, 255));
+   ContourRect(std::complex<double> c, wxColor col = wxColor(255, 255, 255),
+               std::string n = "Rectangle");
    ContourRect* Clone() {
       return new ContourRect(*this);
    };
@@ -15,6 +16,8 @@ class ContourRect : public ContourPolygon {
       return true;
    }
    void Finalize(){};
+
+   //virtual void PopulateMenu(ToolPanel* TP);
 
  private:
    std::vector<double> sideLengths;

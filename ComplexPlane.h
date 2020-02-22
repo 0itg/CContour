@@ -105,6 +105,7 @@ class ComplexPlane : public wxPanel {
       resCtrl = r;
    }
    Axes axes;
+   bool movedViewPort = true;
 
  protected:
    std::string name;
@@ -117,7 +118,6 @@ class ComplexPlane : public wxPanel {
    std::complex<double> lastMidClick;
 
    bool panning       = false;
-   bool movedViewPort = true;
    bool showAxes      = true;
    bool showGrid      = true;
    wxSpinCtrl* resCtrl;

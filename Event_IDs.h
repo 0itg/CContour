@@ -3,6 +3,7 @@
 enum enum_buttons {
    ID_toolBar,
 
+   ID_Select,
    ID_Circle,
    ID_Rect,
    ID_Polygon,

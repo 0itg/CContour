@@ -2,9 +2,9 @@
 #include "Contour.h"
 class ContourLine : public Contour {
  public:
-   ContourLine(std::complex<double> c, wxColor col = wxColor(255, 255, 255));
+   ContourLine(std::complex<double> c, wxColor col = wxColor(255, 255, 255), std::string n = "Line");
    ContourLine(std::complex<double> c, std::complex<double> d,
-               wxColor col = wxColor(255, 255, 255));
+               wxColor col = wxColor(255, 255, 255), std::string n = "Line");
    ContourLine(wxColor col = wxColor(255, 255, 255));
    virtual ContourLine* Clone() {
       return new ContourLine(*this);
@@ -19,7 +19,7 @@ class ContourLine : public Contour {
    virtual bool IsDone() {
       return true;
    };
-   virtual bool IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
+   virtual bool IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
                             int pixPrecision = 3);
    virtual std::complex<double> Interpolate(double t);
    virtual ContourPolygon* Subdivide(int res);

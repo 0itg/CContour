@@ -1,11 +1,13 @@
 #include "ContourCircle.h"
 #include "ComplexPlane.h"
 #include "ContourPolygon.h"
+#include "ToolPanel.h"
 
-ContourCircle::ContourCircle(std::complex<double> c, double r, wxColor col)
+ContourCircle::ContourCircle(std::complex<double> c, double r, wxColor col, std::string n)
     : radius(r) {
    points.push_back(c);
    color = col;
+   name  = n;
 }
 
 void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas) {
@@ -23,7 +25,7 @@ void ContourCircle::ActionNoCtrlPoint(std::complex<double> mousePos,
    radius = abs(points[0] - mousePos);
 }
 
-bool ContourCircle::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
+bool ContourCircle::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
                                 int pixPrecision) {
    return abs(abs(points[0] - pt) - radius) <
           canvas->ScreenToLength(pixPrecision);
@@ -50,4 +52,15 @@ ContourPolygon* ContourCircle::Subdivide(int res) {
    }
    D->color = color;
    return D;
+}
+
+wxSize ContourCircle::PopulateSupplementalMenu(ToolPanel* TP, wxPoint UL) {
+   TP->AddDecoration(new wxStaticText(
+       TP, wxID_ANY, wxString("Radius: "),
+       wxDefaultPosition + wxSize(12, UL.y), wxDefaultSize));
+   TP->AddLinkedTextCtrl(new LinkedTextCtrl(
+       TP, wxID_ANY, wxString(std::to_string(radius)),
+       wxDefaultPosition + wxPoint(12, UL.y + 18), wxDefaultSize,
+       wxTE_PROCESS_ENTER, &radius));
+   return wxSize(0, 48);
 }

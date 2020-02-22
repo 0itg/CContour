@@ -19,6 +19,7 @@ class MainWindowFrame : public wxFrame {
    OutputPlane* output;
    void OnExit(wxCommandEvent& event);
    void OnAbout(wxCommandEvent& event);
+   void OnButtonSelectionTool(wxCommandEvent& event);
    void OnToolbarContourSelect(wxCommandEvent& event);
    void OnColorPicked(wxColourPickerEvent& col);
    void OnButtonColorRandomizer(wxCommandEvent& event);
