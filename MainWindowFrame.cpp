@@ -4,22 +4,24 @@
 #include <wx/wx.h>
 #endif
 
-#include "wx/dcbuffer.h"
-#include "wx/dcclient.h"
-#include "wx/dcmemory.h"
-#include "wx/spinctrl.h"
-//#include "wx/aui/auibar.h"
+#include <wx/aui/aui.h>
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
+#include <wx/dcmemory.h>
+#include <wx/spinctrl.h>
 
 #include "Event_IDs.h"
 #include "InputPlane.h"
 #include "MainWindowFrame.h"
 #include "OutputPlane.h"
+#include "ToolPanel.h"
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
 //EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
 EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
+EVT_TOOL(ID_Select, MainWindowFrame::OnButtonSelectionTool)
 EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
@@ -35,11 +37,11 @@ wxEND_EVENT_TABLE();
 
 MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                                  const wxSize& size, const long style)
-    : wxFrame(NULL, wxID_ANY, title, pos, size, style)
-{
+    : wxFrame(NULL, wxID_ANY, title, pos, size, style) {
    wxImage::AddHandler(new wxPNGHandler);
+   aui.SetManagedWindow(this);
 
-   this->SetMinSize(wxSize(400, 250));
+   SetMinSize(wxSize(400, 250));
    wxMenu* menuFile = new wxMenu;
    /* menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
         "Help string shown in status bar for this menu item");*/
@@ -56,6 +58,9 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
    wxToolBar* toolbar = new wxToolBar(this, ID_toolBar);
    toolbar->SetToolBitmapSize(wxSize(24, 24));
+   toolbar->AddTool(ID_Select, "Select Contour",
+                    wxBitmap(wxT("icons/tool-pointer.png"), wxBITMAP_TYPE_PNG),
+                    wxNullBitmap, wxITEM_RADIO, "Select contour for numerical editing");
    toolbar->AddTool(ID_Circle, "Circular Contour",
                     wxBitmap(wxT("icons/draw-ellipse.png"), wxBITMAP_TYPE_PNG),
                     wxNullBitmap, wxITEM_RADIO, "Draws a circular contour");
@@ -75,6 +80,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    toolbar->AddTool(ID_Paintbrush, "Paintbrush",
                     wxBitmap(wxT("icons/paint-brush.png"), wxBITMAP_TYPE_PNG),
                     wxNullBitmap, wxITEM_RADIO, "Recolor a contour");
+   toolbar->ToggleTool(ID_Circle, true);
    toolbar->AddSeparator();
 
    // Toggle axes and grid lines.
@@ -103,6 +109,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    toolbar->AddControl(colorCtrl);
 
    toolbar->AddStretchableSpace();
+   toolbar->SetDoubleBuffered(true); // Prevents annoying flickering
 
    // Resolution controls. ContourResCtrl sets the number of interpolated
    // points on all transformed contours. GridResCtrl does the same for
@@ -143,78 +150,92 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
    wxStatusBar* statBar = CreateStatusBar(2);
 
-   // Create input and output planes, and connect various controls to them.
+   // Need an intermediate window to hold the sizer for the complex planes.
+   wxWindow* Cplanes =
+       new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+   Cplanes->SetBackgroundColour(this->GetBackgroundColour());
 
-   input = new InputPlane(this);
+   input = new InputPlane(Cplanes);
    input->SetColorPicker(colorCtrl);
    input->SetResCtrl(cResCtrl);
+   input->SetStatusBar(statBar);
 
-   output = new OutputPlane(this, input);
+   output = new OutputPlane(Cplanes, input);
    output->SetFuncInput(funcEntry);
    output->SetResCtrl(gResCtrl);
+   output->SetStatusBar(statBar);
 
    output->Refresh(); // Forces it to show mapped inputs.
-   wxBoxSizer* ComplexPlanes = new wxBoxSizer(wxHORIZONTAL);
+   wxBoxSizer* cPlaneSizer = new wxBoxSizer(wxHORIZONTAL);
    wxSizerFlags PlaneFlags(1);
    PlaneFlags.Shaped().Border(wxALL, 10).Center();
-   ComplexPlanes->Add(input, PlaneFlags);
-   ComplexPlanes->Add(output, PlaneFlags);
-   SetSizer(ComplexPlanes);
+
+   ToolPanel* toolPanel = new ToolPanel(this, ID_ToolPanel, wxDefaultPosition,
+                                        wxSize(100, this->GetClientSize().y));
+   toolPanel->SetInputPlane(input);
+   toolPanel->SetOutputPlane(output);
+   toolPanel->PopulateAxisTextCtrls();
+   input->SetToolPanel(toolPanel);
+   output->SetToolPanel(toolPanel);
+
+   cPlaneSizer->Add(input, PlaneFlags);
+   cPlaneSizer->Add(output, PlaneFlags);
+   Cplanes->SetSizer(cPlaneSizer);
+
+   aui.AddPane(Cplanes,
+               wxAuiPaneInfo().Center().BestSize(1200, 700).MinSize(350, 200));
+   aui.AddPane(toolPanel,
+               wxAuiPaneInfo().Left().BestSize(150, 700).MinSize(20, 20));
+   aui.Update();
 }
 
-void MainWindowFrame::OnExit(wxCommandEvent& event) { Close(true); }
-void MainWindowFrame::OnAbout(wxCommandEvent& event)
-{
+void MainWindowFrame::OnExit(wxCommandEvent& event) {
+   Close(true);
+}
+void MainWindowFrame::OnAbout(wxCommandEvent& event) {
    wxMessageBox("Lorem Ipsum", "Complex Contour Visualizer",
                 wxOK | wxICON_INFORMATION);
 }
-void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event)
-{
+void MainWindowFrame::OnButtonSelectionTool(wxCommandEvent& event) {
+   input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpSelectionTool, input);
+}
+void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event) {
    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpContourTools, input);
    input->SetContourType(event.GetId());
 }
-void MainWindowFrame::OnColorPicked(wxColourPickerEvent& col)
-{
+void MainWindowFrame::OnColorPicked(wxColourPickerEvent& col) {
    input->OnColorPicked(col);
 }
 
-void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event)
-{
+void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event) {
    input->OnColorRandomizer(event);
 }
 
-void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event)
-{
+void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event) {
    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
 }
 
-void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event)
-{
+void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event) {
    output->OnFunctionEntry(event);
 }
 
-void MainWindowFrame::OnGridResCtrl(wxSpinEvent& event)
-{
+void MainWindowFrame::OnGridResCtrl(wxSpinEvent& event) {
    output->OnGridResCtrl(event);
 }
 
-void MainWindowFrame::OnGridResCtrl(wxCommandEvent& event)
-{
+void MainWindowFrame::OnGridResCtrl(wxCommandEvent& event) {
    output->OnGridResCtrl(event);
 }
 
-void MainWindowFrame::OnContourResCtrl(wxSpinEvent& event)
-{
+void MainWindowFrame::OnContourResCtrl(wxSpinEvent& event) {
    input->OnContourResCtrl(event);
 }
 
-void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event)
-{
+void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event) {
    input->OnContourResCtrl(event);
 }
 
-void MainWindowFrame::OnShowAxes_ShowGrid(wxCommandEvent& event)
-{
+void MainWindowFrame::OnShowAxes_ShowGrid(wxCommandEvent& event) {
    input->OnShowAxes_ShowGrid(event);
    output->OnShowAxes_ShowGrid(event);
 }

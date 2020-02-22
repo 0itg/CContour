@@ -2,7 +2,7 @@
 #include "ComplexPlane.h"
 #include "Event_IDs.h"
 
-#include "wx/clrpicker.h"
+#include <wx/clrpicker.h>
 
 class ContourPolygon;
 class OutputPlane;
@@ -15,13 +15,14 @@ class InputPlane : public ComplexPlane {
    friend class OutputPlane;
 
  public:
-   InputPlane(wxFrame* parent);
+   InputPlane(wxWindow* parent, std::string name = "input");
    ~InputPlane();
 
    void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
    void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
+   void OnMouseLeftUpSelectionTool(wxMouseEvent& mouse);
    void OnMouseRightUp(wxMouseEvent& mouse);
-   // void OnMouseRightDown(wxMouseEvent& mouse);
+   //void OnMouseRightDown(wxMouseEvent& mouse);
    // void OnMouseMiddleDown(wxMouseEvent& mouse);
    // void OnMouseMiddleUp(wxMouseEvent& mouse);
    void OnMouseWheel(wxMouseEvent& mouse);
@@ -33,32 +34,37 @@ class InputPlane : public ComplexPlane {
    void OnContourResCtrl(wxSpinEvent& event);
    void OnContourResCtrl(wxCommandEvent& event);
 
+   int GetState() { return state; }
+   void RecalcAll();
+
    // "Type" meaning Circle, Polygon, Rectangle, etc.
    void SetContourType(int id);
    void RemoveContour(int index);
    Contour* CreateContour(wxPoint mousePos);
 
-   void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
+   void SetColorPicker(wxColourPickerCtrl* ptr) {
+      colorPicker = ptr;
+   };
    wxColor RandomColor();
 
    // If true, when axes step values change, grid step values
    // change accordingly
-   bool linkGridToAxes = true;
-   bool randomizeColor = true;
-   wxColor color       = wxColor(0, 0, 200);
-
+   bool linkGridToAxes                  = true;
+   bool randomizeColor                  = true;
+   wxColor color                        = wxColor(0, 0, 200);
    const wxColor BGcolor                = *wxWHITE;
    const int COLOR_SIMILARITY_THRESHOLD = 96;
 
  private:
-   int res = 100;
+   const int CIRCLED_POINT_RADIUS = 7;
+   int res                        = 100;
    // drawnContours stores contours in original form for editing.
    // subDivContours stores them as approximating polygons for mapping
    std::vector<ContourPolygon*> subDivContours;
    // Pointers to outputs for or sending refresh signals.
    // App only uses one output for now, but more might be nice later.
    std::vector<OutputPlane*> outputs;
-   wxColourPickerCtrl* colorPicker;
+   wxColourPickerCtrl* colorPicker = nullptr;
 
    Grid* grid;
    int contourType = ID_Circle;

@@ -3,19 +3,19 @@
 #include "Parser.h"
 #include <numeric>
 
-ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col)
-{
+ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col,
+                               std::string n) {
    points.push_back(c);
    points.push_back(c);
    color = col;
+   name  = n;
 }
-ContourPolygon::ContourPolygon(wxColor col)
-{
+ContourPolygon::ContourPolygon(wxColor col, std::string n) {
    color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+   name  = n;
 }
 
-void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
-{
+void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas) {
    // Create a vector of screen points from the mathematical ones.
    std::vector<wxPoint> screenPoints;
    screenPoints.resize(points.size());
@@ -31,27 +31,24 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
 }
 
 void ContourPolygon::ActionNoCtrlPoint(std::complex<double> mousePos,
-                                       std::complex<double> lastPointClicked)
-{
+                                       std::complex<double> lastPointClicked) {
    Translate(mousePos, lastPointClicked);
 }
 
-bool ContourPolygon::IsDone()
-{
+inline bool ContourPolygon::IsDone() {
    if (closed) return true;
    return abs(points[points.size() - 1] - points[0]) < 0.3;
 }
 
-bool ContourPolygon::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
-                                 int pixPrecision)
-{
+bool ContourPolygon::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
+                                 int pixPrecision) {
    // Check each line segment of the polygon until the distance to the point.
    // is within pixPrecision. This could probably be made more efficient.
    int i;
    for (i = 0; i < points.size() - 1; i++) {
-      if (DistancePointToLine(pt, points[i + 1], points[i]) <
+      if (DistancePointToLine(pt, points[(__int64)i + 1], points[i]) <
               canvas->ScreenToLength(pixPrecision) &&
-          IsInsideBox(pt, points[i + 1], points[i]))
+          IsInsideBox(pt, points[(__int64)i + 1], points[i]))
          return true;
    }
    // Check the line from last point to first
@@ -63,8 +60,7 @@ bool ContourPolygon::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
       return false;
 }
 
-void ContourPolygon::Finalize()
-{
+inline void ContourPolygon::Finalize() {
    // Mark the polygon as closed and pop the last point, because during
    // editing, closing the polygon would make the last point a
    // duplicate of the first.
@@ -74,11 +70,10 @@ void ContourPolygon::Finalize()
    }
 }
 
-void ContourPolygon::CalcSideLengths()
-{
+void ContourPolygon::CalcSideLengths() {
    sideLengths.clear();
    for (int i = 0; i < points.size() - 1; i++)
-      sideLengths.push_back(abs(points[i + 1] - points[i]));
+      sideLengths.push_back(abs(points[(__int64)i + 1] - points[i]));
    if (closed)
       sideLengths.push_back(abs(points[0] - points[points.size() - 1]));
    perimeter = std::accumulate(sideLengths.begin(), sideLengths.end(), 0.0);
@@ -88,8 +83,7 @@ void ContourPolygon::CalcSideLengths()
 // arc length, e.g. the path from t = 0 to t = 0.5 would be the same
 // length as t = .5 to t = 1.
 
-std::complex<double> ContourPolygon::Interpolate(double t)
-{
+std::complex<double> ContourPolygon::Interpolate(double t) {
    int sideIndex          = 0;
    double lengthTraversed = 0;
    CalcSideLengths();
@@ -102,19 +96,17 @@ std::complex<double> ContourPolygon::Interpolate(double t)
       double sideParam =
           abs(t * perimeter - lengthTraversed) / sideLengths[sideIndex];
       if (sideIndex < points.size())
-         return points[sideIndex + 1] * (1 - sideParam) +
+         return points[(__int64)sideIndex + 1] * (1 - sideParam) +
                 points[sideIndex] * sideParam;
       else
          return points[0] * (1 - sideParam) + points[sideIndex] * sideParam;
-   }
-   else
+   } else
       return points[0];
 }
 
-ContourPolygon* ContourPolygon::Subdivide(int res)
-{
+ContourPolygon* ContourPolygon::Subdivide(int res) {
    ContourPolygon* D = new ContourPolygon();
-   res               = std::max(points.size(), res - points.size());
+   res               = (int)(std::max(points.size(), res - points.size()));
    int sideIndex     = 0;
    double t          = 0;
    CalcSideLengths();
@@ -137,7 +129,7 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
             double sideParam =
                 abs(t * perimeter - lengthTraversed) / sideLengths[sideIndex];
             if (sideIndex < points.size() - 1)
-               D->AddPoint(points[sideIndex + 1] * (1 - sideParam) +
+               D->AddPoint(points[(__int64)sideIndex + 1] * (1 - sideParam) +
                            points[sideIndex] * sideParam);
             else
                D->AddPoint(points[0] * (1 - sideParam) +
@@ -159,9 +151,13 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
    return D;
 }
 
-ContourPolygon* ContourPolygon::Apply(Parser<std::complex<double>>& f)
-{
+inline void ContourPolygon::Apply(ParsedFunc<std::complex<double>>& f) {
+   for (auto& z : points)
+      z = f(z);
+}
+
+ContourPolygon* ContourPolygon::ApplyToClone(ParsedFunc<std::complex<double>>& f) {
    ContourPolygon* C = Clone();
-   for (auto& z : C->points) z = f(z);
+   C->Apply(f);
    return C;
 }

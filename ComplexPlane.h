@@ -1,15 +1,16 @@
 #pragma once
-
 #define WXUSINGDLL
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
 
-#include "wx/dcbuffer.h"
-#include "wx/dcclient.h"
-#include "wx/dcmemory.h"
-#include "wx/display.h"
+#include <wx/aui/aui.h>
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
+#include <wx/dcmemory.h>
+#include <wx/display.h>
+#include <wx/spinctrl.h>
 
 #include <complex>
 #include <functional>
@@ -23,6 +24,7 @@ class Contour;
 class OutputPlane;
 class ComplexPlane;
 class Grid;
+class ToolPanel;
 
 struct Axes {
    Axes(ComplexPlane* p) : parent(p){};
@@ -52,7 +54,7 @@ struct Axes {
 
 class ComplexPlane : public wxPanel {
  public:
-   ComplexPlane(wxFrame* parent);
+   ComplexPlane(wxWindow* parent, std::string name);
    virtual ~ComplexPlane();
 
    // Functions for converting between screen and mathematical coordinates.
@@ -69,13 +71,25 @@ class ComplexPlane : public wxPanel {
    void OnMouseLeaving(wxMouseEvent& mouse);
    void OnShowAxes_ShowGrid(wxCommandEvent& event);
 
+   std::string& GetName() {
+      return name;
+   }
+
+   wxSize DoBestClientSize() const {
+      return wxSize(200, 200);
+   }
+   void SetStatusBar(wxStatusBar* ptr) {
+      statBar = ptr;
+   };
+   void SetToolPanel(ToolPanel* ptr) {
+      toolPanel = ptr;
+   };
+
    // For convenience
-   void CaptureMouseIfAble()
-   {
+   void CaptureMouseIfAble() {
       if (!HasCapture()) CaptureMouse();
    }
-   void ReleaseMouseIfAble()
-   {
+   void ReleaseMouseIfAble() {
       if (HasCapture()) ReleaseMouse();
    }
 
@@ -87,10 +101,14 @@ class ComplexPlane : public wxPanel {
    // void InversePan(wxPoint mousePos);
    void Zoom(wxPoint mousePos, int zoomSteps);
 
-   void SetResCtrl(wxSpinCtrl* r) { resCtrl = r; }
+   void SetResCtrl(wxSpinCtrl* r) {
+      resCtrl = r;
+   }
    Axes axes;
+   bool movedViewPort = true;
 
  protected:
+   std::string name;
    std::vector<Contour*> contours;
    int highlightedContour   = -1;
    int state                = -1;
@@ -100,9 +118,9 @@ class ComplexPlane : public wxPanel {
    std::complex<double> lastMidClick;
 
    bool panning       = false;
-   bool movedViewPort = true;
    bool showAxes      = true;
    bool showGrid      = true;
    wxSpinCtrl* resCtrl;
    wxStatusBar* statBar;
+   ToolPanel* toolPanel;
 };

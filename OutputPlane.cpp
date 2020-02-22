@@ -2,13 +2,17 @@
 #include "ContourCircle.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
+#include "Event_IDs.h"
 #include "Grid.h"
 #include "InputPlane.h"
 #include "Parser.h"
 #include "Token.h"
+#include "ToolPanel.h"
 
-#include "Event_IDs.h"
-#include "wx/dcgraph.h"
+#include <wx/dcgraph.h>
+#include <wx/richtooltip.h>
+
+#include <algorithm>
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(OutputPlane, wxPanel)
@@ -23,23 +27,23 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-OutputPlane::OutputPlane(wxFrame* parent, InputPlane* In)
-    : ComplexPlane(parent), in(In)
-{
-   f.Parse("z*z");
+OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, std::string n)
+    : ComplexPlane(parent, n), in(In), inputContours((In->subDivContours)) {
+   f = parser.Parse("z*z");
    In->outputs.push_back(this);
    tGrid = new TransformedGrid(this);
 };
 
-OutputPlane::~OutputPlane() { delete tGrid; }
-
-void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
-{
-   if (panning) state = STATE_IDLE;
+OutputPlane::~OutputPlane() {
+   delete tGrid;
 }
 
-void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
-{
+void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse) {
+   if (panning)
+      state = STATE_IDLE;
+}
+
+void OutputPlane::OnMouseMoving(wxMouseEvent& mouse) {
    std::complex<double> outCoord = (ScreenToComplex(mouse.GetPosition()));
    std::string inputCoord        = "f(z) = " + f.str();
    std::string outputCoord       = "f(z) = " + std::to_string(outCoord.real()) +
@@ -47,7 +51,8 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
    statBar->SetStatusText(inputCoord, 0);
    statBar->SetStatusText(outputCoord, 1);
 
-   if (panning) Pan(mouse.GetPosition());
+   if (panning)
+      Pan(mouse.GetPosition());
    lastMousePos = ScreenToComplex(mouse.GetPosition());
    Highlight(mouse.GetPosition());
    int temp               = in->highlightedContour;
@@ -58,8 +63,7 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
    }
 }
 
-void OutputPlane::OnPaint(wxPaintEvent& paint)
-{
+void OutputPlane::OnPaint(wxPaintEvent& paint) {
    wxAutoBufferedPaintDC pdc(this);
    wxGCDC dc(pdc);
    // wxDCClipper(dc, GetClientSize());
@@ -71,13 +75,24 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
    dc.SetBrush(brush);
 
    // Only recalculate the mapping if the viewport changed.
-   if (movedViewPort) tGrid->MapGrid(in->grid, f);
+   if (movedViewPort)
+      tGrid->MapGrid(in->grid, f);
 
-   if (showGrid) tGrid->Draw(&dc, this);
+   if (showGrid)
+      tGrid->Draw(&dc, this);
 
-   for (auto C : contours) delete C;
-   contours.clear();
-   for (auto C : in->subDivContours) { contours.push_back(C->Apply(f)); }
+   // for (auto C : contours) delete C;
+   // contours.clear();
+   // for (auto C : in->subDivContours) {
+   // contours.push_back(C->ApplyToClone(f)); }
+
+   for (int i = 0; i < inputContours.size(); i++) {
+      if (inputContours[i]->markedForRedraw) {
+         delete contours[i];
+         contours[i]                       = inputContours[i]->ApplyToClone(f);
+         inputContours[i]->markedForRedraw = false;
+      }
+   }
    pen.SetWidth(2);
 
    for (auto C : contours) {
@@ -92,33 +107,46 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
       contours[highlightedContour]->Draw(&dc, this);
    }
 
-   if (showAxes) axes.Draw(&dc);
+   if (showAxes)
+      axes.Draw(&dc);
    movedViewPort = false;
+
+   toolPanel->Refresh();
+   toolPanel->Update();
 }
 
-void OutputPlane::OnGridResCtrl(wxSpinEvent& event)
-{
+void OutputPlane::OnGridResCtrl(wxSpinEvent& event) {
    tGrid->res = resCtrl->GetValue();
 }
 
-void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
-{
+void OutputPlane::OnGridResCtrl(wxCommandEvent& event) {
    tGrid->res    = resCtrl->GetValue();
    movedViewPort = true;
    Refresh();
    Update();
 }
 
-void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
-{
+void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
+   ParsedFunc g = f;
    try {
-      f.Parse(funcInput->GetLineText(0));
-   }
-   catch (std::invalid_argument& func) {
-      f.Revert();
-      wxMessageBox(func.what(), wxT("Invalid Function"), wxICON_INFORMATION);
+      f = parser.Parse(funcInput->GetLineText(0));
+      f.eval();
+   } catch (std::invalid_argument& func) {
+      f = g;
+      wxRichToolTip errormsg(wxT("Invalid Function"), func.what());
+      errormsg.ShowFor(funcInput);
    }
    movedViewPort = true;
    Refresh();
    Update();
+}
+
+void OutputPlane::MarkAllForRedraw() {
+   // std::transform(inputContours.begin(), inputContours.end(), contours)
+   for (auto C : contours)
+      delete C;
+   in->RecalcAll();
+   for (int i = 0; i < contours.size(); i++) {
+      contours[i] = inputContours[i]->ApplyToClone(f);
+   }
 }

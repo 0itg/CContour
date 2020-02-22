@@ -3,6 +3,7 @@
 enum enum_buttons {
    ID_toolBar,
 
+   ID_Select,
    ID_Circle,
    ID_Rect,
    ID_Polygon,
@@ -15,5 +16,13 @@ enum enum_buttons {
    ID_Show_Grid,
    ID_ContourResCtrl,
    ID_GridResCtrl,
-   ID_Function_Entry
+   ID_Function_Entry,
+   ID_ToolPanel,
+   ID_Splitter,
+
+   /*ID_InReMin,
+   ID_InReMax,
+   ID_InImMin,
+   ID_InImMax,
+   ID_InAspectRatio*/
 };

@@ -2,35 +2,33 @@
 #include "ComplexPlane.h"
 #include "ContourPolygon.h"
 
-ContourLine::ContourLine(std::complex<double> c, wxColor col)
-{
+ContourLine::ContourLine(std::complex<double> c, wxColor col, std::string n) {
    points.push_back(c);
    points.push_back(c);
    color = col;
+   name  = n;
 }
 
 ContourLine::ContourLine(std::complex<double> c, std::complex<double> d,
-                         wxColor col)
-{
+                         wxColor col, std::string n) {
    points.push_back(c);
    points.push_back(d);
    color = col;
+   name  = n;
 }
 
-ContourLine::ContourLine(wxColor col)
-{
+ContourLine::ContourLine(wxColor col) {
    color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+   name  = "Line";
 }
 
-void ContourLine::Draw(wxDC* dc, ComplexPlane* canvas)
-{
+void ContourLine::Draw(wxDC* dc, ComplexPlane* canvas) {
    dc->DrawLine(canvas->ComplexToScreen(points[0]),
                 canvas->ComplexToScreen(points[1]));
 }
 
-bool ContourLine::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
-                              int pixPrecision)
-{
+bool ContourLine::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
+                              int pixPrecision) {
    if (DistancePointToLine(pt, points[0], points[1]) <
            canvas->ScreenToLength(pixPrecision) &&
        IsInsideBox(pt, points[0], points[1]))
@@ -39,13 +37,11 @@ bool ContourLine::IsOnContour(std::complex<double> pt, ComplexPlane* canvas,
       return false;
 }
 
-std::complex<double> ContourLine::Interpolate(double t)
-{
+std::complex<double> ContourLine::Interpolate(double t) {
    return points[0] * t + points[1] * (1 - t);
 }
 
-ContourPolygon* ContourLine::Subdivide(int res)
-{
+ContourPolygon* ContourLine::Subdivide(int res) {
    ContourPolygon* D = new ContourPolygon();
    std::complex<double> zStep((points[1].real() - points[0].real()) / res,
                               (points[1].imag() - points[0].imag()) / res);
