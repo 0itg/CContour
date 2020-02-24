@@ -138,6 +138,7 @@ void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
    }
    movedViewPort = true;
    varPanel->PopulateVarTextCtrls(f);
+   MarkAllForRedraw();
    Refresh();
    Update();
 }
