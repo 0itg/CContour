@@ -1,10 +1,11 @@
 #include "Contour.h"
 #include "ComplexPlane.h"
+#include "LinkedTextCtrl.h"
 #include "ToolPanel.h"
 #include <algorithm>
 #include <numeric>
 
-void Contour::AddPoint(std::complex<double> mousePos) {
+void Contour::AddPoint(cplx mousePos) {
    points.push_back(mousePos);
 }
 
@@ -12,8 +13,7 @@ void Contour::RemovePoint(int index) {
    points.erase(points.begin() + index);
 }
 
-int Contour::OnCtrlPoint(std::complex<double> pt, ComplexPlane* canvas,
-                         int pixPrecision) {
+int Contour::OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision) {
    for (int i = 0; i < points.size(); i++) {
       if ((abs(points[i] - pt) < canvas->ScreenToLength(pixPrecision)))
          return i;
@@ -21,11 +21,11 @@ int Contour::OnCtrlPoint(std::complex<double> pt, ComplexPlane* canvas,
    return -1;
 }
 
-std::complex<double> Contour::GetCtrlPoint(int index) {
+cplx Contour::GetCtrlPoint(int index) {
    return points[index];
 }
 
-void Contour::SetCtrlPoint(int index, std::complex<double> c) {
+void Contour::SetCtrlPoint(int index, cplx c) {
    points[index] = c;
 }
 
@@ -36,17 +36,17 @@ void Contour::PopulateMenu(ToolPanel* TP) {
        wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
    distFromTop += 24;
 
-   distFromTop += PopulateSupplementalMenu(TP, wxPoint(0,distFromTop)).y;
+   distFromTop += PopulateSupplementalMenu(TP, wxPoint(0, distFromTop)).y;
 
    for (int i = 0; i < GetPointCount(); i++) {
       std::string c = std::to_string(GetCtrlPoint(i).real()) + " + " +
                       std::to_string(GetCtrlPoint(i).imag()) + "i";
-     TP->AddDecoration(new wxStaticText(
+      TP->AddDecoration(new wxStaticText(
           TP, wxID_ANY, wxString("Ctrl Point " + std::to_string(i)),
-          wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
+          wxDefaultPosition + wxSize(12, distFromTop), TP->TEXTBOX_SIZE));
       TP->AddLinkedTextCtrl(new LinkedCtrlPointTextCtrl(
           TP, wxID_ANY, c, wxDefaultPosition + wxPoint(12, distFromTop + 18),
-          wxDefaultSize, wxTE_PROCESS_ENTER, this, (size_t)i));
+          TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, this, (size_t)i));
       distFromTop += TP->SPACING;
    }
 }
@@ -63,27 +63,28 @@ void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p) {
    dc->DrawCircle(p, 1);
 }
 
-void Contour::moveCtrlPoint(std::complex<double> mousePos, int ptIndex) {
+void Contour::moveCtrlPoint(cplx mousePos, int ptIndex) {
    points[ptIndex] = mousePos;
 }
 
-void Contour::Translate(std::complex<double> z2, std::complex<double> z1) {
-   std::complex<double> displacement = z2 - z1;
-   for (auto& p : points) { p += displacement; }
+void Contour::Translate(cplx z2, cplx z1) {
+   cplx displacement = z2 - z1;
+   for (auto& p : points) {
+      p += displacement;
+   }
 }
 
-double DistancePointToLine(std::complex<double> pt, std::complex<double> z1,
-                           std::complex<double> z2) {
+double DistancePointToLine(cplx pt, cplx z1, cplx z2) {
    double n = abs((z2.imag() - z1.imag()) * pt.real() -
                   (z2.real() - z1.real()) * pt.imag() + z2.real() * z1.imag() -
                   z1.real() * z2.imag());
    double d = abs(z2 - z1);
-   if (d != 0) return n / d;
+   if (d != 0)
+      return n / d;
    else
       return abs(z2 - pt);
 };
 
-typedef std::complex<double> cplx;
 bool IsInsideBox(cplx pt, cplx z1, cplx z2) {
    double Dz1z2 = abs(z2 - z1);
    double Dz1pt = abs(pt - z1);
@@ -115,7 +116,8 @@ void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas) {
 
       if (dx) {
          slope = dy / dx;
-         if (slope) slopeRecip = 1.0 / slope;
+         if (slope)
+            slopeRecip = 1.0 / slope;
       }
 
       for (auto p : {p1, p2}) {
@@ -128,7 +130,8 @@ void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas) {
                p.x = size.x;
             }
          } else {
-            if (p.y < -PADDING) p.y = -PADDING;
+            if (p.y < -PADDING)
+               p.y = -PADDING;
             else if (p.y > size.y)
                p.y = size.y;
          }
@@ -141,11 +144,14 @@ void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas) {
                p.y = size.y;
             }
          } else {
-            if (p.x < -PADDING) p.x = -PADDING;
+            if (p.x < -PADDING)
+               p.x = -PADDING;
             else if (p.x > size.x)
                p.x = size.x;
          }
       }
    }
-   if (!IsLineOffscreen(p1, p2)) { dc->DrawLine(p1, p2); }
+   if (!IsLineOffscreen(p1, p2)) {
+      dc->DrawLine(p1, p2);
+   }
 }

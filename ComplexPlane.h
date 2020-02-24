@@ -15,6 +15,8 @@
 #include <complex>
 #include <functional>
 
+typedef std::complex<double> cplx;
+
 enum enum_states {
    // values of state >= 0 represent contour indices.
    STATE_IDLE = -1,
@@ -24,7 +26,7 @@ class Contour;
 class OutputPlane;
 class ComplexPlane;
 class Grid;
-class ToolPanel;
+class AxisAndCtrlPointPanel;
 
 struct Axes {
    Axes(ComplexPlane* p) : parent(p){};
@@ -54,12 +56,12 @@ struct Axes {
 
 class ComplexPlane : public wxPanel {
  public:
-   ComplexPlane(wxWindow* parent, std::string name);
+   ComplexPlane(wxWindow* parent, const std::string& name);
    virtual ~ComplexPlane();
 
    // Functions for converting between screen and mathematical coordinates.
-   std::complex<double> ScreenToComplex(wxPoint P);
-   wxPoint ComplexToScreen(std::complex<double> C);
+   cplx ScreenToComplex(wxPoint P);
+   wxPoint ComplexToScreen(cplx C);
    double LengthToScreen(double r);
    double ScreenToLength(double r);
 
@@ -81,16 +83,18 @@ class ComplexPlane : public wxPanel {
    void SetStatusBar(wxStatusBar* ptr) {
       statBar = ptr;
    };
-   void SetToolPanel(ToolPanel* ptr) {
+   void SetToolPanel(AxisAndCtrlPointPanel* ptr) {
       toolPanel = ptr;
    };
 
    // For convenience
    void CaptureMouseIfAble() {
-      if (!HasCapture()) CaptureMouse();
+      if (!HasCapture())
+         CaptureMouse();
    }
    void ReleaseMouseIfAble() {
-      if (HasCapture()) ReleaseMouse();
+      if (HasCapture())
+         ReleaseMouse();
    }
 
    // Flags the contour/control point under this point as highlighted,
@@ -114,13 +118,13 @@ class ComplexPlane : public wxPanel {
    int state                = -1;
    int highlightedCtrlPoint = -1;
    const double zoomFactor  = 1.1;
-   std::complex<double> lastMousePos;
-   std::complex<double> lastMidClick;
+   cplx lastMousePos;
+   cplx lastMidClick;
 
-   bool panning       = false;
-   bool showAxes      = true;
-   bool showGrid      = true;
+   bool panning  = false;
+   bool showAxes = true;
+   bool showGrid = true;
    wxSpinCtrl* resCtrl;
    wxStatusBar* statBar;
-   ToolPanel* toolPanel;
+   AxisAndCtrlPointPanel* toolPanel;
 };

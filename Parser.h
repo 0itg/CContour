@@ -62,14 +62,18 @@ template <typename T> class ParsedFunc {
       symbolStack = std::move(in.symbolStack);
       tokens      = std::move(in.tokens);
       inputText   = std::move(in.inputText);
-      for (auto sym : symbolStack) { sym->SetParent(this); }
+      for (auto sym : symbolStack) {
+         sym->SetParent(this);
+      }
       return *this;
    }
    ParsedFunc& operator=(const ParsedFunc& in) noexcept {
       symbolStack = in.symbolStack;
       tokens      = in.tokens;
       inputText   = in.inputText;
-      for (auto sym : symbolStack) { sym->SetParent(this); }
+      for (auto sym : symbolStack) {
+         sym->SetParent(this);
+      }
       return *this;
    }
    T eval() {
@@ -93,6 +97,7 @@ template <typename T> class ParsedFunc {
    std::string str() {
       return inputText;
    }
+   auto GetVars();
 
  private:
    // Custom comparator puts longest tokenLibrary first. When tokenizing the
@@ -105,39 +110,11 @@ template <typename T> class ParsedFunc {
 
 template <typename T> inline Parser<T>::Parser() {
    Initialize();
-   /*RecognizeToken(new SymbolAdd<T>);
-   RecognizeToken(new SymbolSub<T>);
-   RecognizeToken(new SymbolMul<T>);
-   RecognizeToken(new SymbolDiv<T>);
-   RecognizeToken(new SymbolPow<T>);
-   RecognizeToken(new SymbolNeg<T>);
-   RecognizeToken(new SymbolLParen<T>);
-   RecognizeToken(new SymbolRParen<T>);
-   RecognizeToken(new SymbolComma<T>);
-   RecognizeToken(new SymbolConst<T>("pi", M_PI));
-   RecognizeToken(new SymbolConst<T>("e", exp(1)));
-   RecognizeToken(new SymbolConst<T>("i", T(0, 1)));
-
-   RecognizeFunc((std::function<T(T)>)[](T z) { return exp(z); }, "exp");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return log(z); }, "log");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return sqrt(z); }, "sqrt");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return conj(z); }, "conj");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return sin(z); }, "sin");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return cos(z); }, "cos");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return tan(z); }, "tan");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return sinh(z); }, "sinh");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return cosh(z); }, "cosh");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return tanh(z); }, "tanh");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return asin(z); }, "asin");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return acos(z); }, "acos");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return atan(z); }, "atan");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
-   RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");*/
 }
 
 template <typename T> inline Parser<T>::~Parser() {
-   for (auto S : tokenLibrary) delete S.second;
+   for (auto S : tokenLibrary)
+      delete S.second;
 }
 
 template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
@@ -208,7 +185,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
                tokenVec.push_back(s);
          }
       } else if (tokenLibrary.find(s) == tokenLibrary.end()) {
-         tokenLibrary[s] = new SymbolVar<T>(s, 0);
+         tokenLibrary[s] = new SymbolVar<T>(s);
          tokenVec.push_back(s);
       } else
          tokenVec.push_back(s);
@@ -360,7 +337,8 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
 
 struct cmp_length_then_alpha {
    bool operator()(const std::string& a, const std::string& b) const {
-      if (a.length() != b.length()) return a.length() > b.length();
+      if (a.length() != b.length())
+         return a.length() > b.length();
       else
          return a < b;
    }
@@ -368,12 +346,22 @@ struct cmp_length_then_alpha {
 
 template <typename T>
 inline void ParsedFunc<T>::setVariable(const std::string& name, const T& val) {
-   if (tokens.find(name) != tokens.end()) tokens[name]->SetVal(val);
+   if (tokens.find(name) != tokens.end())
+      tokens[name]->SetVal(val);
 }
 
 template <typename T> inline T ParsedFunc<T>::operator()(T val) {
    setVariable("z", val);
    return eval();
+}
+
+template <typename T> inline auto ParsedFunc<T>::GetVars() {
+   std::vector<Symbol<T>*> vars;
+   for (auto& tok : tokens) {
+      if (tok.second != nullptr && tok.second->IsVar())
+         vars.push_back(tok.second);
+   }
+   return vars;
 }
 
 template <typename T> inline void Parser<T>::Initialize() {

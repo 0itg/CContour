@@ -1,9 +1,10 @@
 #include "ContourCircle.h"
 #include "ComplexPlane.h"
 #include "ContourPolygon.h"
+#include "LinkedTextCtrl.h"
 #include "ToolPanel.h"
 
-ContourCircle::ContourCircle(std::complex<double> c, double r, wxColor col, std::string n)
+ContourCircle::ContourCircle(cplx c, double r, wxColor col, std::string n)
     : radius(r) {
    points.push_back(c);
    color = col;
@@ -16,22 +17,21 @@ void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas) {
    DrawCtrlPoint(dc, p);
 }
 
-void ContourCircle::moveCtrlPoint(std::complex<double> mousePos, int ptIndex) {
+void ContourCircle::moveCtrlPoint(cplx mousePos, int ptIndex) {
    points[0] = mousePos;
 }
 
-void ContourCircle::ActionNoCtrlPoint(std::complex<double> mousePos,
-                                      std::complex<double> lastPointClicked) {
+void ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) {
    radius = abs(points[0] - mousePos);
 }
 
-bool ContourCircle::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
-                                int pixPrecision) {
+bool ContourCircle::IsPointOnContour(cplx pt, ComplexPlane* canvas,
+                                     int pixPrecision) {
    return abs(abs(points[0] - pt) - radius) <
           canvas->ScreenToLength(pixPrecision);
 }
 
-int ContourCircle::OnCtrlPoint(std::complex<double> pt, ComplexPlane* canvas,
+int ContourCircle::OnCtrlPoint(cplx pt, ComplexPlane* canvas,
                                int pixPrecision) {
    // returns 1-1=0 if the mouse is on the control point (referring to
    // control point 0. Returns 0-1=-1 if not, with -1
@@ -39,9 +39,9 @@ int ContourCircle::OnCtrlPoint(std::complex<double> pt, ComplexPlane* canvas,
    return (abs(points[0] - pt) < canvas->ScreenToLength(pixPrecision)) - 1;
 }
 
-std::complex<double> ContourCircle::Interpolate(double t) {
-   return points[0] + std::complex<double>(radius * cos(2 * M_PI * t),
-                                           radius * sin(2 * M_PI * t));
+cplx ContourCircle::Interpolate(double t) {
+   return points[0] +
+          cplx(radius * cos(2 * M_PI * t), radius * sin(2 * M_PI * t));
 }
 
 ContourPolygon* ContourCircle::Subdivide(int res) {
@@ -55,12 +55,12 @@ ContourPolygon* ContourCircle::Subdivide(int res) {
 }
 
 wxSize ContourCircle::PopulateSupplementalMenu(ToolPanel* TP, wxPoint UL) {
-   TP->AddDecoration(new wxStaticText(
-       TP, wxID_ANY, wxString("Radius: "),
-       wxDefaultPosition + wxSize(12, UL.y), wxDefaultSize));
-   TP->AddLinkedTextCtrl(new LinkedTextCtrl(
-       TP, wxID_ANY, wxString(std::to_string(radius)),
-       wxDefaultPosition + wxPoint(12, UL.y + 18), wxDefaultSize,
-       wxTE_PROCESS_ENTER, &radius));
+   TP->AddDecoration(new wxStaticText(TP, wxID_ANY, wxString("Radius: "),
+                                      wxDefaultPosition + wxSize(12, UL.y),
+                                      TP->TEXTBOX_SIZE));
+   TP->AddLinkedTextCtrl(
+       new LinkedTextCtrl(TP, wxID_ANY, wxString(std::to_string(radius)),
+                          wxDefaultPosition + wxPoint(12, UL.y + 18),
+                          TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, &radius));
    return wxSize(0, 48);
 }

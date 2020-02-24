@@ -23,7 +23,7 @@ enum precedence_list {
 };
 
 // Base class for parsed symbols. Symbol pointers are stored in a vector, and
-// each symbol has a pointer "parent" to that vector. Symbols recursively
+// each symbol has a pointer "src" to that vector. Symbols recursively
 // evaluate themselves, pulling their arguments from the vector. Any valid
 // calculation will return a SymbolNum<T> unique pointer.
 template <typename T> class Symbol {
@@ -42,6 +42,9 @@ template <typename T> class Symbol {
       return false;
    }
    virtual bool IsPunctuation() {
+      return false;
+   }
+   virtual bool IsVar() {
       return false;
    }
 
@@ -72,12 +75,16 @@ template <typename T> class Dyad : public Symbol<T> {
       try {
          if (this->parent->itr < this->parent->GetMinItr() + 1)
             throw std::invalid_argument("Error: Mismatched operations.");
-      } catch (std::invalid_argument) { throw; }
+      } catch (std::invalid_argument) {
+         throw;
+      }
       SymbolNum<T> s1 = (*(--this->parent->itr))->eval();
       try {
          if (this->parent->itr < this->parent->GetMinItr() + 1)
             throw std::invalid_argument("Error: Mismatched operations.");
-      } catch (std::invalid_argument) { throw; }
+      } catch (std::invalid_argument) {
+         throw;
+      }
       SymbolNum<T> s2 = (*(--this->parent->itr))->eval();
       return Apply(std::move(s1), std::move(s2));
    }
@@ -95,7 +102,9 @@ template <typename T> class Monad : public Symbol<T> {
       try {
          if (this->parent->itr < this->parent->GetMinItr() + 1)
             throw std::invalid_argument("Error: Mismatched operations.");
-      } catch (std::invalid_argument) { throw; }
+      } catch (std::invalid_argument) {
+         throw;
+      }
       return Apply(std::move((*(--this->parent->itr))->eval()));
    }
    bool IsMonad() {
@@ -124,7 +133,7 @@ T callByArray(std::function<T(Ts...)> f,
 }
 
 // Template class for functions of arbitrary argument count.
-// All data types must be the same, for now.
+// All src types must be the same, for now.
 template <typename T, typename... Ts> class SymbolFunc : public Symbol<T> {
 
  public:
@@ -142,7 +151,9 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T> {
          try {
             if (this->parent->itr < this->parent->GetMinItr() + 1)
                throw std::invalid_argument("Error: Mismatched operations.");
-         } catch (std::invalid_argument) { throw; }
+         } catch (std::invalid_argument) {
+            throw;
+         }
          s[i] = (*(--this->parent->itr))->eval().getVal();
       }
       return Apply(s);
@@ -186,6 +197,16 @@ template <typename T> class SymbolRParen : public Symbol<T> {
    }
 };
 
+// Causes T to be initialized with an argument of 1 if possible,
+// default otherwise.
+template <class T, class = void> struct can_hold_num_one {
+   static constexpr T value{};
+};
+template <class T>
+struct can_hold_num_one<typename T, std::void_t<decltype(T{1})>> {
+   static constexpr T value{1};
+};
+
 // Used for intermediate calculations and parsed numbers
 template <typename T> class SymbolNum : public Symbol<T> {
 
@@ -214,18 +235,22 @@ template <typename T> class SymbolNum : public Symbol<T> {
    }
 
  protected:
-   T val;
+   T val = can_hold_num_one<T>::value;
 };
 
 // Number but with stored name and value can be set after parsing.
 template <typename T> class SymbolVar : public SymbolNum<T> {
  public:
-   SymbolVar(std::string s, T v) : name(s), SymbolNum<T>(v) {}
+   SymbolVar(const std::string& s, T v) : name(s), SymbolNum<T>(v) {}
+   SymbolVar(const std::string& s) : name(s), SymbolNum<T>() {}
    virtual int GetPrecedence() {
       return sym_num;
    }
    virtual std::string GetToken() {
       return name;
+   }
+   virtual bool IsVar() {
+      return true;
    }
    virtual void SetVal(const T& v) {
       this->val = v;
@@ -238,7 +263,7 @@ template <typename T> class SymbolVar : public SymbolNum<T> {
 // Number with name but value can't be changed.
 template <typename T> class SymbolConst : public SymbolNum<T> {
  public:
-   SymbolConst(std::string s, T v) : name(s), SymbolNum<T>(v) {}
+   SymbolConst(const std::string& s, T v) : name(s), SymbolNum<T>(v) {}
    virtual int GetPrecedence() {
       return sym_num;
    }

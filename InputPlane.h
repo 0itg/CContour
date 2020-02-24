@@ -4,6 +4,8 @@
 
 #include <wx/clrpicker.h>
 
+typedef std::complex<double> cplx;
+
 class ContourPolygon;
 class OutputPlane;
 class Grid;
@@ -15,14 +17,14 @@ class InputPlane : public ComplexPlane {
    friend class OutputPlane;
 
  public:
-   InputPlane(wxWindow* parent, std::string name = "input");
+   InputPlane(wxWindow* parent, const std::string& name = "input");
    ~InputPlane();
 
    void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
    void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
    void OnMouseLeftUpSelectionTool(wxMouseEvent& mouse);
    void OnMouseRightUp(wxMouseEvent& mouse);
-   //void OnMouseRightDown(wxMouseEvent& mouse);
+   // void OnMouseRightDown(wxMouseEvent& mouse);
    // void OnMouseMiddleDown(wxMouseEvent& mouse);
    // void OnMouseMiddleUp(wxMouseEvent& mouse);
    void OnMouseWheel(wxMouseEvent& mouse);
@@ -34,7 +36,12 @@ class InputPlane : public ComplexPlane {
    void OnContourResCtrl(wxSpinEvent& event);
    void OnContourResCtrl(wxCommandEvent& event);
 
-   int GetState() { return state; }
+   int GetState() {
+      return state;
+   }
+   int GetRes() {
+      return res;
+   }
    void RecalcAll();
 
    // "Type" meaning Circle, Polygon, Rectangle, etc.
@@ -57,7 +64,7 @@ class InputPlane : public ComplexPlane {
 
  private:
    const int CIRCLED_POINT_RADIUS = 7;
-   int res                        = 100;
+   int res                        = 200;
    // drawnContours stores contours in original form for editing.
    // subDivContours stores them as approximating polygons for mapping
    std::vector<ContourPolygon*> subDivContours;

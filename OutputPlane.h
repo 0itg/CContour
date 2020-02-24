@@ -2,6 +2,7 @@
 
 #include "ComplexPlane.h"
 #include "Parser.h"
+#include "ToolPanel.h"
 
 #include <complex>
 #include <wx/spinctrl.h>
@@ -13,11 +14,14 @@ class TransformedGrid;
 // Right Panel in UI. Displays the mapping of input point sets under
 // some complex function.
 
+typedef std::complex<double> cplx;
+
 class OutputPlane : public ComplexPlane {
    friend class InputPlane;
 
  public:
-   OutputPlane(wxWindow* parent, InputPlane* In, std::string name = "output");
+   OutputPlane(wxWindow* parent, InputPlane* In,
+               const std::string& name = "output");
    ~OutputPlane();
    void OnMouseLeftUp(wxMouseEvent& mouse);
    // void OnMouseRightUp(wxMouseEvent& mouse);
@@ -32,16 +36,20 @@ class OutputPlane : public ComplexPlane {
    void SetFuncInput(wxTextCtrl* fIn) {
       funcInput = fIn;
    }
+   void SetVarPanel(VariableEditPanel* var) {
+      varPanel = var;
+   }
 
-   // int res = 200;
+   int GetRes();
 
-   ParsedFunc<std::complex<double>> f;
+   ParsedFunc<cplx> f;
 
  private:
-   Parser<std::complex<double>> parser;
+   Parser<cplx> parser;
    InputPlane* in;
    std::vector<ContourPolygon*>& inputContours;
    TransformedGrid* tGrid;
    wxTextCtrl* funcInput;
+   VariableEditPanel* varPanel;
    wxDECLARE_EVENT_TABLE();
 };

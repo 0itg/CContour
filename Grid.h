@@ -6,7 +6,8 @@
 #endif
 
 #include <complex>
-//#include "Contour.h"
+
+typedef std::complex<double> cplx;
 
 class ContourLine;
 class ContourPolygon;
@@ -48,8 +49,8 @@ class TransformedGrid : public Grid {
 
    // applies a function to the lines of the input grid and stores them
    // as open polygons in this object.
-   void MapGrid(Grid* grid, ParsedFunc<std::complex<double>>& f);
-   int res = 80;
+   void MapGrid(Grid* grid, ParsedFunc<cplx>& f);
+   int res = 200;
 
  private:
    // std::vector<ContourPolygon*> horiz;

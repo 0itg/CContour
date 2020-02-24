@@ -15,20 +15,20 @@
 
 #include <complex>
 
+typedef std::complex<double> cplx;
+
 class Contour;
 class InputPlane;
 class OutputPlane;
 class LinkedTextCtrl;
+template <class T> class Symbol;
+template <class T> class ParsedFunc;
 
 class ToolPanel : public wxVScrolledWindow {
  public:
    ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
-   // void PopulateCtrlPoints(Contour* contour);
-   // void ClearControlPoints();
    void OnTextEntry(wxCommandEvent& event);
    void OnPaintEvent(wxPaintEvent& event);
-   void PopulateAxisTextCtrls();
-   void PopulateContourTextCtrls(Contour* C);
    void ClearPanel();
 
    void AddDecoration(wxControl* D) {
@@ -42,65 +42,61 @@ class ToolPanel : public wxVScrolledWindow {
       return 24;
    }
 
+   virtual bool NeedsUpdate()   = 0;
+   virtual void RefreshLinked() = 0;
+
+   static constexpr int SPACING = 48;
+   const wxSize TEXTBOX_SIZE    = wxSize(
+       this->GetTextExtent("0.000000 + 0.000000i").x + 20, wxDefaultSize.y);
+
+ protected:
+   std::vector<wxControl*> decorations;
+   std::vector<LinkedTextCtrl*> controls;
+};
+
+class AxisAndCtrlPointPanel : public ToolPanel {
+ public:
+   AxisAndCtrlPointPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
+       : ToolPanel(parent, ID, pos, size) {}
+   void PopulateAxisTextCtrls();
+   void PopulateContourTextCtrls(Contour* C);
+
+   bool NeedsUpdate();
+   void RefreshLinked();
+
    void SetInputPlane(InputPlane* in) {
       input = in;
    }
    void SetOutputPlane(OutputPlane* out) {
       outputs.push_back(out);
    }
-   const int SPACING = 48;
-
- private:
-   std::vector<wxControl*> decorations;
-   std::vector<LinkedTextCtrl*> controls;
-   InputPlane* input;
-   std::vector<OutputPlane*> outputs;
-   // Contour* menuContour;
 
    wxDECLARE_EVENT_TABLE();
-};
-
-// Wrapper for wxTextCtrl which stores a pointer to its input's
-// intended destination.
-// Lazy implementation. This should be an abstract base class, with
-// double version inheriting from it. Later.
-class LinkedTextCtrl : virtual public wxTextCtrl {
- public:
-   LinkedTextCtrl() {}
-   LinkedTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
-                  wxPoint defaultPos, wxSize defSize, int style, double* p)
-       : wxTextCtrl(par, ID, str, defaultPos, defSize, style), data(p) {}
-   virtual ~LinkedTextCtrl() {}
-
-   virtual void Link(double* ptr) {
-      data = ptr;
-   }
-   virtual void WriteLinked();
-   virtual void ReadLinked() {
-      ChangeValue(std::to_string(*data));
-   }
 
  private:
-   double* data;
+   InputPlane* input;
+   std::vector<OutputPlane*> outputs;
 };
 
-//
-class LinkedCtrlPointTextCtrl : public LinkedTextCtrl {
+class VariableEditPanel : public ToolPanel {
  public:
-   LinkedCtrlPointTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
-                          wxPoint defaultPos, wxSize defSize, int style,
-                          Contour* C, size_t index)
-       : wxTextCtrl(par, ID, str, defaultPos, defSize, style),
-         parent(C), i(index) {
+   VariableEditPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
+       : ToolPanel(parent, ID, pos, size) {}
+   void PopulateVarTextCtrls(ParsedFunc<cplx>& F);
+
+   void OnPaintEvent(wxPaintEvent& event);
+
+   bool NeedsUpdate() {
+      return true;
    }
-   //void Link(std::vector<std::complex<double>>& ref) {
-   //   dataVec = ref;
-   //}
-   void WriteLinked();
-   void ReadLinked();
+   void RefreshLinked();
+
+   void SetOutputPlane(OutputPlane* out) {
+      output = out;
+   }
+
+   wxDECLARE_EVENT_TABLE();
 
  private:
-   Contour* parent;
-   size_t i;
-   //std::vector<std::complex<double>>& dataVec;
+   OutputPlane* output;
 };

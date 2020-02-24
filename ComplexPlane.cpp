@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <sstream>
 
-ComplexPlane::ComplexPlane(wxWindow* parent, std::string n)
+ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
     : axes(this), wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                           wxFULL_REPAINT_ON_RESIZE),
       resCtrl(nullptr), statBar(nullptr), toolPanel(nullptr), name(n) {
@@ -19,18 +19,19 @@ ComplexPlane::ComplexPlane(wxWindow* parent, std::string n)
 }
 
 ComplexPlane::~ComplexPlane() {
-   for (auto C : contours) delete C;
+   for (auto C : contours)
+      delete C;
 }
 
-std::complex<double> ComplexPlane::ScreenToComplex(wxPoint P) {
-   return std::complex<double>(
-       (double)P.x / GetClientSize().x * (axes.realMax - axes.realMin) +
-           axes.realMin,
-       (1 - (double)P.y / GetClientSize().y) * (axes.imagMax - axes.imagMin) +
-           axes.imagMin);
+cplx ComplexPlane::ScreenToComplex(wxPoint P) {
+   return cplx((double)P.x / GetClientSize().x * (axes.realMax - axes.realMin) +
+                   axes.realMin,
+               (1 - (double)P.y / GetClientSize().y) *
+                       (axes.imagMax - axes.imagMin) +
+                   axes.imagMin);
 }
 
-wxPoint ComplexPlane::ComplexToScreen(std::complex<double> C) {
+wxPoint ComplexPlane::ComplexToScreen(cplx C) {
    return wxPoint((C.real() - axes.realMin) / (axes.realMax - axes.realMin) *
                       GetClientSize().x,
                   (axes.imagMin - C.imag()) / (axes.imagMax - axes.imagMin) *
@@ -95,7 +96,8 @@ void ComplexPlane::Highlight(wxPoint mousePos) {
          notOnAnyContour      = false;
          highlightedCtrlPoint = CtrlPtIndex;
          highlightedContour   = i;
-      } else if (contours[i]->IsPointOnContour(ScreenToComplex(mousePos), this)) {
+      } else if (contours[i]->IsPointOnContour(ScreenToComplex(mousePos),
+                                               this)) {
          notOnAnyContour      = false;
          highlightedContour   = i;
          highlightedCtrlPoint = -1;
@@ -116,7 +118,7 @@ void ComplexPlane::Highlight(wxPoint mousePos) {
 }
 
 void ComplexPlane::Pan(wxPoint mousePos) {
-   std::complex<double> displacement = lastMousePos - ScreenToComplex(mousePos);
+   cplx displacement = lastMousePos - ScreenToComplex(mousePos);
    axes.realMax += displacement.real();
    axes.realMin += displacement.real();
    axes.imagMax += displacement.imag();
@@ -128,7 +130,7 @@ void ComplexPlane::Pan(wxPoint mousePos) {
 
 // void ComplexPlane::InversePan(wxPoint mousePos)
 //{
-//    std::complex<double> displacement =
+//    cplx displacement =
 //        lastMousePos - ScreenToComplex(mousePos);
 //    axes.realMax -= displacement.real();
 //    axes.realMin -= displacement.real();
@@ -139,7 +141,7 @@ void ComplexPlane::Pan(wxPoint mousePos) {
 //}
 
 void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps) {
-   std::complex<double> zoomCenter = ScreenToComplex(mousePos);
+   cplx zoomCenter = ScreenToComplex(mousePos);
    // Zoom around the mouse position. To this, first translate the viewport
    // so mousePos is at the origin, then apply the zoom, then translate back.
    axes.realMax -= zoomCenter.real();
@@ -147,7 +149,9 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps) {
    axes.imagMax -= zoomCenter.imag();
    axes.imagMin -= zoomCenter.imag();
 
-   for (int i = 0; i < 4; i++) { axes.c[i] *= pow(zoomFactor, zoomSteps); }
+   for (int i = 0; i < 4; i++) {
+      axes.c[i] *= pow(zoomFactor, zoomSteps);
+   }
 
    axes.realMax += zoomCenter.real();
    axes.realMin += zoomCenter.real();
@@ -158,7 +162,7 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps) {
    // far apart or too close together. Rescale when they are more than twice
    // as far apart or half as far apart.
 
-   int MaxMark       = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
+   const int MaxMark = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
    const int MinMark = GetClientSize().x / (axes.TARGET_TICK_COUNT * 2);
 
    if (LengthToScreen(axes.reStep) < MinMark) {
@@ -192,8 +196,8 @@ void Axes::Draw(wxDC* dc) {
    wxPoint mark;
 
    // Get offset and adjust tick mark count so text aligns with zero.
-   int count                  = realMin / reStep;
-   std::complex<double> cMark = realMin - fmod(realMin, reStep);
+   int count  = realMin / reStep;
+   cplx cMark = realMin - fmod(realMin, reStep);
 
    while (cMark.real() < realMax) {
       count++;
