@@ -148,6 +148,7 @@
     <ClCompile Include="ContourPolygon.cpp" />
     <ClCompile Include="ContourRect.cpp" />
     <ClCompile Include="InputPlane.cpp" />
+    <ClCompile Include="LinkedTextCtrl.cpp" />
     <ClCompile Include="MainWindowFrame.cpp" />
     <ClCompile Include="OutputPlane.cpp" />
     <ClCompile Include="ComplexPlane.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="ContourPolygon.h" />
     <ClInclude Include="ContourRect.h" />
     <ClInclude Include="InputPlane.h" />
+    <ClInclude Include="LinkedTextCtrl.h" />
     <ClInclude Include="MainWindowFrame.h" />
     <ClInclude Include="OutputPlane.h" />
     <ClInclude Include="ComplexPlane.h" />

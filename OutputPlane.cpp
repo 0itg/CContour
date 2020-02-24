@@ -27,7 +27,7 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, std::string n)
+OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, const std::string& n)
     : ComplexPlane(parent, n), in(In), inputContours((In->subDivContours)) {
    f = parser.Parse("z*z");
    In->outputs.push_back(this);
@@ -44,9 +44,9 @@ void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse) {
 }
 
 void OutputPlane::OnMouseMoving(wxMouseEvent& mouse) {
-   std::complex<double> outCoord = (ScreenToComplex(mouse.GetPosition()));
-   std::string inputCoord        = "f(z) = " + f.str();
-   std::string outputCoord       = "f(z) = " + std::to_string(outCoord.real()) +
+   cplx outCoord           = (ScreenToComplex(mouse.GetPosition()));
+   std::string inputCoord  = "f(z) = " + f.str();
+   std::string outputCoord = "f(z) = " + std::to_string(outCoord.real()) +
                              " + " + std::to_string(outCoord.imag()) + "i";
    statBar->SetStatusText(inputCoord, 0);
    statBar->SetStatusText(outputCoord, 1);
@@ -137,6 +137,7 @@ void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
       errormsg.ShowFor(funcInput);
    }
    movedViewPort = true;
+   varPanel->PopulateVarTextCtrls(f);
    Refresh();
    Update();
 }
@@ -149,4 +150,8 @@ void OutputPlane::MarkAllForRedraw() {
    for (int i = 0; i < contours.size(); i++) {
       contours[i] = inputContours[i]->ApplyToClone(f);
    }
+}
+
+int OutputPlane::GetRes() {
+   return tGrid->res;
 }

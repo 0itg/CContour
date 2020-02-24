@@ -32,7 +32,7 @@ InputPlane::~InputPlane() {
    delete grid;
 }
 
-InputPlane::InputPlane(wxWindow* parent, std::string n)
+InputPlane::InputPlane(wxWindow* parent, const std::string& n)
     : ComplexPlane(parent, n), colorPicker(nullptr) {
    grid = new Grid(this);
 }
@@ -73,7 +73,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse) {
       // And set to be the active contour. If a contour is highlighted,
       // User can still create a new one with Ctrl-click
       if (highlightedContour < 0 || mouse.ControlDown()) {
-         std::complex<double> c;
+         cplx c;
          bool snap = false;
 
          // Snap to control point if Ctrl key is down
@@ -110,8 +110,9 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse) {
 
 void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse) {
    if (highlightedContour > -1) {
-      contours[highlightedContour]->color       = color;
-      subDivContours[highlightedContour]->color = color;
+      contours[highlightedContour]->color                 = color;
+      subDivContours[highlightedContour]->color           = color;
+      subDivContours[highlightedContour]->markedForRedraw = true;
    }
    Refresh();
    Update();
@@ -144,16 +145,19 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse) {
       int nextState = state;
       if (contours[state]->IsDone()) {
          contours[state]->RemovePoint(highlightedCtrlPoint);
+         toolPanel->PopulateContourTextCtrls(contours[state]);
          highlightedCtrlPoint = -1;
          highlightedContour   = -1;
          nextState            = STATE_IDLE;
       } else {
          contours[state]->RemovePoint(highlightedCtrlPoint - 1);
          highlightedCtrlPoint--;
+         toolPanel->PopulateContourTextCtrls(contours[state]);
       }
       if (contours[state]->GetPointCount() < 2) {
          RemoveContour(state);
          nextState = STATE_IDLE;
+         toolPanel->PopulateAxisTextCtrls();
       }
       state = nextState;
       Refresh();
@@ -174,8 +178,8 @@ void InputPlane::OnMouseWheel(wxMouseEvent& mouse) {
 
 void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
    // NOTE: Status bar code will need to change for multiple output windows
-   std::complex<double> mousePos = ScreenToComplex(mouse.GetPosition());
-   std::complex<double> outCoord = outputs[0]->f(mousePos);
+   cplx mousePos          = ScreenToComplex(mouse.GetPosition());
+   cplx outCoord          = outputs[0]->f(mousePos);
    std::string inputCoord = "z = " + std::to_string(mousePos.real()) + " + " +
                             std::to_string(mousePos.imag()) + "i";
    std::string outputCoord = "f(z) = " + std::to_string(outCoord.real()) +
@@ -196,7 +200,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
          contours[state]->moveCtrlPoint(mousePos, highlightedCtrlPoint);
       }
       delete subDivContours[state];
-      subDivContours[state] = std::move(contours[state]->Subdivide(res));
+      subDivContours[state] = contours[state]->Subdivide(res);
       Refresh();
       Update();
    }

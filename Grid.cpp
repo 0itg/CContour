@@ -8,18 +8,21 @@
 #include <execution>
 
 Grid::~Grid() {
-   for (auto v : lines) delete v;
+   for (auto v : lines)
+      delete v;
 }
 
 void Grid::Draw(wxDC* dc, ComplexPlane* canvas) {
    CalcVisibleGrid();
-   for (auto v : lines) v->Draw(dc, canvas);
+   for (auto v : lines)
+      v->Draw(dc, canvas);
 }
 
 void Grid::CalcVisibleGrid() {
    // Draws gridlines every hStep x VStep, offset to line up with the origin
    // If the viewport has been panned around.
-   for (auto v : lines) delete v;
+   for (auto v : lines)
+      delete v;
    lines.clear();
 
    wxPoint corner(parent->GetClientSize().x, parent->GetClientSize().y);
@@ -29,30 +32,31 @@ void Grid::CalcVisibleGrid() {
    for (double y = parent->axes.imagMin - vOffset; y <= parent->axes.imagMax;
         y += vStep) {
       lines.push_back(new ContourLine(
-          std::complex<double>(parent->ScreenToComplex(wxPoint(0, 0)).real(),
-                               y),
-          std::complex<double>(parent->ScreenToComplex(corner).real(), y)));
+          cplx(parent->ScreenToComplex(wxPoint(0, 0)).real(), y),
+          cplx(parent->ScreenToComplex(corner).real(), y)));
    }
    for (double x = parent->axes.realMin - hOffset; x <= parent->axes.realMax;
         x += hStep) {
       lines.emplace_back(new ContourLine(
-          std::complex<double>(x,
-                               parent->ScreenToComplex(wxPoint(x, 0)).imag()),
-          std::complex<double>(x, parent->ScreenToComplex(corner).imag())));
+          cplx(x, parent->ScreenToComplex(wxPoint(x, 0)).imag()),
+          cplx(x, parent->ScreenToComplex(corner).imag())));
    }
 }
 
 TransformedGrid::~TransformedGrid() {
-   for (auto v : lines) delete v;
+   for (auto v : lines)
+      delete v;
    Grid::~Grid();
 }
 
 void TransformedGrid::Draw(wxDC* dc, ComplexPlane* canvas) {
-   for (auto v : lines) v->Draw(dc, canvas);
+   for (auto v : lines)
+      v->Draw(dc, canvas);
 }
 
-void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<std::complex<double>>& f) {
-   for (auto v : lines) delete v;
+void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f) {
+   for (auto v : lines)
+      delete v;
    lines.clear();
 
    for (auto v : grid->lines) {

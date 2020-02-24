@@ -2,9 +2,9 @@
 #include "ComplexPlane.h"
 #include "Parser.h"
 #include <numeric>
+#include <thread>
 
-ContourPolygon::ContourPolygon(std::complex<double> c, wxColor col,
-                               std::string n) {
+ContourPolygon::ContourPolygon(cplx c, wxColor col, std::string n) {
    points.push_back(c);
    points.push_back(c);
    color = col;
@@ -19,9 +19,10 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas) {
    // Create a vector of screen points from the mathematical ones.
    std::vector<wxPoint> screenPoints;
    screenPoints.resize(points.size());
-   std::transform(
-       points.begin(), points.end(), screenPoints.begin(),
-       [canvas](std::complex<double> z) { return canvas->ComplexToScreen(z); });
+   std::transform(points.begin(), points.end(), screenPoints.begin(),
+                  [canvas](cplx z) {
+                     return canvas->ComplexToScreen(z);
+                  });
 
    for (auto pt = screenPoints.begin(); pt != screenPoints.end() - 1; pt++) {
       DrawClippedLine(*pt, *(pt + 1), dc, canvas);
@@ -30,18 +31,18 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas) {
       DrawClippedLine(screenPoints.back(), screenPoints.front(), dc, canvas);
 }
 
-void ContourPolygon::ActionNoCtrlPoint(std::complex<double> mousePos,
-                                       std::complex<double> lastPointClicked) {
+void ContourPolygon::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) {
    Translate(mousePos, lastPointClicked);
 }
 
 inline bool ContourPolygon::IsDone() {
-   if (closed) return true;
+   if (closed)
+      return true;
    return abs(points[points.size() - 1] - points[0]) < 0.3;
 }
 
-bool ContourPolygon::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
-                                 int pixPrecision) {
+bool ContourPolygon::IsPointOnContour(cplx pt, ComplexPlane* canvas,
+                                      int pixPrecision) {
    // Check each line segment of the polygon until the distance to the point.
    // is within pixPrecision. This could probably be made more efficient.
    int i;
@@ -83,7 +84,7 @@ void ContourPolygon::CalcSideLengths() {
 // arc length, e.g. the path from t = 0 to t = 0.5 would be the same
 // length as t = .5 to t = 1.
 
-std::complex<double> ContourPolygon::Interpolate(double t) {
+cplx ContourPolygon::Interpolate(double t) {
    int sideIndex          = 0;
    double lengthTraversed = 0;
    CalcSideLengths();
@@ -151,12 +152,27 @@ ContourPolygon* ContourPolygon::Subdivide(int res) {
    return D;
 }
 
-inline void ContourPolygon::Apply(ParsedFunc<std::complex<double>>& f) {
+inline void ContourPolygon::Apply(ParsedFunc<cplx>& f) {
    for (auto& z : points)
       z = f(z);
+   // std::vector<std::thread> threads;
+   // std::vector<ParsedFunc<cplx>> funcs;
+   // auto tCount = std::thread::hardware_concurrency();
+   // auto pCount = this->GetPointCount();
+   // auto C      = this;
+   // for (int i = 0; i < tCount; i++) {
+   //   funcs.push_back(f);
+   //   threads.emplace_back([i, tCount, pCount, C, &funcs]() {
+   //      for (int j = i; j < pCount; j += tCount) {
+   //         C->points[i] = funcs[i](C->points[j]);
+   //      }
+   //   });
+   //}
+   // for (auto& T : threads)
+   //   T.join();
 }
 
-ContourPolygon* ContourPolygon::ApplyToClone(ParsedFunc<std::complex<double>>& f) {
+ContourPolygon* ContourPolygon::ApplyToClone(ParsedFunc<cplx>& f) {
    ContourPolygon* C = Clone();
    C->Apply(f);
    return C;

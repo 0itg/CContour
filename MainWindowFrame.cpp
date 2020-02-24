@@ -42,25 +42,33 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    aui.SetManagedWindow(this);
 
    SetMinSize(wxSize(400, 250));
-   wxMenu* menuFile = new wxMenu;
+   auto menuFile = new wxMenu;
    /* menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
         "Help string shown in status bar for this menu item");*/
    // menuFile->AppendSeparator();
    menuFile->Append(wxID_EXIT);
-   wxMenu* menuHelp = new wxMenu;
+   auto menuHelp = new wxMenu;
    menuHelp->Append(wxID_ABOUT);
-   wxMenuBar* menuBar = new wxMenuBar;
+   auto menuBar = new wxMenuBar;
    menuBar->Append(menuFile, "&File");
    menuBar->Append(menuHelp, "&Help");
    SetMenuBar(menuBar);
 
+   // Need an intermediate window to hold the sizer for the complex planes.
+   auto Cplanes =
+       new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+   Cplanes->SetBackgroundColour(this->GetBackgroundColour());
+   input  = new InputPlane(Cplanes);
+   output = new OutputPlane(Cplanes, input);
+
    // Drawing tools. Picking one sets the type of contour to draw.
 
-   wxToolBar* toolbar = new wxToolBar(this, ID_toolBar);
+   auto toolbar = new wxToolBar(this, ID_toolBar);
    toolbar->SetToolBitmapSize(wxSize(24, 24));
    toolbar->AddTool(ID_Select, "Select Contour",
                     wxBitmap(wxT("icons/tool-pointer.png"), wxBITMAP_TYPE_PNG),
-                    wxNullBitmap, wxITEM_RADIO, "Select contour for numerical editing");
+                    wxNullBitmap, wxITEM_RADIO,
+                    "Select contour for numerical editing");
    toolbar->AddTool(ID_Circle, "Circular Contour",
                     wxBitmap(wxT("icons/draw-ellipse.png"), wxBITMAP_TYPE_PNG),
                     wxNullBitmap, wxITEM_RADIO, "Draws a circular contour");
@@ -104,7 +112,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
        wxBitmap(wxT("icons/color-randomizer.png"), wxBITMAP_TYPE_PNG),
        wxNullBitmap, wxITEM_CHECK, "Randomizes color after a contour is drawn");
    toolbar->ToggleTool(ID_Color_Randomizer, true);
-   wxColourPickerCtrl* colorCtrl =
+   auto colorCtrl =
        new wxColourPickerCtrl(toolbar, ID_Color_Picker, wxColor(0, 0, 200));
    toolbar->AddControl(colorCtrl);
 
@@ -115,20 +123,21 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    // points on all transformed contours. GridResCtrl does the same for
    // transformed grid lines.
 
-   wxStaticText* cResText =
-       new wxStaticText(toolbar, wxID_ANY, "Contour res: ");
+   auto cResText = new wxStaticText(toolbar, wxID_ANY, "Contour res: ");
    toolbar->AddControl(cResText);
-   wxSpinCtrl* cResCtrl =
-       new wxSpinCtrl(toolbar, ID_ContourResCtrl, wxT("100"), wxDefaultPosition,
-                      wxDefaultSize, wxTE_PROCESS_ENTER, 20, 10000, 100);
+   auto cResCtrl = new wxSpinCtrl(
+       toolbar, ID_ContourResCtrl, std::to_string(input->GetRes()),
+       wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, 20, 10000,
+       input->GetRes());
    toolbar->AddControl(cResCtrl);
 
    toolbar->AddSeparator();
-   wxStaticText* gResText = new wxStaticText(toolbar, wxID_ANY, "Grid res: ");
+   auto gResText = new wxStaticText(toolbar, wxID_ANY, "Grid res: ");
    toolbar->AddControl(gResText);
-   wxSpinCtrl* gResCtrl =
-       new wxSpinCtrl(toolbar, ID_GridResCtrl, wxT("100"), wxDefaultPosition,
-                      wxDefaultSize, wxTE_PROCESS_ENTER, 20, 10000, 100);
+   auto gResCtrl =
+       new wxSpinCtrl(toolbar, ID_GridResCtrl, std::to_string(output->GetRes()),
+                      wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, 20,
+                      10000, output->GetRes());
    toolbar->AddControl(gResCtrl);
 
    toolbar->AddSeparator();
@@ -137,9 +146,9 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    // hardcoded at the independent variable for the moment.
    // The output plane is responsible for parsing the function.
 
-   wxStaticText* fnText = new wxStaticText(toolbar, wxID_ANY, "f(z) = ");
+   auto fnText = new wxStaticText(toolbar, wxID_ANY, "f(z) = ");
    toolbar->AddControl(fnText);
-   wxTextCtrl* funcEntry = new wxTextCtrl(
+   auto funcEntry = new wxTextCtrl(
        toolbar, ID_Function_Entry, wxString("z*z"), wxDefaultPosition,
        wxSize(toolbar->GetSize().x / 4, wxDefaultSize.y), wxTE_PROCESS_ENTER);
    toolbar->AddControl(funcEntry);
@@ -148,35 +157,36 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    SetToolBar(toolbar);
    toolbar->Realize();
 
-   wxStatusBar* statBar = CreateStatusBar(2);
+   auto statBar = CreateStatusBar(2);
 
-   // Need an intermediate window to hold the sizer for the complex planes.
-   wxWindow* Cplanes =
-       new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-   Cplanes->SetBackgroundColour(this->GetBackgroundColour());
-
-   input = new InputPlane(Cplanes);
    input->SetColorPicker(colorCtrl);
    input->SetResCtrl(cResCtrl);
    input->SetStatusBar(statBar);
 
-   output = new OutputPlane(Cplanes, input);
    output->SetFuncInput(funcEntry);
    output->SetResCtrl(gResCtrl);
    output->SetStatusBar(statBar);
 
    output->Refresh(); // Forces it to show mapped inputs.
-   wxBoxSizer* cPlaneSizer = new wxBoxSizer(wxHORIZONTAL);
+   auto cPlaneSizer = new wxBoxSizer(wxHORIZONTAL);
    wxSizerFlags PlaneFlags(1);
    PlaneFlags.Shaped().Border(wxALL, 10).Center();
 
-   ToolPanel* toolPanel = new ToolPanel(this, ID_ToolPanel, wxDefaultPosition,
-                                        wxSize(100, this->GetClientSize().y));
-   toolPanel->SetInputPlane(input);
-   toolPanel->SetOutputPlane(output);
-   toolPanel->PopulateAxisTextCtrls();
-   input->SetToolPanel(toolPanel);
-   output->SetToolPanel(toolPanel);
+   auto axisAndCtrlPtPanel =
+       new AxisAndCtrlPointPanel(this, ID_ToolPanel, wxDefaultPosition,
+                                 wxSize(100, this->GetClientSize().y));
+   axisAndCtrlPtPanel->SetInputPlane(input);
+   axisAndCtrlPtPanel->SetOutputPlane(output);
+   axisAndCtrlPtPanel->PopulateAxisTextCtrls();
+   input->SetToolPanel(axisAndCtrlPtPanel);
+   output->SetToolPanel(axisAndCtrlPtPanel);
+
+   auto varEditPanel =
+       new VariableEditPanel(this, ID_ToolPanel, wxDefaultPosition,
+                             wxSize(100, this->GetClientSize().y));
+   varEditPanel->SetOutputPlane(output);
+   output->SetVarPanel(varEditPanel);
+   varEditPanel->PopulateVarTextCtrls(output->f);
 
    cPlaneSizer->Add(input, PlaneFlags);
    cPlaneSizer->Add(output, PlaneFlags);
@@ -184,8 +194,10 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
    aui.AddPane(Cplanes,
                wxAuiPaneInfo().Center().BestSize(1200, 700).MinSize(350, 200));
-   aui.AddPane(toolPanel,
+   aui.AddPane(axisAndCtrlPtPanel,
                wxAuiPaneInfo().Left().BestSize(150, 700).MinSize(20, 20));
+   aui.AddPane(varEditPanel,
+               wxAuiPaneInfo().Right().BestSize(150, 700).MinSize(20, 20));
    aui.Update();
 }
 

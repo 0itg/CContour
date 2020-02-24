@@ -2,15 +2,14 @@
 #include "ComplexPlane.h"
 #include "ContourPolygon.h"
 
-ContourLine::ContourLine(std::complex<double> c, wxColor col, std::string n) {
+ContourLine::ContourLine(cplx c, wxColor col, std::string n) {
    points.push_back(c);
    points.push_back(c);
    color = col;
    name  = n;
 }
 
-ContourLine::ContourLine(std::complex<double> c, std::complex<double> d,
-                         wxColor col, std::string n) {
+ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n) {
    points.push_back(c);
    points.push_back(d);
    color = col;
@@ -27,8 +26,8 @@ void ContourLine::Draw(wxDC* dc, ComplexPlane* canvas) {
                 canvas->ComplexToScreen(points[1]));
 }
 
-bool ContourLine::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas,
-                              int pixPrecision) {
+bool ContourLine::IsPointOnContour(cplx pt, ComplexPlane* canvas,
+                                   int pixPrecision) {
    if (DistancePointToLine(pt, points[0], points[1]) <
            canvas->ScreenToLength(pixPrecision) &&
        IsInsideBox(pt, points[0], points[1]))
@@ -37,15 +36,16 @@ bool ContourLine::IsPointOnContour(std::complex<double> pt, ComplexPlane* canvas
       return false;
 }
 
-std::complex<double> ContourLine::Interpolate(double t) {
+cplx ContourLine::Interpolate(double t) {
    return points[0] * t + points[1] * (1 - t);
 }
 
 ContourPolygon* ContourLine::Subdivide(int res) {
    ContourPolygon* D = new ContourPolygon();
-   std::complex<double> zStep((points[1].real() - points[0].real()) / res,
-                              (points[1].imag() - points[0].imag()) / res);
-   for (int i = 0; i < res; i++) D->AddPoint(points[0] + (double)i * zStep);
+   cplx zStep((points[1].real() - points[0].real()) / res,
+              (points[1].imag() - points[0].imag()) / res);
+   for (int i = 0; i < res; i++)
+      D->AddPoint(points[0] + (double)i * zStep);
    D->color = color;
    return D;
 }

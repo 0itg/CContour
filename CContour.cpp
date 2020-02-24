@@ -26,7 +26,7 @@ wxIMPLEMENT_APP(ContourViewer);
 
 bool ContourViewer::OnInit() {
    MainWindowFrame* frame = new MainWindowFrame(
-       "Complex Contour Visualizer", wxDefaultPosition, wxSize(1200, 650));
+       "Complex Contour Visualizer", wxDefaultPosition, wxSize(1300, 650));
    frame->Show(true);
    return true;
 }
