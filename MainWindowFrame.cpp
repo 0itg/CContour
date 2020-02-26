@@ -201,53 +201,57 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    aui.Update();
 }
 
-void MainWindowFrame::OnExit(wxCommandEvent& event) {
+inline void MainWindowFrame::OnExit(wxCommandEvent& event) {
    Close(true);
 }
-void MainWindowFrame::OnAbout(wxCommandEvent& event) {
+
+inline void MainWindowFrame::OnAbout(wxCommandEvent& event) {
    wxMessageBox("Lorem Ipsum", "Complex Contour Visualizer",
                 wxOK | wxICON_INFORMATION);
 }
-void MainWindowFrame::OnButtonSelectionTool(wxCommandEvent& event) {
+
+inline void MainWindowFrame::OnButtonSelectionTool(wxCommandEvent& event) {
    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpSelectionTool, input);
 }
-void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event) {
+
+inline void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event) {
    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpContourTools, input);
    input->SetContourType(event.GetId());
 }
-void MainWindowFrame::OnColorPicked(wxColourPickerEvent& col) {
+
+inline void MainWindowFrame::OnColorPicked(wxColourPickerEvent& col) {
    input->OnColorPicked(col);
 }
 
-void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event) {
+inline void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event) {
    input->OnColorRandomizer(event);
 }
 
-void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event) {
+inline void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event) {
    input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
 }
 
-void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event) {
+inline void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event) {
    output->OnFunctionEntry(event);
 }
 
-void MainWindowFrame::OnGridResCtrl(wxSpinEvent& event) {
+inline void MainWindowFrame::OnGridResCtrl(wxSpinEvent& event) {
    output->OnGridResCtrl(event);
 }
 
-void MainWindowFrame::OnGridResCtrl(wxCommandEvent& event) {
+inline void MainWindowFrame::OnGridResCtrl(wxCommandEvent& event) {
    output->OnGridResCtrl(event);
 }
 
-void MainWindowFrame::OnContourResCtrl(wxSpinEvent& event) {
+inline void MainWindowFrame::OnContourResCtrl(wxSpinEvent& event) {
    input->OnContourResCtrl(event);
 }
 
-void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event) {
+inline void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event) {
    input->OnContourResCtrl(event);
 }
 
-void MainWindowFrame::OnShowAxes_ShowGrid(wxCommandEvent& event) {
+inline void MainWindowFrame::OnShowAxes_ShowGrid(wxCommandEvent& event) {
    input->OnShowAxes_ShowGrid(event);
    output->OnShowAxes_ShowGrid(event);
 }

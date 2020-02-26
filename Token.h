@@ -22,6 +22,8 @@ enum precedence_list {
    sym_comma  = -1
 };
 
+#define DEF_CLONE_FUNC(X) virtual X<T>* Clone() { return new X<T>(*this); };
+
 // Base class for parsed symbols. Symbol pointers are stored in a vector, and
 // each symbol has a pointer "src" to that vector. Symbols recursively
 // evaluate themselves, pulling their arguments from the vector. Any valid
@@ -29,6 +31,7 @@ enum precedence_list {
 template <typename T> class Symbol {
 
  public:
+   virtual Symbol<T>* Clone() = 0;
    // Various flags and virtual "members" used by the parser.
    virtual int GetPrecedence()    = 0;
    virtual std::string GetToken() = 0;
@@ -137,6 +140,10 @@ T callByArray(std::function<T(Ts...)> f,
 template <typename T, typename... Ts> class SymbolFunc : public Symbol<T> {
 
  public:
+   virtual SymbolFunc<T, Ts...>* Clone() {
+      return new SymbolFunc<T, Ts...>(*this);
+   };
+   //SymbolFunc(SymbolFunc<T, Ts...>& S)
    SymbolFunc(){};
    SymbolFunc(const std::function<T(Ts...)>& g, const std::string& s)
        : f(g), name(s){};
@@ -172,6 +179,7 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T> {
 // Used for parsing strings. Should never make it to the output queue
 template <typename T> class SymbolLParen : public Symbol<T> {
  public:
+   DEF_CLONE_FUNC(SymbolLParen)
    virtual int GetPrecedence() {
       return sym_lparen;
    }
@@ -186,6 +194,7 @@ template <typename T> class SymbolLParen : public Symbol<T> {
 // Used for parsing strings. Should never make it to the output queue
 template <typename T> class SymbolRParen : public Symbol<T> {
  public:
+   DEF_CLONE_FUNC(SymbolRParen);
    virtual int GetPrecedence() {
       return sym_rparen;
    }
@@ -211,6 +220,7 @@ struct can_hold_num_one<typename T, std::void_t<decltype(T{1})>> {
 template <typename T> class SymbolNum : public Symbol<T> {
 
  public:
+   DEF_CLONE_FUNC(SymbolNum)
    SymbolNum() : Symbol<T>() {}
    SymbolNum(const T& v) : val(v) {}
    SymbolNum(const SymbolNum<T>&& S) noexcept {
@@ -219,6 +229,7 @@ template <typename T> class SymbolNum : public Symbol<T> {
    SymbolNum(const SymbolNum<T>* ptr) {
       val = ptr->val;
    }
+   SymbolNum(SymbolNum<T>& S) : val(S.getVal()){};
 
    virtual int GetPrecedence() {
       return sym_num;
@@ -241,6 +252,10 @@ template <typename T> class SymbolNum : public Symbol<T> {
 // Number but with stored name and value can be set after parsing.
 template <typename T> class SymbolVar : public SymbolNum<T> {
  public:
+   DEF_CLONE_FUNC(SymbolVar)
+   SymbolVar(SymbolVar<T>& S) : name(S.name) {
+      this->val = S.getVal();
+   };
    SymbolVar(const std::string& s, T v) : name(s), SymbolNum<T>(v) {}
    SymbolVar(const std::string& s) : name(s), SymbolNum<T>() {}
    virtual int GetPrecedence() {
@@ -263,6 +278,10 @@ template <typename T> class SymbolVar : public SymbolNum<T> {
 // Number with name but value can't be changed.
 template <typename T> class SymbolConst : public SymbolNum<T> {
  public:
+   DEF_CLONE_FUNC(SymbolConst);
+   SymbolConst(SymbolConst<T>& S) : name(S.name) {
+      this->val = S.getVal();
+   };
    SymbolConst(const std::string& s, T v) : name(s), SymbolNum<T>(v) {}
    virtual int GetPrecedence() {
       return sym_num;
@@ -281,7 +300,8 @@ template <typename T> class SymbolConst : public SymbolNum<T> {
 template <typename T> class SymbolComma : public Monad<T> {
 
  public:
-   SymbolComma(){};
+   DEF_CLONE_FUNC(SymbolComma)
+   //SymbolComma(){};
    virtual int GetPrecedence() {
       return sym_comma;
    }
@@ -298,7 +318,8 @@ template <typename T> class SymbolComma : public Monad<T> {
 
 template <typename T> class SymbolError : public SymbolNum<T> {
  public:
-   SymbolError(){};
+   DEF_CLONE_FUNC(SymbolError)
+  //SymbolError(){};
    virtual int GetPrecedence() {
       return -100;
    }
@@ -310,6 +331,7 @@ template <typename T> class SymbolError : public SymbolNum<T> {
 template <typename T> class SymbolAdd : public Dyad<T> {
 
  public:
+   DEF_CLONE_FUNC(SymbolAdd)
    virtual int GetPrecedence() {
       return sym_add;
    }
@@ -324,6 +346,7 @@ template <typename T> class SymbolAdd : public Dyad<T> {
 template <typename T> class SymbolSub : public Dyad<T> {
 
  public:
+   DEF_CLONE_FUNC(SymbolSub)
    virtual int GetPrecedence() {
       return sym_sub;
    }
@@ -338,6 +361,7 @@ template <typename T> class SymbolSub : public Dyad<T> {
 template <typename T> class SymbolMul : public Dyad<T> {
 
  public:
+   DEF_CLONE_FUNC(SymbolMul)
    virtual int GetPrecedence() {
       return sym_mul;
    }
@@ -352,6 +376,7 @@ template <typename T> class SymbolMul : public Dyad<T> {
 template <typename T> class SymbolDiv : public Dyad<T> {
 
  public:
+   DEF_CLONE_FUNC(SymbolDiv)
    virtual int GetPrecedence() {
       return sym_div;
    }
@@ -366,6 +391,7 @@ template <typename T> class SymbolDiv : public Dyad<T> {
 template <typename T> class SymbolPow : public Dyad<T> {
 
  public:
+   DEF_CLONE_FUNC(SymbolPow)
    virtual int GetPrecedence() {
       return sym_pow;
    }
@@ -383,6 +409,7 @@ template <typename T> class SymbolPow : public Dyad<T> {
 template <typename T> class SymbolNeg : public Monad<T> {
 
  public:
+   DEF_CLONE_FUNC(SymbolNeg)
    virtual int GetPrecedence() {
       return sym_neg;
    }

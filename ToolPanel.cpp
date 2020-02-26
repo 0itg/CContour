@@ -9,13 +9,15 @@
 #include <wx/richtooltip.h>
 
 // clang-format off
+//wxBEGIN_EVENT_TABLE(ToolPanel, wxVScrolledWindow)
+//EVT_ERASE_BACKGROUND(ToolPanel::OnEraseEvent)
+//wxEND_EVENT_TABLE();
+
 wxBEGIN_EVENT_TABLE(AxisAndCtrlPointPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_PAINT(ToolPanel::OnPaintEvent)
 wxEND_EVENT_TABLE();
-// clang-format on
 
-// clang-format off
 wxBEGIN_EVENT_TABLE(VariableEditPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_PAINT(VariableEditPanel::OnPaintEvent)
@@ -38,13 +40,16 @@ void ToolPanel::OnTextEntry(wxCommandEvent& event) {
 
 void ToolPanel::OnPaintEvent(wxPaintEvent& event) {
    if (NeedsUpdate()) // && !controls.empty())
+   {
       for (auto ctrl : controls) {
          ctrl->ReadLinked();
       }
+   }
 }
 
 void AxisAndCtrlPointPanel::PopulateAxisTextCtrls() {
    Freeze();
+
    ClearPanel();
    SetRowCount(4 * (1 + outputs.size()) + 5);
    int distFromTop = 18;
@@ -142,6 +147,7 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F) {
    distFromTop += 24;
 
    std::vector<Symbol<cplx>*> vars = F.GetVars();
+   SetRowCount(2 * vars.size());
 
    for (auto v : vars) {
       // "z" still hardcoded to be the independent variable.

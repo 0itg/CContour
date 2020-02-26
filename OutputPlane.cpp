@@ -51,8 +51,11 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse) {
    statBar->SetStatusText(inputCoord, 0);
    statBar->SetStatusText(outputCoord, 1);
 
-   if (panning)
+   if (panning) {
       Pan(mouse.GetPosition());
+      toolPanel->Refresh();
+      toolPanel->Update();
+   }
    lastMousePos = ScreenToComplex(mouse.GetPosition());
    Highlight(mouse.GetPosition());
    int temp               = in->highlightedContour;
@@ -75,8 +78,11 @@ void OutputPlane::OnPaint(wxPaintEvent& paint) {
    dc.SetBrush(brush);
 
    // Only recalculate the mapping if the viewport changed.
-   if (movedViewPort)
+   if (movedViewPort) {
       tGrid->MapGrid(in->grid, f);
+      //toolPanel->Refresh();
+      //toolPanel->Update();
+   }
 
    if (showGrid)
       tGrid->Draw(&dc, this);
@@ -110,9 +116,6 @@ void OutputPlane::OnPaint(wxPaintEvent& paint) {
    if (showAxes)
       axes.Draw(&dc);
    movedViewPort = false;
-
-   toolPanel->Refresh();
-   toolPanel->Update();
 }
 
 void OutputPlane::OnGridResCtrl(wxSpinEvent& event) {
