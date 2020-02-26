@@ -172,8 +172,8 @@ void InputPlane::OnMouseWheel(wxMouseEvent& mouse) {
       grid->hStep = axes.reStep;
       grid->vStep = axes.imStep;
    }
-   for (auto symbolStack : outputs)
-      symbolStack->movedViewPort = true;
+   for (auto out : outputs)
+      out->movedViewPort = true;
 }
 
 void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
@@ -201,6 +201,8 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
       }
       delete subDivContours[state];
       subDivContours[state] = contours[state]->Subdivide(res);
+      toolPanel->Refresh();
+      toolPanel->Update();
       Refresh();
       Update();
    }
@@ -219,6 +221,8 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse) {
       for (auto out : outputs) {
          out->movedViewPort = true;
       }
+      toolPanel->Refresh();
+      toolPanel->Update();
    }
 
    lastMousePos = ScreenToComplex(mouse.GetPosition());
@@ -229,6 +233,8 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key) {
    case WXK_ESCAPE:
    case WXK_DELETE:
       toolPanel->PopulateAxisTextCtrls();
+      toolPanel->Refresh();
+      toolPanel->Update();
       ReleaseMouseIfAble(); // Captured by OnMouseRightDown
       if (highlightedContour > -1) {
          RemoveContour(highlightedContour);
@@ -285,8 +291,11 @@ void InputPlane::OnPaint(wxPaintEvent& paint) {
       out->Update();
    }
 
-   toolPanel->Refresh();
-   toolPanel->Update();
+   //if (movedViewPort) {
+   //   toolPanel->Refresh();
+   //   toolPanel->Update();
+   //}
+   //movedViewPort = false;
 }
 
 void InputPlane::OnColorPicked(wxColourPickerEvent& colorPicked) {

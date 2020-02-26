@@ -44,11 +44,12 @@ class ToolPanel : public wxVScrolledWindow {
 
    virtual bool NeedsUpdate()   = 0;
    virtual void RefreshLinked() = 0;
+   //void OnEraseEvent(wxEraseEvent& erase){}
 
    static constexpr int SPACING = 48;
    const wxSize TEXTBOX_SIZE    = wxSize(
        this->GetTextExtent("0.000000 + 0.000000i").x + 20, wxDefaultSize.y);
-
+   //wxDECLARE_EVENT_TABLE();
  protected:
    std::vector<wxControl*> decorations;
    std::vector<LinkedTextCtrl*> controls;

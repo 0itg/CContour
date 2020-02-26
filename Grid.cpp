@@ -5,7 +5,8 @@
 #include "Parser.h"
 
 #include <algorithm>
-#include <execution>
+#include <thread>
+//#include <execution>
 
 Grid::~Grid() {
    for (auto v : lines)
@@ -37,7 +38,7 @@ void Grid::CalcVisibleGrid() {
    }
    for (double x = parent->axes.realMin - hOffset; x <= parent->axes.realMax;
         x += hStep) {
-      lines.emplace_back(new ContourLine(
+      lines.push_back(new ContourLine(
           cplx(x, parent->ScreenToComplex(wxPoint(x, 0)).imag()),
           cplx(x, parent->ScreenToComplex(corner).imag())));
    }
@@ -59,13 +60,14 @@ void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f) {
       delete v;
    lines.clear();
 
-   for (auto v : grid->lines) {
+    for (auto v : grid->lines) {
       lines.push_back(new ContourPolygon());
       double t;
       for (double i = 0; i <= res; i++) {
          t = i / res;
          lines.back()->AddPoint(
              f(v->GetCtrlPoint(0) * t + v->GetCtrlPoint(1) * (1 - t)));
+
          // In the case of division by zero, move along the gridline
          // a bit further until we find a defined point.
          // Rarely should this take more than one step.
@@ -85,4 +87,52 @@ void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f) {
          }
       }
    }
+   // Multithreaded version of the same code. Functions, but isn't noticeably
+   //  faster. Drawing is probably the bottleneck.
+
+   //auto size = grid->lines.size();
+   //for (int i= 0; i < size; i++)
+   //   lines.push_back(new ContourPolygon());
+
+   //std::vector<ParsedFunc<cplx>> funcs;
+   //std::vector<std::thread> threads;
+   //auto threadCount = std::thread::hardware_concurrency();
+   //
+   // copy function once per thread because it isn't thread safe
+    // (for testing purposes. copies would be precalculated in real code) 
+   //for (size_t thrd = 0; thrd < threadCount; thrd++)
+   //   funcs.push_back(f); 
+   //for (size_t thrd = 0; thrd < threadCount; thrd++) {
+   //   threads.emplace_back([this, &grid, &funcs, size, thrd, threadCount]() {
+   //      double t;
+   //      for (size_t k = thrd; k < size; k += threadCount) {
+   //         for (double i = 0; i <= res; i++) {
+   //            t      = i / res;
+   //            auto v = grid->lines[k];
+   //            lines[k]->AddPoint(funcs[thrd](v->GetCtrlPoint(0) * t +
+   //                                 v->GetCtrlPoint(1) * (1 - t)));
+
+   //            // In the case of division by zero, move along the gridline
+   //            // a bit further until we find a defined point.
+   //            // Rarely should this take more than one step.
+   //            while (isnan(lines[k]->GetCtrlPoint(i).real())) {
+   //               lines[k]->RemovePoint(i);
+   //               double t_avoid_pole = i / res / 100;
+   //               lines[k]->AddPoint(
+   //                   funcs[thrd](v->GetCtrlPoint(0) * (t + t_avoid_pole) +
+   //                     v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
+   //            }
+   //            while (isnan(lines[k]->GetCtrlPoint(i).imag())) {
+   //               lines[k]->RemovePoint(i);
+   //               double t_avoid_pole = i / res / 100;
+   //               lines[k]->AddPoint(
+   //                   funcs[thrd](v->GetCtrlPoint(0) * (t + t_avoid_pole) +
+   //                     v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
+   //            }
+   //         }
+   //      }
+   //   });
+   //}
+   //for (auto& th : threads)
+   //   th.join();
 }

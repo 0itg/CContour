@@ -57,8 +57,15 @@ template <typename T> class ParsedFunc {
    ParsedFunc(const ParsedFunc& in) noexcept {
       *this = in;
    }
+   ~ParsedFunc() {
+      for (auto tok : tokens) {
+         delete tok.second;
+      }
+   }
 
-   ParsedFunc& operator=(const ParsedFunc&& in) noexcept {
+    ParsedFunc& operator=(ParsedFunc&& in) noexcept {
+      for (auto tok : tokens)
+         delete tok.second;
       symbolStack = std::move(in.symbolStack);
       tokens      = std::move(in.tokens);
       inputText   = std::move(in.inputText);
@@ -68,12 +75,17 @@ template <typename T> class ParsedFunc {
       return *this;
    }
    ParsedFunc& operator=(const ParsedFunc& in) noexcept {
-      symbolStack = in.symbolStack;
-      tokens      = in.tokens;
-      inputText   = in.inputText;
-      for (auto sym : symbolStack) {
-         sym->SetParent(this);
+      symbolStack.clear();
+      Symbol<T>* sym;
+      for (auto S : in.symbolStack) {
+         if (tokens.find(S->GetToken()) == tokens.end()) {
+            sym = S->Clone();
+            sym->SetParent(this);
+            tokens[S->GetToken()] = sym;
+         }
+         symbolStack.push_back(tokens[S->GetToken()]);
       }
+      inputText = in.inputText;
       return *this;
    }
    T eval() {
@@ -88,8 +100,19 @@ template <typename T> class ParsedFunc {
    }
    T operator()(T val);
    void PushToken(Symbol<T>* token) {
-      token->SetParent(this);
-      symbolStack.push_back(token);
+      Symbol<T>* S;
+      if (tokens.find(token->GetToken()) == tokens.end()) {
+         S                         = token->Clone();
+         tokens[token->GetToken()] = S;
+         S->SetParent(this);
+      } else
+         S = tokens[token->GetToken()];
+      symbolStack.push_back(S);
+      // if (tokens.find(token->GetToken()) == tokens.end()) {
+      //   tokens[token->GetToken()] = token->Clone();
+      //   tokens[token->GetToken()]->SetParent(this);
+      //}
+      // symbolStack.push_back(tokens[token->GetToken()]);
    }
    void PopToken() {
       symbolStack.pop_back();
@@ -97,6 +120,7 @@ template <typename T> class ParsedFunc {
    std::string str() {
       return inputText;
    }
+   void ReplaceVariable(std::string varOld, std::string var);
    auto GetVars();
 
  private:
@@ -119,7 +143,6 @@ template <typename T> inline Parser<T>::~Parser() {
 
 template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
    std::vector<Symbol<T>*> opStack;
-   f.symbolStack.clear();
    f.inputText = input;
 
    auto PushOp = [&](Symbol<T>* token) {
@@ -290,7 +313,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
          // for the next op.
          if (tokPrec == sym_rparen) {
             while (opStack.back()->GetPrecedence() != sym_lparen) {
-               f.symbolStack.push_back(opStack.back());
+               f.PushToken(opStack.back());
                opStack.pop_back();
                try {
                   if (opStack.empty()) {
@@ -312,7 +335,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
             while (!opStack.empty() &&
                    opStack.back()->GetPrecedence() != sym_lparen &&
                    opStack.back()->GetPrecedence() <= tokPrec) {
-               f.symbolStack.push_back(opStack.back());
+               f.PushToken(opStack.back());
                opStack.pop_back();
             }
             PushOp(tokenLibrary[op]);
@@ -322,16 +345,15 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
    }
    // To finish, pop whatever is on the op stack to the output queue.
    while (opStack.size() > 0) {
-      f.symbolStack.push_back(opStack.back());
+      f.PushToken(opStack.back());
       if (f.symbolStack.back()->GetPrecedence() == sym_lparen)
-         f.symbolStack.pop_back();
+         f.PopToken();
       opStack.pop_back();
    }
 
-   for (auto sym : f.symbolStack) {
-      f.tokens[sym->GetToken()] = tokenLibrary[sym->GetToken()];
-   }
-
+   // for (auto sym : f.symbolStack) {
+   //   f.tokens[sym->GetToken()] = tokenLibrary[sym->GetToken()]->Clone();
+   //}
    return std::move(f);
 }
 
@@ -353,6 +375,21 @@ inline void ParsedFunc<T>::setVariable(const std::string& name, const T& val) {
 template <typename T> inline T ParsedFunc<T>::operator()(T val) {
    setVariable("z", val);
    return eval();
+}
+
+template <typename T>
+inline void ParsedFunc<T>::ReplaceVariable(std::string varOld,
+                                           std::string varNew) {
+   if (tokens.find(varOld) != tokens.end()) {
+      if (tokens.find(varNew) == tokens.end()) {
+         tokens[varNew] = new SymbolVar<T>(varNew);
+      }
+      for (auto& sym : symbolStack) {
+         if (sym->GetToken() == varOld) {
+            sym = tokens[varOld];
+         }
+      }
+   }
 }
 
 template <typename T> inline auto ParsedFunc<T>::GetVars() {

@@ -155,21 +155,6 @@ ContourPolygon* ContourPolygon::Subdivide(int res) {
 inline void ContourPolygon::Apply(ParsedFunc<cplx>& f) {
    for (auto& z : points)
       z = f(z);
-   // std::vector<std::thread> threads;
-   // std::vector<ParsedFunc<cplx>> funcs;
-   // auto tCount = std::thread::hardware_concurrency();
-   // auto pCount = this->GetPointCount();
-   // auto C      = this;
-   // for (int i = 0; i < tCount; i++) {
-   //   funcs.push_back(f);
-   //   threads.emplace_back([i, tCount, pCount, C, &funcs]() {
-   //      for (int j = i; j < pCount; j += tCount) {
-   //         C->points[i] = funcs[i](C->points[j]);
-   //      }
-   //   });
-   //}
-   // for (auto& T : threads)
-   //   T.join();
 }
 
 ContourPolygon* ContourPolygon::ApplyToClone(ParsedFunc<cplx>& f) {
