@@ -63,7 +63,7 @@ template <typename T> class ParsedFunc {
       }
    }
 
-    ParsedFunc& operator=(ParsedFunc&& in) noexcept {
+   ParsedFunc& operator=(ParsedFunc&& in) noexcept {
       for (auto tok : tokens)
          delete tok.second;
       symbolStack = std::move(in.symbolStack);
@@ -75,15 +75,21 @@ template <typename T> class ParsedFunc {
       return *this;
    }
    ParsedFunc& operator=(const ParsedFunc& in) noexcept {
-      symbolStack.clear();
       Symbol<T>* sym;
       for (auto S : in.symbolStack) {
-         if (tokens.find(S->GetToken()) == tokens.end()) {
+         std::string tok = S->GetToken();
+         if (tok.length() > 0) {
+            if (tokens.find(tok) == tokens.end()) {
+               sym = S->Clone();
+               sym->SetParent(this);
+               tokens[tok] = sym;
+            }
+            symbolStack.push_back(tokens[tok]);
+         } else {
             sym = S->Clone();
             sym->SetParent(this);
-            tokens[S->GetToken()] = sym;
+            symbolStack.push_back(sym);
          }
-         symbolStack.push_back(tokens[S->GetToken()]);
       }
       inputText = in.inputText;
       return *this;
@@ -142,6 +148,7 @@ template <typename T> inline Parser<T>::~Parser() {
 }
 
 template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
+   f.symbolStack.clear();
    std::vector<Symbol<T>*> opStack;
    f.inputText = input;
 
@@ -219,7 +226,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
       // wouldn't work, i.e. if the left token is dyadic or doesn't exist.
       if (tokenVec[i] == "-") {
          if (i > 0) {
-            if (tokenLibrary[tokenVec[i - 1]]->IsPunctuation() ||
+            if (tokenLibrary[tokenVec[i - 1]]->GetPrecedence() == -1 ||
                 tokenLibrary[tokenVec[i - 1]]->IsDyad()) {
                tokenVec[i] = "~";
             }
@@ -354,7 +361,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
    // for (auto sym : f.symbolStack) {
    //   f.tokens[sym->GetToken()] = tokenLibrary[sym->GetToken()]->Clone();
    //}
-   return std::move(f);
+   return f;
 }
 
 struct cmp_length_then_alpha {

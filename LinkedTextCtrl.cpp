@@ -20,7 +20,7 @@ void LinkedCtrlPointTextCtrl::ReadLinked() {
                std::to_string(src->GetCtrlPoint(i).imag()) + "i");
 }
 
-void LinkedTextCtrl::WriteLinked() {
+void LinkedDoubleTextCtrl::WriteLinked() {
    Parser<double> parser;
    try {
       double val = parser.Parse(GetValue()).eval();

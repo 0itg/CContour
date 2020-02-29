@@ -68,7 +68,7 @@ void AxisAndCtrlPointPanel::PopulateAxisTextCtrls() {
          decorations.push_back(new wxStaticText(
              this, wxID_ANY, wxString(buttonText[i]),
              wxDefaultPosition + wxSize(12, distFromTop - 18), TEXTBOX_SIZE));
-         controls.push_back(new LinkedTextCtrl(
+         controls.push_back(new LinkedDoubleTextCtrl(
              this, wxID_ANY, wxString(std::to_string(c)),
              wxDefaultPosition + wxPoint(12, distFromTop), TEXTBOX_SIZE,
              wxTE_PROCESS_ENTER, input->axes.c + i));
@@ -87,7 +87,7 @@ void AxisAndCtrlPointPanel::PopulateAxisTextCtrls() {
          decorations.push_back(new wxStaticText(
              this, wxID_ANY, wxString(buttonText[i % 4]),
              wxDefaultPosition + wxSize(12, distFromTop - 18), TEXTBOX_SIZE));
-         controls.push_back(new LinkedTextCtrl(
+         controls.push_back(new LinkedDoubleTextCtrl(
              this, wxID_ANY, wxString(std::to_string(c)),
              wxDefaultPosition + wxPoint(12, distFromTop), TEXTBOX_SIZE,
              wxTE_PROCESS_ENTER, outputs[i / 4]->axes.c + (i % 4)));

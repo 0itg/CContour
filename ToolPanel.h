@@ -20,7 +20,7 @@ typedef std::complex<double> cplx;
 class Contour;
 class InputPlane;
 class OutputPlane;
-class LinkedTextCtrl;
+class LinkedCtrl;
 template <class T> class Symbol;
 template <class T> class ParsedFunc;
 
@@ -34,7 +34,7 @@ class ToolPanel : public wxVScrolledWindow {
    void AddDecoration(wxControl* D) {
       decorations.push_back(D);
    }
-   void AddLinkedTextCtrl(LinkedTextCtrl* L) {
+   void AddLinkedTextCtrl(LinkedCtrl* L) {
       controls.push_back(L);
    }
 
@@ -52,7 +52,7 @@ class ToolPanel : public wxVScrolledWindow {
    //wxDECLARE_EVENT_TABLE();
  protected:
    std::vector<wxControl*> decorations;
-   std::vector<LinkedTextCtrl*> controls;
+   std::vector<LinkedCtrl*> controls;
 };
 
 class AxisAndCtrlPointPanel : public ToolPanel {

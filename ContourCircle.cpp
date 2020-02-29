@@ -59,7 +59,7 @@ wxSize ContourCircle::PopulateSupplementalMenu(ToolPanel* TP, wxPoint UL) {
                                       wxDefaultPosition + wxSize(12, UL.y),
                                       TP->TEXTBOX_SIZE));
    TP->AddLinkedTextCtrl(
-       new LinkedTextCtrl(TP, wxID_ANY, wxString(std::to_string(radius)),
+       new LinkedDoubleTextCtrl(TP, wxID_ANY, wxString(std::to_string(radius)),
                           wxDefaultPosition + wxPoint(12, UL.y + 18),
                           TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, &radius));
    return wxSize(0, 48);

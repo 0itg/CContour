@@ -22,21 +22,38 @@ template <class T> class Symbol;
 
 // Wrapper for wxTextCtrl which stores a pointer to its input's
 // intended destination.
-// Lazy implementation. This should be an abstract base class, with
-// double version inheriting from it. Later.
-class LinkedTextCtrl : virtual public wxTextCtrl {
+class LinkedCtrl {
  public:
-   LinkedTextCtrl() {}
-   LinkedTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
+   virtual void WriteLinked() = 0;
+   virtual void ReadLinked()  = 0;
+   virtual wxWindowID GetId() = 0;
+   virtual bool Destroy()     = 0;
+   };
+
+class LinkedTextCtrl : public LinkedCtrl, virtual public wxTextCtrl {
+      virtual void WriteLinked() = 0;
+      virtual void ReadLinked()  = 0;
+      virtual wxWindowID GetId() {
+         return wxTextCtrl::GetId();
+      }
+      virtual bool Destroy() {
+         return wxTextCtrl::Destroy();
+      }
+   };
+
+class LinkedDoubleTextCtrl : public LinkedTextCtrl {
+ public:
+   LinkedDoubleTextCtrl() {}
+   LinkedDoubleTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
                   wxPoint defaultPos, wxSize defSize, int style, double* p)
        : wxTextCtrl(par, ID, str, defaultPos, defSize, style), src(p) {}
-   virtual ~LinkedTextCtrl() {}
+   virtual ~LinkedDoubleTextCtrl() {}
 
    virtual void Link(double* ptr) {
       src = ptr;
    }
-   virtual void WriteLinked();
-   virtual void ReadLinked() {
+   void WriteLinked();
+   void ReadLinked() {
       ChangeValue(std::to_string(*src));
    }
 
@@ -44,7 +61,6 @@ class LinkedTextCtrl : virtual public wxTextCtrl {
    double* src;
 };
 
-//
 class LinkedCtrlPointTextCtrl : public LinkedTextCtrl {
  public:
    LinkedCtrlPointTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
