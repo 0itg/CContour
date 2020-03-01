@@ -63,10 +63,10 @@ class Contour {
    virtual void PopulateMenu(ToolPanel* TP);
 
    // Allows derived classes to add extra menu items before the control points,
-   // E.g. a LinkedTextCtrl for the radius of a circle. Takes upper left
-   // coordinate, returns size of menu, so both sides can manage their layouts.
-   virtual wxSize PopulateSupplementalMenu(ToolPanel* TP, wxPoint UL) {
-      return wxSize(0, 0);
+   // E.g. a LinkedTextCtrl for the radius of a circle.
+   // returns number of sizer slots used.
+   virtual std::tuple<int, int, int> PopulateSupplementalMenu(ToolPanel* TP) {
+      return std::make_tuple(0,0,0);
    }
 
    // Parameterizing the contour as g(t) with 0 < t < 1, returns g(t).

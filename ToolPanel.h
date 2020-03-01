@@ -27,6 +27,7 @@ template <class T> class ParsedFunc;
 class ToolPanel : public wxVScrolledWindow {
  public:
    ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
+   ~ToolPanel();
    void OnTextEntry(wxCommandEvent& event);
    void OnPaintEvent(wxPaintEvent& event);
    void ClearPanel();
@@ -34,8 +35,14 @@ class ToolPanel : public wxVScrolledWindow {
    void AddDecoration(wxControl* D) {
       decorations.push_back(D);
    }
-   void AddLinkedTextCtrl(LinkedCtrl* L) {
+   void AddLinkedCtrl(LinkedCtrl* L) {
       controls.push_back(L);
+   }
+   auto GetDecoration(size_t i) {
+      return decorations[i];
+   }
+   auto GetLinkedCtrl(size_t i) {
+      return controls[i];
    }
 
    virtual wxCoord OnGetRowHeight(size_t row) const {
@@ -44,12 +51,13 @@ class ToolPanel : public wxVScrolledWindow {
 
    virtual bool NeedsUpdate()   = 0;
    virtual void RefreshLinked() = 0;
-   //void OnEraseEvent(wxEraseEvent& erase){}
 
    static constexpr int SPACING = 48;
    const wxSize TEXTBOX_SIZE    = wxSize(
-       this->GetTextExtent("0.000000 + 0.000000i").x + 20, wxDefaultSize.y);
-   //wxDECLARE_EVENT_TABLE();
+       this->GetTextExtent("0.00000000 + 0.00000000i").x + 20, wxDefaultSize.y);
+ 
+   wxPanel* intermediate;
+   // wxDECLARE_EVENT_TABLE();
  protected:
    std::vector<wxControl*> decorations;
    std::vector<LinkedCtrl*> controls;
@@ -58,7 +66,8 @@ class ToolPanel : public wxVScrolledWindow {
 class AxisAndCtrlPointPanel : public ToolPanel {
  public:
    AxisAndCtrlPointPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
-       : ToolPanel(parent, ID, pos, size) {}
+       : ToolPanel(parent, ID, pos, size) {
+   }
    void PopulateAxisTextCtrls();
    void PopulateContourTextCtrls(Contour* C);
 

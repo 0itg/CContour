@@ -47,9 +47,9 @@ template <typename T> class Symbol {
    virtual bool IsMonad() {
       return false;
    }
-   virtual bool IsPunctuation() {
-      return false;
-   }
+   /* virtual bool IsPunctuation() {
+       return false;
+    }*/
    virtual bool IsVar() {
       return false;
    }
@@ -146,7 +146,6 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T> {
    virtual SymbolFunc<T, Ts...>* Clone() {
       return new SymbolFunc<T, Ts...>(*this);
    };
-   // SymbolFunc(SymbolFunc<T, Ts...>& S)
    SymbolFunc(){};
    SymbolFunc(const std::function<T(Ts...)>& g, const std::string& s)
        : f(g), name(s){};
@@ -214,11 +213,11 @@ template <typename T> class SymbolRParen : public Symbol<T> {
 
 // Causes T to be initialized with an argument of 1 if possible,
 // default otherwise.
-template <class T, class = void> struct can_hold_num_one {
+template <class T, class = void> struct initialize_with_1 {
    static constexpr T value{};
 };
 template <class T>
-struct can_hold_num_one<typename T, std::void_t<decltype(T{1})>> {
+struct initialize_with_1<typename T, std::void_t<decltype(T{1})>> {
    static constexpr T value{1};
 };
 
@@ -242,7 +241,8 @@ template <typename T> class SymbolNum : public Symbol<T> {
    }
 
    virtual std::string GetToken() {
-      return GetToken_(); // Helper function for specializing. Maybe a better way exists.
+      return GetToken_(); // Helper function for specializing. Maybe a better
+                          // way exists.
    }
    virtual T getVal() {
       return val;
@@ -253,11 +253,10 @@ template <typename T> class SymbolNum : public Symbol<T> {
    }
 
  protected:
-   T val = can_hold_num_one<T>::value;
+   T val = initialize_with_1<T>::value;
 
  private:
    std::string GetToken_();
-
 };
 
 // By default, GetToken should convert to val string with STL function.
@@ -268,8 +267,7 @@ template <typename T> inline std::string SymbolNum<T>::GetToken_() {
 // If std::to_string can't convert it, customize it with
 // a template specialization. Would be nice to have a user-friendly
 // alternative. Later.
-template <>
-   inline std::string SymbolNum<cplx>::GetToken_() {
+template <> inline std::string SymbolNum<cplx>::GetToken_() {
    return std::to_string(val.real()) + " + " + std::to_string(val.imag()) + "i";
 }
 
