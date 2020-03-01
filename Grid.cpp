@@ -60,7 +60,7 @@ void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f) {
       delete v;
    lines.clear();
 
-    for (auto v : grid->lines) {
+   for (auto v : grid->lines) {
       lines.push_back(new ContourPolygon());
       double t;
       for (double i = 0; i <= res; i++) {
@@ -90,19 +90,19 @@ void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f) {
    // Multithreaded version of the same code. Functions, but isn't noticeably
    //  faster. Drawing is probably the bottleneck.
 
-   //auto size = grid->lines.size();
-   //for (int i= 0; i < size; i++)
+   // auto size = grid->lines.size();
+   // for (int i= 0; i < size; i++)
    //   lines.push_back(new ContourPolygon());
 
-   //std::vector<ParsedFunc<cplx>> funcs;
-   //std::vector<std::thread> threads;
-   //auto threadCount = std::thread::hardware_concurrency();
+   // std::vector<ParsedFunc<cplx>> funcs;
+   // std::vector<std::thread> threads;
+   // auto threadCount = std::thread::hardware_concurrency();
    //
    // copy function once per thread because it isn't thread safe
-    // (for testing purposes. copies would be precalculated in real code) 
-   //for (size_t thrd = 0; thrd < threadCount; thrd++)
-   //   funcs.push_back(f); 
-   //for (size_t thrd = 0; thrd < threadCount; thrd++) {
+   // (for testing purposes. copies would be precalculated in real code)
+   // for (size_t thrd = 0; thrd < threadCount; thrd++)
+   //   funcs.push_back(f);
+   // for (size_t thrd = 0; thrd < threadCount; thrd++) {
    //   threads.emplace_back([this, &grid, &funcs, size, thrd, threadCount]() {
    //      double t;
    //      for (size_t k = thrd; k < size; k += threadCount) {
@@ -133,6 +133,6 @@ void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f) {
    //      }
    //   });
    //}
-   //for (auto& th : threads)
+   // for (auto& th : threads)
    //   th.join();
 }

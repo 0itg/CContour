@@ -6,28 +6,28 @@
 void LinkedCtrlPointTextCtrl::WriteLinked() {
    Parser<cplx> parser;
    try {
-      cplx val = parser.Parse(GetValue()).eval();
+      cplx val = parser.Parse(textCtrl->GetValue()).eval();
       src->moveCtrlPoint(val, i);
    } catch (std::invalid_argument& func) {
       wxRichToolTip errormsg(wxT("Invalid Input"), func.what());
-      errormsg.ShowFor(this);
+      errormsg.ShowFor(textCtrl);
       ReadLinked();
    }
 }
 
 void LinkedCtrlPointTextCtrl::ReadLinked() {
-   ChangeValue(std::to_string(src->GetCtrlPoint(i).real()) + " + " +
-               std::to_string(src->GetCtrlPoint(i).imag()) + "i");
+   textCtrl->ChangeValue(std::to_string(src->GetCtrlPoint(i).real()) + " + " +
+                         std::to_string(src->GetCtrlPoint(i).imag()) + "i");
 }
 
-void LinkedTextCtrl::WriteLinked() {
+void LinkedDoubleTextCtrl::WriteLinked() {
    Parser<double> parser;
    try {
-      double val = parser.Parse(GetValue()).eval();
+      double val = parser.Parse(textCtrl->GetValue()).eval();
       *src       = val;
    } catch (std::invalid_argument& func) {
       wxRichToolTip errormsg(wxT("Invalid Input"), func.what());
-      errormsg.ShowFor(this);
+      errormsg.ShowFor(textCtrl);
       ReadLinked();
    }
 }
@@ -35,16 +35,16 @@ void LinkedTextCtrl::WriteLinked() {
 void LinkedVarTextCtrl::WriteLinked() {
    Parser<cplx> parser;
    try {
-      cplx val = parser.Parse(GetValue()).eval();
+      cplx val = parser.Parse(textCtrl->GetValue()).eval();
       src->SetVal(val);
    } catch (std::invalid_argument& func) {
       wxRichToolTip errormsg(wxT("Invalid Input"), func.what());
-      errormsg.ShowFor(this);
+      errormsg.ShowFor(textCtrl);
       ReadLinked();
    }
 }
 
 void LinkedVarTextCtrl::ReadLinked() {
-   ChangeValue(std::to_string(src->eval().getVal().real()) + " + " +
-               std::to_string(src->eval().getVal().imag()) + "i");
+   textCtrl->ChangeValue(std::to_string(src->eval().getVal().real()) + " + " +
+                         std::to_string(src->eval().getVal().imag()) + "i");
 }

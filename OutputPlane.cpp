@@ -73,15 +73,12 @@ void OutputPlane::OnPaint(wxPaintEvent& paint) {
    dc.Clear();
    wxPen pen(tGrid->color, 1);
    wxBrush brush(*wxTRANSPARENT_BRUSH);
-   // wxBrush brush(wxColor(255, 0, 0, 128), wxBRUSHSTYLE_SOLID);
    dc.SetPen(pen);
    dc.SetBrush(brush);
 
    // Only recalculate the mapping if the viewport changed.
    if (movedViewPort) {
       tGrid->MapGrid(in->grid, f);
-      //toolPanel->Refresh();
-      //toolPanel->Update();
    }
 
    if (showGrid)
@@ -141,6 +138,8 @@ void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
    }
    movedViewPort = true;
    varPanel->PopulateVarTextCtrls(f);
+   varPanel->Refresh();
+   varPanel->Update();
    MarkAllForRedraw();
    Refresh();
    Update();

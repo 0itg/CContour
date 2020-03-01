@@ -25,7 +25,7 @@ class ContourCircle : public Contour {
    cplx Interpolate(double t);
    ContourPolygon* Subdivide(int res);
 
-   virtual wxSize PopulateSupplementalMenu(ToolPanel* TP, wxPoint UL);
+   virtual std::tuple<int, int, int> PopulateSupplementalMenu(ToolPanel* TP);
 
  private:
    double radius;

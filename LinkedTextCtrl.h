@@ -22,36 +22,60 @@ template <class T> class Symbol;
 
 // Wrapper for wxTextCtrl which stores a pointer to its input's
 // intended destination.
-// Lazy implementation. This should be an abstract base class, with
-// double version inheriting from it. Later.
-class LinkedTextCtrl : virtual public wxTextCtrl {
+class LinkedCtrl {
  public:
-   LinkedTextCtrl() {}
-   LinkedTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
-                  wxPoint defaultPos, wxSize defSize, int style, double* p)
-       : wxTextCtrl(par, ID, str, defaultPos, defSize, style), src(p) {}
-   virtual ~LinkedTextCtrl() {}
+   virtual void WriteLinked()     = 0;
+   virtual void ReadLinked()      = 0;
+   virtual wxWindowID GetId()     = 0;
+   virtual bool Destroy()         = 0;
+   virtual wxWindow* GetCtrlPtr() = 0;
+};
 
-   virtual void Link(double* ptr) {
-      src = ptr;
+class LinkedTextCtrl : public LinkedCtrl {
+ public:
+   virtual void WriteLinked() = 0;
+   virtual void ReadLinked()  = 0;
+   virtual wxWindowID GetId() {
+      return textCtrl->GetId();
    }
-   virtual void WriteLinked();
-   virtual void ReadLinked() {
-      ChangeValue(std::to_string(*src));
+   virtual bool Destroy() {
+      bool res = textCtrl->Destroy();
+      delete this;
+      return res;
    }
+   virtual wxTextCtrl* GetCtrlPtr() {
+      return textCtrl;
+   }
+   wxTextCtrl* textCtrl;
+};
 
+class LinkedDoubleTextCtrl : public LinkedTextCtrl {
+ public:
+   LinkedDoubleTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
+                        wxPoint defaultPos, wxSize defSize, int style,
+                        double* p)
+       : src(p) {
+      textCtrl = new wxTextCtrl(par, ID, str, defaultPos, defSize, style);
+   }
+   // virtual void Link(double* ptr) {
+   //   src = ptr;
+   //}
+   void WriteLinked();
+   void ReadLinked() {
+      textCtrl->ChangeValue(std::to_string(*src));
+   }
  private:
    double* src;
 };
 
-//
 class LinkedCtrlPointTextCtrl : public LinkedTextCtrl {
  public:
    LinkedCtrlPointTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
                            wxPoint defaultPos, wxSize defSize, int style,
                            Contour* C, size_t index)
-       : wxTextCtrl(par, ID, str, defaultPos, defSize, style), src(C),
-         i(index) {}
+       : src(C), i(index) {
+      textCtrl = new wxTextCtrl(par, ID, str, defaultPos, defSize, style);
+   }
    // void Link(std::vector<cplx>& ref) {
    //   dataVec = ref;
    //}
@@ -68,7 +92,9 @@ class LinkedVarTextCtrl : public LinkedTextCtrl {
    LinkedVarTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
                      wxPoint defaultPos, wxSize defSize, int style,
                      Symbol<cplx>* sym)
-       : wxTextCtrl(par, ID, str, defaultPos, defSize, style), src(sym) {}
+       : src(sym) {
+      textCtrl = new wxTextCtrl(par, ID, str, defaultPos, defSize, style);
+   }
    // void Link(std::vector<cplx>& ref) {
    //   dataVec = ref;
    //}

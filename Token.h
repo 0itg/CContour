@@ -22,7 +22,10 @@ enum precedence_list {
    sym_comma  = -1
 };
 
-#define DEF_CLONE_FUNC(X) virtual X<T>* Clone() { return new X<T>(*this); };
+#define DEF_CLONE_FUNC(X)                                                      \
+   virtual X<T>* Clone() {                                                     \
+      return new X<T>(*this);                                                  \
+   };
 
 // Base class for parsed symbols. Symbol pointers are stored in a vector, and
 // each symbol has a pointer "src" to that vector. Symbols recursively
@@ -44,9 +47,9 @@ template <typename T> class Symbol {
    virtual bool IsMonad() {
       return false;
    }
-   virtual bool IsPunctuation() {
-      return false;
-   }
+   /* virtual bool IsPunctuation() {
+       return false;
+    }*/
    virtual bool IsVar() {
       return false;
    }
@@ -143,7 +146,6 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T> {
    virtual SymbolFunc<T, Ts...>* Clone() {
       return new SymbolFunc<T, Ts...>(*this);
    };
-   //SymbolFunc(SymbolFunc<T, Ts...>& S)
    SymbolFunc(){};
    SymbolFunc(const std::function<T(Ts...)>& g, const std::string& s)
        : f(g), name(s){};
@@ -164,6 +166,9 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T> {
          s[i] = (*(--this->parent->itr))->eval().getVal();
       }
       return Apply(s);
+   }
+   virtual bool IsLeftAssoc() {
+      return false;
    }
    virtual int GetPrecedence() {
       return sym_func;
@@ -208,11 +213,11 @@ template <typename T> class SymbolRParen : public Symbol<T> {
 
 // Causes T to be initialized with an argument of 1 if possible,
 // default otherwise.
-template <class T, class = void> struct can_hold_num_one {
+template <class T, class = void> struct initialize_with_1 {
    static constexpr T value{};
 };
 template <class T>
-struct can_hold_num_one<typename T, std::void_t<decltype(T{1})>> {
+struct initialize_with_1<typename T, std::void_t<decltype(T{1})>> {
    static constexpr T value{1};
 };
 
@@ -229,13 +234,15 @@ template <typename T> class SymbolNum : public Symbol<T> {
    SymbolNum(const SymbolNum<T>* ptr) {
       val = ptr->val;
    }
-   SymbolNum(SymbolNum<T>& S) : val(S.getVal()){};
+   SymbolNum(SymbolNum<T>& S) : val(S.val){};
 
    virtual int GetPrecedence() {
       return sym_num;
    }
+
    virtual std::string GetToken() {
-      return "";
+      return GetToken_(); // Helper function for specializing. Maybe a better
+                          // way exists.
    }
    virtual T getVal() {
       return val;
@@ -246,8 +253,23 @@ template <typename T> class SymbolNum : public Symbol<T> {
    }
 
  protected:
-   T val = can_hold_num_one<T>::value;
+   T val = initialize_with_1<T>::value;
+
+ private:
+   std::string GetToken_();
 };
+
+// By default, GetToken should convert to val string with STL function.
+template <typename T> inline std::string SymbolNum<T>::GetToken_() {
+   return std::to_string(val);
+}
+
+// If std::to_string can't convert it, customize it with
+// a template specialization. Would be nice to have a user-friendly
+// alternative. Later.
+template <> inline std::string SymbolNum<cplx>::GetToken_() {
+   return std::to_string(val.real()) + " + " + std::to_string(val.imag()) + "i";
+}
 
 // Number but with stored name and value can be set after parsing.
 template <typename T> class SymbolVar : public SymbolNum<T> {
@@ -301,7 +323,7 @@ template <typename T> class SymbolComma : public Monad<T> {
 
  public:
    DEF_CLONE_FUNC(SymbolComma)
-   //SymbolComma(){};
+   // SymbolComma(){};
    virtual int GetPrecedence() {
       return sym_comma;
    }
@@ -319,7 +341,7 @@ template <typename T> class SymbolComma : public Monad<T> {
 template <typename T> class SymbolError : public SymbolNum<T> {
  public:
    DEF_CLONE_FUNC(SymbolError)
-  //SymbolError(){};
+   // SymbolError(){};
    virtual int GetPrecedence() {
       return -100;
    }

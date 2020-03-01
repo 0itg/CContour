@@ -54,13 +54,19 @@ ContourPolygon* ContourCircle::Subdivide(int res) {
    return D;
 }
 
-wxSize ContourCircle::PopulateSupplementalMenu(ToolPanel* TP, wxPoint UL) {
-   TP->AddDecoration(new wxStaticText(TP, wxID_ANY, wxString("Radius: "),
-                                      wxDefaultPosition + wxSize(12, UL.y),
-                                      TP->TEXTBOX_SIZE));
-   TP->AddLinkedTextCtrl(
-       new LinkedTextCtrl(TP, wxID_ANY, wxString(std::to_string(radius)),
-                          wxDefaultPosition + wxPoint(12, UL.y + 18),
-                          TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, &radius));
-   return wxSize(0, 48);
+std::tuple<int, int, int>
+ContourCircle::PopulateSupplementalMenu(ToolPanel* TP) {
+   auto RadiusText =
+       new wxStaticText(TP->intermediate, wxID_ANY, wxString("Radius: "),
+                        wxDefaultPosition, TP->TEXTBOX_SIZE);
+   auto RadiusCtrl = new LinkedDoubleTextCtrl(
+       TP->intermediate, wxID_ANY, wxString(std::to_string(radius)),
+       wxDefaultPosition, TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, &radius);
+   auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
+   TP->AddDecoration(RadiusText);
+   TP->AddLinkedCtrl(RadiusCtrl);
+   auto sizer = TP->intermediate->GetSizer();
+   sizer->Add(RadiusText, sizerFlags);
+   sizer->Add(RadiusCtrl->GetCtrlPtr(), sizerFlags);
+   return std::make_tuple(1, 1, 72);
 }

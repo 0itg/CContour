@@ -27,6 +27,16 @@ wxEND_EVENT_TABLE();
 ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
     : wxVScrolledWindow(parent, ID_ToolPanel, pos, size) {
    SetRowCount(20);
+   wxBoxSizer* siz = new wxBoxSizer(wxVERTICAL);
+   intermediate    = new wxPanel(this);
+   siz->Add(intermediate, wxSizerFlags(1).Expand());
+   SetSizer(siz);
+}
+
+ToolPanel::~ToolPanel() {
+   intermediate->Destroy();
+   for (auto C : controls)
+      delete C;
 }
 
 void ToolPanel::OnTextEntry(wxCommandEvent& event) {
@@ -51,58 +61,69 @@ void AxisAndCtrlPointPanel::PopulateAxisTextCtrls() {
    Freeze();
 
    ClearPanel();
-   SetRowCount(4 * (1 + outputs.size()) + 5);
-   int distFromTop = 18;
-
+   SetRowCount(20);
    std::string buttonText[] = {
        "Real Min:", "Real Max:", "Imag Min:", "Imag Max:"};
+   auto sizer = new wxBoxSizer(wxVERTICAL);
+   wxSizerFlags sizerFlags(1);
+   sizerFlags.Expand().Border(wxLEFT | wxRIGHT, 3);
 
    if (input != nullptr) {
-      decorations.push_back(new wxStaticText(
-          this, wxID_ANY, wxString(input->GetName() + ":"),
-          wxDefaultPosition + wxSize(12, distFromTop), TEXTBOX_SIZE));
-      distFromTop += SPACING;
+      decorations.push_back(new wxStaticText(intermediate, wxID_ANY,
+                                             wxString(input->GetName() + ":"),
+                                             wxDefaultPosition, wxDefaultSize));
+      sizer->Add(decorations.back(), sizerFlags);
 
       for (int i = 0; i < 4; i++) {
          double c = input->axes.c[i];
-         decorations.push_back(new wxStaticText(
-             this, wxID_ANY, wxString(buttonText[i]),
-             wxDefaultPosition + wxSize(12, distFromTop - 18), TEXTBOX_SIZE));
-         controls.push_back(new LinkedTextCtrl(
-             this, wxID_ANY, wxString(std::to_string(c)),
-             wxDefaultPosition + wxPoint(12, distFromTop), TEXTBOX_SIZE,
-             wxTE_PROCESS_ENTER, input->axes.c + i));
-         distFromTop += SPACING;
+         AddDecoration(
+             new wxStaticText(intermediate, wxID_ANY, wxString(buttonText[i]),
+                              wxDefaultPosition, wxDefaultSize));
+         AddLinkedCtrl(new LinkedDoubleTextCtrl(
+             intermediate, wxID_ANY, wxString(std::to_string(c)),
+             wxDefaultPosition, TEXTBOX_SIZE, wxTE_PROCESS_ENTER,
+             input->axes.c + i));
+         sizer->Add(decorations.back(), sizerFlags);
+         sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
       }
    }
    if (!outputs.empty()) {
       for (int i = 0; i < 4 * outputs.size(); i++) {
          if (i % 4 == 0) {
             decorations.push_back(new wxStaticText(
-                this, wxID_ANY, wxString(outputs[i]->GetName() + ":"),
-                wxDefaultPosition + wxPoint(12, distFromTop), TEXTBOX_SIZE));
-            distFromTop += SPACING;
+                intermediate, wxID_ANY, wxString(outputs[i]->GetName() + ":"),
+                wxDefaultPosition, wxDefaultSize));
+            sizer->Add(decorations.back(), sizerFlags);
          }
          double c = outputs[i / 4]->axes.c[i % 4];
-         decorations.push_back(new wxStaticText(
-             this, wxID_ANY, wxString(buttonText[i % 4]),
-             wxDefaultPosition + wxSize(12, distFromTop - 18), TEXTBOX_SIZE));
-         controls.push_back(new LinkedTextCtrl(
-             this, wxID_ANY, wxString(std::to_string(c)),
-             wxDefaultPosition + wxPoint(12, distFromTop), TEXTBOX_SIZE,
-             wxTE_PROCESS_ENTER, outputs[i / 4]->axes.c + (i % 4)));
-         distFromTop += SPACING;
+        AddDecoration(new wxStaticText(
+             intermediate, wxID_ANY, wxString(buttonText[i % 4]),
+             wxDefaultPosition, wxDefaultSize));
+         AddLinkedCtrl(new LinkedDoubleTextCtrl(
+             intermediate, wxID_ANY, wxString(std::to_string(c)),
+             wxDefaultPosition, TEXTBOX_SIZE, wxTE_PROCESS_ENTER,
+             outputs[i / 4]->axes.c + (i % 4)));
+         sizer->Add(decorations.back(), sizerFlags);
+         sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
       }
    }
+   intermediate->SetSizer(sizer);
+   intermediate->SetMaxClientSize(wxSize(GetClientSize().x, -1));
+   intermediate->Layout();
+   intermediate->FitInside();
+   intermediate->SetMaxClientSize(wxSize(-1, (4 * 48 + 24) * (1 + outputs.size())));
+   SetVirtualSize(wxSize(-1, (4 * 48 + 24) * (1 + outputs.size())));
+
    Thaw();
 }
 
 void AxisAndCtrlPointPanel::PopulateContourTextCtrls(Contour* C) {
    Freeze();
    ClearPanel();
-   SetRowCount(2 * C->GetPointCount());
+   SetRowCount(2 * C->GetPointCount() + 2);
    C->PopulateMenu(this);
    Thaw();
+   Layout();
 }
 
 bool AxisAndCtrlPointPanel::NeedsUpdate() {
@@ -128,6 +149,11 @@ void ToolPanel::ClearPanel() {
    }
    controls.clear();
    decorations.clear();
+   if (intermediate != nullptr) {
+      if (auto size = intermediate->GetSizer(); size != nullptr) {
+         intermediate->SetSizer(NULL, true);
+      }
+   }
 }
 
 void VariableEditPanel::RefreshLinked() {
@@ -140,31 +166,43 @@ void VariableEditPanel::RefreshLinked() {
 void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F) {
    Freeze();
    ClearPanel();
-   int distFromTop = 18;
-   AddDecoration(new wxStaticText(this, wxID_ANY, wxString("Parameters :"),
-                                  wxDefaultPosition + wxSize(12, distFromTop),
+   auto sizer = new wxBoxSizer(wxVERTICAL);
+   wxSizerFlags sizerFlags(1);
+   sizerFlags.Expand().Border(wxLEFT | wxRIGHT, 3);
+   AddDecoration(new wxStaticText(intermediate, wxID_ANY,
+                                  wxString("Parameters :"),
+                                      wxDefaultPosition,
                                   wxDefaultSize));
-   distFromTop += 24;
+   sizer->Add(decorations.back(), sizerFlags);
 
    std::vector<Symbol<cplx>*> vars = F.GetVars();
    SetRowCount(2 * vars.size());
 
    for (auto v : vars) {
-      // "z" still hardcoded to be the independent variable.
       if (v->GetToken() == "z")
          continue;
       cplx val = v->eval().getVal();
       std::string c =
           std::to_string(val.real()) + " + " + std::to_string(val.imag()) + "i";
-      AddDecoration(new wxStaticText(
-          this, wxID_ANY, wxString(v->GetToken()),
-          wxDefaultPosition + wxSize(12, distFromTop), TEXTBOX_SIZE));
-      AddLinkedTextCtrl(new LinkedVarTextCtrl(
-          this, wxID_ANY, c, wxDefaultPosition + wxPoint(12, distFromTop + 18),
-          TEXTBOX_SIZE, wxTE_PROCESS_ENTER, v));
-      distFromTop += SPACING;
+      AddDecoration(new wxStaticText(intermediate, wxID_ANY,
+                                     wxString(v->GetToken()), wxDefaultPosition,
+          wxDefaultSize));
+      AddLinkedCtrl(new LinkedVarTextCtrl(intermediate, wxID_ANY, c,
+                                              wxDefaultPosition,
+                                wxDefaultSize, wxTE_PROCESS_ENTER, v));
+      sizer->Add(decorations.back(), sizerFlags);
+      sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
    }
+   intermediate->SetMinClientSize(
+       wxSize(GetClientSize().x, 48 * (vars.size()) - 24));
+   //intermediate->SetMinClientSize(wxSize(-1, 48 * (vars.size()) - 24));
+   intermediate->SetMaxClientSize(wxSize(-1, 48 * (vars.size()) - 24));
+   SetVirtualSize(wxSize(-1, 48 * (vars.size())));
+   intermediate->SetSizer(sizer);
+   intermediate->FitInside();
+   intermediate->Layout();
    Thaw();
+   Layout();
 }
 
 void VariableEditPanel::OnPaintEvent(wxPaintEvent& event) {

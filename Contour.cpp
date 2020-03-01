@@ -30,25 +30,43 @@ void Contour::SetCtrlPoint(int index, cplx c) {
 }
 
 void Contour::PopulateMenu(ToolPanel* TP) {
-   int distFromTop = 18;
-   TP->AddDecoration(new wxStaticText(
-       TP, wxID_ANY, wxString(GetName() + ":"),
-       wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
-   distFromTop += 24;
+   auto sizer      = new wxBoxSizer(wxVERTICAL);
+   auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
+   TP->intermediate->SetSizer(sizer);
+   TP->AddDecoration(new wxStaticText(TP->intermediate, wxID_ANY,
+                                      wxString(GetName() + ":"),
+                                      wxDefaultPosition, wxDefaultSize));
+   sizer->Add(TP->GetDecoration(0), sizerFlags);
 
-   distFromTop += PopulateSupplementalMenu(TP, wxPoint(0, distFromTop)).y;
+   std::tuple<int, int, int> sup = PopulateSupplementalMenu(TP);
 
-   for (int i = 0; i < GetPointCount(); i++) {
+       int ptCount = GetPointCount();
+   for (int i = 0; i < ptCount; i++) {
       std::string c = std::to_string(GetCtrlPoint(i).real()) + " + " +
                       std::to_string(GetCtrlPoint(i).imag()) + "i";
-      TP->AddDecoration(new wxStaticText(
-          TP, wxID_ANY, wxString("Ctrl Point " + std::to_string(i)),
-          wxDefaultPosition + wxSize(12, distFromTop), TP->TEXTBOX_SIZE));
-      TP->AddLinkedTextCtrl(new LinkedCtrlPointTextCtrl(
-          TP, wxID_ANY, c, wxDefaultPosition + wxPoint(12, distFromTop + 18),
-          TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, this, (size_t)i));
-      distFromTop += TP->SPACING;
+      TP->AddDecoration(
+          new wxStaticText(TP->intermediate, wxID_ANY,
+                           wxString("Ctrl Point " + std::to_string(i)),
+                           wxDefaultPosition, TP->TEXTBOX_SIZE));
+      TP->AddLinkedCtrl(new LinkedCtrlPointTextCtrl(
+          TP->intermediate, wxID_ANY, c, wxDefaultPosition, TP->TEXTBOX_SIZE,
+          wxTE_PROCESS_ENTER, this, (size_t)i));
+      sizer->Add(TP->GetDecoration(i + 1 + std::get<0>(sup)), sizerFlags);
+      sizer->Add(TP->GetLinkedCtrl(i + std::get<1>(sup))->GetCtrlPtr(),
+                 sizerFlags);
    }
+   // TP->intermediate->Layout();
+   // TP->intermediate->SetMinClientSize(wxSize(TP->GetClientSize().x, -1));
+   auto panel = TP->intermediate;
+   panel->Layout();
+   panel->SetMinClientSize(
+       wxSize(TP->GetClientSize().x, 48 * ptCount + std::get<2>(sup)));
+   panel->SetMaxClientSize(
+       wxSize(-1, 48 * ptCount + std::get<2>(sup)));
+   panel->SetVirtualSize(
+       wxSize(-1, 48 * ptCount + std::get<2>(sup)));
+
+   panel->Fit();
 }
 
 void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p) {

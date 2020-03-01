@@ -291,11 +291,11 @@ void InputPlane::OnPaint(wxPaintEvent& paint) {
       out->Update();
    }
 
-   //if (movedViewPort) {
+   // if (movedViewPort) {
    //   toolPanel->Refresh();
    //   toolPanel->Update();
    //}
-   //movedViewPort = false;
+   // movedViewPort = false;
 }
 
 void InputPlane::OnColorPicked(wxColourPickerEvent& colorPicked) {
