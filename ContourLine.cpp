@@ -29,7 +29,7 @@ void ContourLine::Draw(wxDC* dc, ComplexPlane* canvas) {
 bool ContourLine::IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                    int pixPrecision) {
    if (DistancePointToLine(pt, points[0], points[1]) <
-           canvas->ScreenToLength(pixPrecision) &&
+           canvas->ScreenXToLength(pixPrecision) &&
        IsInsideBox(pt, points[0], points[1]))
       return true;
    else

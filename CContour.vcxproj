@@ -157,6 +157,7 @@
     <ClCompile Include="OutputPlane.cpp" />
     <ClCompile Include="ComplexPlane.cpp" />
     <ClCompile Include="ToolPanel.cpp" />
+    <ClCompile Include="zeta.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ContourCircle.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Token.h" />
     <ClInclude Include="ToolPanel.h" />
+    <ClInclude Include="zeta.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icons\axis.png">

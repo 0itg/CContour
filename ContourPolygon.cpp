@@ -43,19 +43,21 @@ inline bool ContourPolygon::IsDone() {
 
 bool ContourPolygon::IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                       int pixPrecision) {
-   // Check each line segment of the polygon until the distance to the point.
+   // Check each line segment of the polygon until the distance to the point
    // is within pixPrecision. This could probably be made more efficient.
+   auto checkDist = [&](cplx pt, int a, int b) {
+      auto d = DistancePointToLine(pt, points[a], points[b]);
+      return ((d < canvas->ScreenXToLength(pixPrecision) ||
+               d < canvas->ScreenYToLength(pixPrecision)) &&
+              IsInsideBox(pt, points[a], points[b]));
+   };
    int i;
    for (i = 0; i < points.size() - 1; i++) {
-      if (DistancePointToLine(pt, points[(__int64)i + 1], points[i]) <
-              canvas->ScreenToLength(pixPrecision) &&
-          IsInsideBox(pt, points[(__int64)i + 1], points[i]))
+      if (checkDist(pt, i + 1, i))
          return true;
    }
    // Check the line from last point to first
-   if (DistancePointToLine(pt, points[0], points[i]) <
-           canvas->ScreenToLength(pixPrecision) &&
-       IsInsideBox(pt, points[0], points[i]))
+   if (checkDist(pt, 0, i))
       return true;
    else
       return false;

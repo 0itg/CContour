@@ -7,6 +7,8 @@ template <typename T> class ParsedFunc;
 template <typename T> class SymbolError;
 template <typename T> class SymbolNum;
 
+typedef std::complex<double> cplx;
+
 // Precedence ranks which can also serve as identifiers
 enum precedence_list {
    sym_num    = 0,

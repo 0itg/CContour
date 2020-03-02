@@ -21,6 +21,8 @@ wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
 //EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
 EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
+EVT_MENU(ID_NumCtrlPanel, MainWindowFrame::OnShowNumCtrlWin)
+EVT_MENU(ID_VarEditPanel, MainWindowFrame::OnShowVarWin)
 EVT_TOOL(ID_Select, MainWindowFrame::OnButtonSelectionTool)
 EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
@@ -32,6 +34,7 @@ EVT_TEXT_ENTER(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
 EVT_SPINCTRL(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
 EVT_TEXT_ENTER(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
 EVT_TEXT_ENTER(ID_Function_Entry, MainWindowFrame::OnFunctionEntry)
+EVT_AUI_PANE_CLOSE(MainWindowFrame::OnAuiPaneClose)
 wxEND_EVENT_TABLE();
 // clang-format on
 
@@ -47,10 +50,19 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
         "Help string shown in status bar for this menu item");*/
    // menuFile->AppendSeparator();
    menuFile->Append(wxID_EXIT);
+
+   menuWindow = new wxMenu;
+   menuWindow->AppendCheckItem(ID_NumCtrlPanel, "&Numerical Controls");
+   menuWindow->AppendCheckItem(ID_VarEditPanel, "&Variables");
+   menuWindow->Check(ID_NumCtrlPanel, true);
+   menuWindow->Check(ID_VarEditPanel, true);
+
    auto menuHelp = new wxMenu;
    menuHelp->Append(wxID_ABOUT);
    auto menuBar = new wxMenuBar;
+
    menuBar->Append(menuFile, "&File");
+   menuBar->Append(menuWindow, "&Window");
    menuBar->Append(menuHelp, "&Help");
    SetMenuBar(menuBar);
 
@@ -63,7 +75,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
    // Drawing tools. Picking one sets the type of contour to draw.
 
-   auto toolbar = new wxToolBar(this, ID_toolBar);
+   auto toolbar = new wxToolBar(this, ID_Toolbar);
    toolbar->SetToolBitmapSize(wxSize(24, 24));
    toolbar->AddTool(ID_Select, "Select Contour",
                     wxBitmap(wxT("icons/tool-pointer.png"), wxBITMAP_TYPE_PNG),
@@ -172,19 +184,14 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    wxSizerFlags PlaneFlags(1);
    PlaneFlags.Shaped().Border(wxALL, 10).Center();
 
-   auto axisAndCtrlPtPanel =
-       new AxisAndCtrlPointPanel(this, ID_ToolPanel, wxDefaultPosition,
-                                 wxSize(100, this->GetClientSize().y));
-   axisAndCtrlPtPanel->SetInputPlane(input);
-   axisAndCtrlPtPanel->SetOutputPlane(output);
-   axisAndCtrlPtPanel->PopulateAxisTextCtrls();
-   input->SetToolPanel(axisAndCtrlPtPanel);
-   output->SetToolPanel(axisAndCtrlPtPanel);
+   numCtrlPanel = new NumCtrlPanel(this, ID_NumCtrlPanel, wxDefaultPosition,
+                        wxSize(100, this->GetClientSize().y), input, output);
+   numCtrlPanel->PopulateAxisTextCtrls();
+   input->SetToolPanel(numCtrlPanel);
+   output->SetToolPanel(numCtrlPanel);
 
-   auto varEditPanel =
-       new VariableEditPanel(this, ID_ToolPanel, wxDefaultPosition,
-                             wxSize(100, this->GetClientSize().y));
-   varEditPanel->SetOutputPlane(output);
+   varEditPanel = new VariableEditPanel(this, ID_VarEditPanel, wxDefaultPosition,
+                             wxSize(100, this->GetClientSize().y), output);
    output->SetVarPanel(varEditPanel);
    varEditPanel->PopulateVarTextCtrls(output->f);
 
@@ -192,12 +199,23 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
    cPlaneSizer->Add(output, PlaneFlags);
    Cplanes->SetSizer(cPlaneSizer);
 
-   aui.AddPane(Cplanes,
-               wxAuiPaneInfo().Center().BestSize(1200, 700).MinSize(350, 200));
-   aui.AddPane(axisAndCtrlPtPanel,
-               wxAuiPaneInfo().Left().BestSize(150, 700).MinSize(20, 20));
-   aui.AddPane(varEditPanel,
-               wxAuiPaneInfo().Right().BestSize(150, 700).MinSize(20, 20));
+   aui.AddPane(Cplanes, wxAuiPaneInfo()
+                            .Center()
+                            .BestSize(1200, 700)
+                            .MinSize(350, 200)
+                            .CloseButton(false));
+   aui.AddPane(numCtrlPanel, wxAuiPaneInfo()
+                                 .Left()
+                                 .BestSize(150, 700)
+                                 .MinSize(20, 20)
+                                 .TopDockable(false)
+                                 .BottomDockable(false));
+   aui.AddPane(varEditPanel, wxAuiPaneInfo()
+                                 .Right()
+                                 .BestSize(150, 700)
+                                 .MinSize(20, 20)
+                                 .TopDockable(false)
+                                 .BottomDockable(false));
    aui.Update();
 }
 
@@ -254,4 +272,19 @@ inline void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event) {
 inline void MainWindowFrame::OnShowAxes_ShowGrid(wxCommandEvent& event) {
    input->OnShowAxes_ShowGrid(event);
    output->OnShowAxes_ShowGrid(event);
+}
+
+inline void MainWindowFrame::OnShowNumCtrlWin(wxCommandEvent& event) {
+   aui.GetPane(numCtrlPanel).Show(event.IsChecked());
+   aui.Update();
+}
+
+inline void MainWindowFrame::OnShowVarWin(wxCommandEvent& event) {
+   aui.GetPane(varEditPanel).Show(event.IsChecked());
+   aui.Update();
+}
+
+inline void MainWindowFrame::OnAuiPaneClose(wxAuiManagerEvent& event) {
+   menuWindow->Check(event.pane->window->GetId(), false);
+   menuWindow->UpdateUI();
 }

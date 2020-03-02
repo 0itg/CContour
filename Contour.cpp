@@ -15,7 +15,9 @@ void Contour::RemovePoint(int index) {
 
 int Contour::OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision) {
    for (int i = 0; i < points.size(); i++) {
-      if ((abs(points[i] - pt) < canvas->ScreenToLength(pixPrecision)))
+       auto d = abs(points[i] - pt);
+      if (d < canvas->ScreenXToLength(pixPrecision) ||
+          d < canvas->ScreenYToLength(pixPrecision))
          return i;
    }
    return -1;
@@ -55,16 +57,14 @@ void Contour::PopulateMenu(ToolPanel* TP) {
       sizer->Add(TP->GetLinkedCtrl(i + std::get<1>(sup))->GetCtrlPtr(),
                  sizerFlags);
    }
-   // TP->intermediate->Layout();
-   // TP->intermediate->SetMinClientSize(wxSize(TP->GetClientSize().x, -1));
+
+   auto vExtent = wxSize(-1, 48 * ptCount + std::get<2>(sup) + TP->ROW_HEIGHT);
+
    auto panel = TP->intermediate;
    panel->Layout();
-   panel->SetMinClientSize(
-       wxSize(TP->GetClientSize().x, 48 * ptCount + std::get<2>(sup)));
-   panel->SetMaxClientSize(
-       wxSize(-1, 48 * ptCount + std::get<2>(sup)));
-   panel->SetVirtualSize(
-       wxSize(-1, 48 * ptCount + std::get<2>(sup)));
+   panel->SetMinClientSize(wxSize(TP->GetClientSize().x, vExtent.y));
+   panel->SetMaxClientSize(vExtent);
+   panel->SetVirtualSize(vExtent);
 
    panel->Fit();
 }

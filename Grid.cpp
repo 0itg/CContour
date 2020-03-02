@@ -5,7 +5,7 @@
 #include "Parser.h"
 
 #include <algorithm>
-#include <thread>
+//#include <thread>
 //#include <execution>
 
 Grid::~Grid() {
@@ -73,14 +73,14 @@ void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f) {
          // Rarely should this take more than one step.
          while (isnan(lines.back()->GetCtrlPoint(i).real())) {
             lines.back()->RemovePoint(i);
-            double t_avoid_pole = i / res / 100;
+            double t_avoid_pole = 1.0 / res / 100;
             lines.back()->AddPoint(
                 f(v->GetCtrlPoint(0) * (t + t_avoid_pole) +
                   v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
          }
          while (isnan(lines.back()->GetCtrlPoint(i).imag())) {
             lines.back()->RemovePoint(i);
-            double t_avoid_pole = i / res / 100;
+            double t_avoid_pole = 1.0 / res / 100;
             lines.back()->AddPoint(
                 f(v->GetCtrlPoint(0) * (t + t_avoid_pole) +
                   v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));

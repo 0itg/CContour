@@ -1,5 +1,6 @@
 #pragma once
 #include "Token.h"
+#include "zeta.h"
 
 #include <cmath>
 #include <map>
@@ -8,6 +9,8 @@
 
 template <typename T> class Symbol;
 template <typename T> class ParsedFunc;
+
+typedef std::complex<double> cplx;
 
 struct cmp_length_then_alpha;
 
@@ -436,6 +439,7 @@ template <typename T> inline void Parser<T>::Initialize() {
    RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
    RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
    RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return zeta(z); }, "zeta");
 }
 
 template <> inline void Parser<typename std::complex<double>>::Initialize() {
@@ -469,4 +473,5 @@ template <> inline void Parser<typename std::complex<double>>::Initialize() {
    RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
    RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
    RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");
+   RecognizeFunc((std::function<T(T)>)[](T z) { return zeta(z); }, "zeta");
 }
