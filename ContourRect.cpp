@@ -13,9 +13,9 @@ ContourRect::ContourRect(cplx c, wxColor col, std::string n)
 }
 
 void ContourRect::Draw(wxDC* dc, ComplexPlane* canvas) {
-   int width = (int)canvas->LengthToScreen(points[2].real() - points[0].real());
+   int width = (int)canvas->LengthXToScreen(points[2].real() - points[0].real());
    int height =
-       (int)-canvas->LengthToScreen(points[2].imag() - points[0].imag());
+       (int)-canvas->LengthYToScreen(points[2].imag() - points[0].imag());
    dc->DrawRectangle(canvas->ComplexToScreen(points[0]), wxSize(width, height));
 }
 
@@ -35,25 +35,3 @@ void ContourRect::moveCtrlPoint(cplx mousePos, int ptIndex) {
       points[3] = cplx(points[2].real(), points[0].imag());
    }
 }
-
-// void ContourRect::PopulateMenu(ToolPanel* TP) {
-//   int distFromTop = 18;
-//   TP->AddDecoration(new wxStaticText(
-//       TP, wxID_ANY, wxString(GetName() + ":"),
-//       wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
-//   distFromTop += 24;
-//
-//   distFromTop += PopulateSupplementalMenu(TP, wxPoint(0, distFromTop)).y;
-//
-//   for (int i = 0; i < GetPointCount(); i += 2) {
-//      std::string c = std::to_string(GetCtrlPoint(i).real()) + " + " +
-//                      std::to_string(GetCtrlPoint(i).imag()) + "i";
-//      TP->AddDecoration(new wxStaticText(
-//          TP, wxID_ANY, wxString("Ctrl Point " + std::to_string(i)),
-//          wxDefaultPosition + wxSize(12, distFromTop), wxDefaultSize));
-//      TP->AddLinkedTextCtrl(new LinkedCtrlPointTextCtrl(
-//          TP, wxID_ANY, c, wxDefaultPosition + wxPoint(12, distFromTop + 18),
-//          wxDefaultSize, wxTE_PROCESS_ENTER, points, (size_t)i));
-//      distFromTop += TP->SPACING;
-//   }
-//}

@@ -4,6 +4,8 @@
 
 class InputPlane;
 class OutputPlane;
+class NumCtrlPanel;
+class VariableEditPanel;
 
 class MainWindowFrame : public wxFrame {
  public:
@@ -17,6 +19,10 @@ class MainWindowFrame : public wxFrame {
  private:
    InputPlane* input;
    OutputPlane* output;
+   NumCtrlPanel* numCtrlPanel;
+   VariableEditPanel* varEditPanel;
+   wxMenu* menuWindow;
+
    void OnExit(wxCommandEvent& event);
    void OnAbout(wxCommandEvent& event);
    void OnButtonSelectionTool(wxCommandEvent& event);
@@ -30,6 +36,9 @@ class MainWindowFrame : public wxFrame {
    void OnContourResCtrl(wxSpinEvent& event);
    void OnContourResCtrl(wxCommandEvent& event);
    void OnShowAxes_ShowGrid(wxCommandEvent& event);
+   void OnShowNumCtrlWin(wxCommandEvent& event);
+   void OnShowVarWin(wxCommandEvent& event);
+   void OnAuiPaneClose(wxAuiManagerEvent& event);
 
    wxAuiManager aui;
 

@@ -13,7 +13,7 @@
 //EVT_ERASE_BACKGROUND(ToolPanel::OnEraseEvent)
 //wxEND_EVENT_TABLE();
 
-wxBEGIN_EVENT_TABLE(AxisAndCtrlPointPanel, wxVScrolledWindow)
+wxBEGIN_EVENT_TABLE(NumCtrlPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_PAINT(ToolPanel::OnPaintEvent)
 wxEND_EVENT_TABLE();
@@ -25,7 +25,7 @@ wxEND_EVENT_TABLE();
 // clang-format on
 
 ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
-    : wxVScrolledWindow(parent, ID_ToolPanel, pos, size) {
+    : wxVScrolledWindow(parent, ID, pos, size) {
    SetRowCount(20);
    wxBoxSizer* siz = new wxBoxSizer(wxVERTICAL);
    intermediate    = new wxPanel(this);
@@ -57,7 +57,7 @@ void ToolPanel::OnPaintEvent(wxPaintEvent& event) {
    }
 }
 
-void AxisAndCtrlPointPanel::PopulateAxisTextCtrls() {
+void NumCtrlPanel::PopulateAxisTextCtrls() {
    Freeze();
 
    ClearPanel();
@@ -108,29 +108,33 @@ void AxisAndCtrlPointPanel::PopulateAxisTextCtrls() {
       }
    }
    intermediate->SetSizer(sizer);
+   //intermediate->SetMinClientSize(wxSize(-1, (4 * SPACING + ROW_HEIGHT) * (1 + outputs.size())));
    intermediate->SetMaxClientSize(wxSize(GetClientSize().x, -1));
    intermediate->Layout();
    intermediate->FitInside();
-   intermediate->SetMaxClientSize(wxSize(-1, (4 * 48 + 24) * (1 + outputs.size())));
-   SetVirtualSize(wxSize(-1, (4 * 48 + 24) * (1 + outputs.size())));
+   intermediate->SetMaxClientSize(
+       wxSize(-1, (4 * SPACING + ROW_HEIGHT) * (1 + outputs.size())));
+   SetVirtualSize(wxSize(-1, (4 * SPACING + ROW_HEIGHT) * (1 + outputs.size())));
 
+   Layout();
    Thaw();
 }
 
-void AxisAndCtrlPointPanel::PopulateContourTextCtrls(Contour* C) {
+void NumCtrlPanel::PopulateContourTextCtrls(Contour* C) {
    Freeze();
    ClearPanel();
-   SetRowCount(2 * C->GetPointCount() + 2);
+   SetRowCount(2 * C->GetPointCount() + 1);
    C->PopulateMenu(this);
-   Thaw();
+
    Layout();
+   Thaw();
 }
 
-bool AxisAndCtrlPointPanel::NeedsUpdate() {
+bool NumCtrlPanel::NeedsUpdate() {
    return (input->GetState() > -1 || input->movedViewPort == true);
 }
 
-void AxisAndCtrlPointPanel::RefreshLinked() {
+void NumCtrlPanel::RefreshLinked() {
    input->Update();
    input->Refresh();
    for (auto out : outputs) {
@@ -194,15 +198,15 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F) {
       sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
    }
    intermediate->SetMinClientSize(
-       wxSize(GetClientSize().x, 48 * (vars.size()) - 24));
-   //intermediate->SetMinClientSize(wxSize(-1, 48 * (vars.size()) - 24));
-   intermediate->SetMaxClientSize(wxSize(-1, 48 * (vars.size()) - 24));
-   SetVirtualSize(wxSize(-1, 48 * (vars.size())));
+       wxSize(GetClientSize().x, SPACING * (vars.size()) - ROW_HEIGHT));
+   intermediate->SetMaxClientSize(wxSize(-1, SPACING * (vars.size()) - ROW_HEIGHT));
+   SetVirtualSize(wxSize(-1, SPACING * (vars.size())));
    intermediate->SetSizer(sizer);
    intermediate->FitInside();
    intermediate->Layout();
-   Thaw();
+
    Layout();
+   Thaw();
 }
 
 void VariableEditPanel::OnPaintEvent(wxPaintEvent& event) {

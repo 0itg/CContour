@@ -26,7 +26,7 @@ class Contour;
 class OutputPlane;
 class ComplexPlane;
 class Grid;
-class AxisAndCtrlPointPanel;
+class NumCtrlPanel;
 
 struct Axes {
    Axes(ComplexPlane* p) : parent(p){};
@@ -62,8 +62,10 @@ class ComplexPlane : public wxPanel {
    // Functions for converting between screen and mathematical coordinates.
    cplx ScreenToComplex(wxPoint P);
    wxPoint ComplexToScreen(cplx C);
-   double LengthToScreen(double r);
-   double ScreenToLength(double r);
+   double LengthXToScreen(double r);
+   double LengthYToScreen(double r);
+   double ScreenXToLength(double r);
+   double ScreenYToLength(double r);
 
    void OnMouseWheel(wxMouseEvent& mouse);
    void OnMouseRightUp(wxMouseEvent& mouse);
@@ -83,7 +85,7 @@ class ComplexPlane : public wxPanel {
    void SetStatusBar(wxStatusBar* ptr) {
       statBar = ptr;
    };
-   void SetToolPanel(AxisAndCtrlPointPanel* ptr) {
+   void SetToolPanel(NumCtrlPanel* ptr) {
       toolPanel = ptr;
    };
 
@@ -126,5 +128,5 @@ class ComplexPlane : public wxPanel {
    bool showGrid = true;
    wxSpinCtrl* resCtrl;
    wxStatusBar* statBar;
-   AxisAndCtrlPointPanel* toolPanel;
+   NumCtrlPanel* toolPanel;
 };

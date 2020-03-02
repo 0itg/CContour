@@ -39,12 +39,20 @@ wxPoint ComplexPlane::ComplexToScreen(cplx C) {
                       GetClientSize().y);
 }
 
-double ComplexPlane::LengthToScreen(double r) {
+double ComplexPlane::LengthXToScreen(double r) {
    return r * GetClientSize().x / (axes.realMax - axes.realMin);
 }
 
-double ComplexPlane::ScreenToLength(double r) {
+double ComplexPlane::LengthYToScreen(double r) {
+   return r * GetClientSize().y / (axes.imagMax - axes.imagMin);
+}
+
+double ComplexPlane::ScreenXToLength(double r) {
    return r * (axes.realMax - axes.realMin) / GetClientSize().x;
+}
+
+double ComplexPlane::ScreenYToLength(double r) {
+   return r * (axes.imagMax - axes.imagMin) / GetClientSize().y;
 }
 
 void ComplexPlane::OnMouseWheel(wxMouseEvent& mouse) {
@@ -165,14 +173,14 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps) {
    const int MaxMark = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
    const int MinMark = GetClientSize().x / (axes.TARGET_TICK_COUNT * 2);
 
-   if (LengthToScreen(axes.reStep) < MinMark) {
+   if (LengthXToScreen(axes.reStep) < MinMark) {
       axes.reStep *= 2;
-   } else if (LengthToScreen(axes.reStep) > MaxMark) {
+   } else if (LengthXToScreen(axes.reStep) > MaxMark) {
       axes.reStep /= 2;
    }
-   if (LengthToScreen(axes.imStep) < MinMark) {
+   if (LengthYToScreen(axes.imStep) < MinMark) {
       axes.imStep *= 2;
-   } else if (LengthToScreen(axes.imStep) > MaxMark) {
+   } else if (LengthYToScreen(axes.imStep) > MaxMark) {
       axes.imStep /= 2;
    }
    movedViewPort = true;

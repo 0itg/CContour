@@ -13,7 +13,10 @@ ContourCircle::ContourCircle(cplx c, double r, wxColor col, std::string n)
 
 void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas) {
    wxPoint p = canvas->ComplexToScreen(points[0]);
-   dc->DrawCircle(p, (wxCoord)canvas->LengthToScreen(radius));
+   auto r1   = (wxCoord)canvas->LengthXToScreen(radius);
+   auto r2   = (wxCoord)canvas->LengthYToScreen(radius);
+   //dc->DrawCircle(p, (wxCoord)canvas->LengthXToScreen(radius));
+   dc->DrawEllipse(p.x-r1, p.y-r2, 2*r1, 2*r2);
    DrawCtrlPoint(dc, p);
 }
 
@@ -28,7 +31,7 @@ void ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) {
 bool ContourCircle::IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                      int pixPrecision) {
    return abs(abs(points[0] - pt) - radius) <
-          canvas->ScreenToLength(pixPrecision);
+          canvas->ScreenXToLength(pixPrecision);
 }
 
 int ContourCircle::OnCtrlPoint(cplx pt, ComplexPlane* canvas,
@@ -36,7 +39,7 @@ int ContourCircle::OnCtrlPoint(cplx pt, ComplexPlane* canvas,
    // returns 1-1=0 if the mouse is on the control point (referring to
    // control point 0. Returns 0-1=-1 if not, with -1
    // meaning no contour found.
-   return (abs(points[0] - pt) < canvas->ScreenToLength(pixPrecision)) - 1;
+   return (abs(points[0] - pt) < canvas->ScreenXToLength(pixPrecision)) - 1;
 }
 
 cplx ContourCircle::Interpolate(double t) {
@@ -68,5 +71,5 @@ ContourCircle::PopulateSupplementalMenu(ToolPanel* TP) {
    auto sizer = TP->intermediate->GetSizer();
    sizer->Add(RadiusText, sizerFlags);
    sizer->Add(RadiusCtrl->GetCtrlPtr(), sizerFlags);
-   return std::make_tuple(1, 1, 72);
+   return std::make_tuple(1, 1, 2*TP->ROW_HEIGHT);
 }

@@ -1,7 +1,10 @@
 #pragma once
 
 enum enum_buttons {
-   ID_toolBar,
+   ID_Toolbar,
+   ID_Window,
+   //ID_Show_Numerical_Ctrl_Win,
+   //ID_Show_Variable_Win,
 
    ID_Select,
    ID_Circle,
@@ -17,12 +20,6 @@ enum enum_buttons {
    ID_ContourResCtrl,
    ID_GridResCtrl,
    ID_Function_Entry,
-   ID_ToolPanel,
-   ID_Splitter,
-
-   /*ID_InReMin,
-   ID_InReMax,
-   ID_InImMin,
-   ID_InImMax,
-   ID_InAspectRatio*/
+   ID_NumCtrlPanel,
+   ID_VarEditPanel,
 };
