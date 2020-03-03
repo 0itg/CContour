@@ -157,7 +157,6 @@
     <ClCompile Include="OutputPlane.cpp" />
     <ClCompile Include="ComplexPlane.cpp" />
     <ClCompile Include="ToolPanel.cpp" />
-    <ClCompile Include="zeta.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ContourCircle.h" />

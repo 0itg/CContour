@@ -117,11 +117,6 @@ template <typename T> class ParsedFunc {
       } else
          S = tokens[token->GetToken()];
       symbolStack.push_back(S);
-      // if (tokens.find(token->GetToken()) == tokens.end()) {
-      //   tokens[token->GetToken()] = token->Clone();
-      //   tokens[token->GetToken()]->SetParent(this);
-      //}
-      // symbolStack.push_back(tokens[token->GetToken()]);
    }
    void PopToken() {
       symbolStack.pop_back();
@@ -264,7 +259,6 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
              prev->GetPrecedence() == sym_rparen) {
             tokenVec.insert(tokenVec.begin() + i, "*");
             i++;
-            // inserted++;
          }
       } else if (currentTokenPrec == sym_rparen && i < tokenVec.size() - 1) {
          Symbol<T>* next = tokenLibrary[tokenVec[i + 1]];
@@ -272,7 +266,6 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
              next->GetPrecedence() == sym_lparen) {
             tokenVec.insert(tokenVec.begin() + i + 1, "*");
             i++;
-            // inserted++;
          }
       }
    }
@@ -350,7 +343,6 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
             }
             PushOp(tokenLibrary[op]);
          }
-         //}
       }
    }
    // To finish, pop whatever is on the op stack to the output queue.
@@ -360,10 +352,6 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input) {
          f.PopToken();
       opStack.pop_back();
    }
-
-   // for (auto sym : f.symbolStack) {
-   //   f.tokens[sym->GetToken()] = tokenLibrary[sym->GetToken()]->Clone();
-   //}
    return f;
 }
 
