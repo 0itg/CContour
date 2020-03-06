@@ -114,6 +114,12 @@ void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
     Update();
 }
 
+void ComplexPlane::RefreshShowAxes_ShowGrid()
+{
+    toolbar->ToggleTool(ID_Show_Axes, showAxes);
+    toolbar->ToggleTool(ID_Show_Grid, showGrid);
+}
+
 void ComplexPlane::Highlight(wxPoint mousePos)
 {
     bool notOnAnyContour = true;

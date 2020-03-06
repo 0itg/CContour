@@ -304,7 +304,6 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
         }
         break;
     }
-    Key.Skip();
 }
 
 void InputPlane::OnPaint(wxPaintEvent& paint)
@@ -403,13 +402,6 @@ void InputPlane::ClearSubDivs()
         delete C;
     }
     subDivContours.clear();
-    // for (auto out : outputs) {
-    //   for (auto C : out->contours)
-    //      delete C;
-    //   contours.clear();
-    //   out->highlightedContour   = -1;
-    //   out->highlightedCtrlPoint                = -1;
-    //}
 }
 
 void InputPlane::SetContourType(int id)

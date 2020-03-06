@@ -101,6 +101,8 @@ class ComplexPlane : public wxPanel
     void OnMouseLeaving(wxMouseEvent& mouse);
     void OnShowAxes_ShowGrid(wxCommandEvent& event);
 
+    void RefreshShowAxes_ShowGrid();
+
     std::string& GetName()
     {
         return name;
@@ -109,6 +111,10 @@ class ComplexPlane : public wxPanel
     wxSize DoBestClientSize() const
     {
         return wxSize(200, 200);
+    }
+    void SetToolbar(wxToolBar* tb)
+    {
+        toolbar = tb;
     }
     void SetStatusBar(wxStatusBar* ptr)
     {
@@ -168,6 +174,7 @@ class ComplexPlane : public wxPanel
     bool showGrid = true;
     wxSpinCtrl* resCtrl;
     wxStatusBar* statBar;
+    wxToolBar* toolbar;
     NumCtrlPanel* toolPanel;
 
   private:
