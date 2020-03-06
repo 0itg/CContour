@@ -92,7 +92,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
     // Drawing tools. Picking one sets the type of contour to draw.
 
-    auto toolbar = new wxToolBar(this, ID_Toolbar);
+    toolbar = new wxToolBar(this, ID_Toolbar);
     toolbar->SetToolBitmapSize(wxSize(24, 24));
     toolbar->AddTool(ID_Select, "Select Contour",
                      wxBitmap(wxT("icons/tool-pointer.png"), wxBITMAP_TYPE_PNG),
@@ -189,10 +189,13 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
     auto statBar = CreateStatusBar(2);
 
+    input->SetToolbar(toolbar);
     input->SetColorPicker(colorCtrl);
     input->SetResCtrl(cResCtrl);
     input->SetStatusBar(statBar);
+    input->SetFocus();
 
+    output->SetToolbar(toolbar);
     output->SetFuncInput(funcEntry);
     output->SetResCtrl(gResCtrl);
     output->SetStatusBar(statBar);
@@ -378,5 +381,6 @@ void MainWindowFrame::Load(std::string& path)
     ia >> *output;
     output->MarkAllForRedraw();
     output->RefreshFuncText();
+    input->RefreshShowAxes_ShowGrid();
     varEditPanel->PopulateVarTextCtrls(output->f);
 }

@@ -77,8 +77,6 @@ class InputPlane : public ComplexPlane
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
-    Grid* grid;
-
   private:
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 200;
@@ -88,6 +86,7 @@ class InputPlane : public ComplexPlane
     // Pointers to outputs for or sending refresh signals.
     // App only uses one output for now, but more might be nice later.
     std::vector<OutputPlane*> outputs;
+    Grid* grid;
     wxColourPickerCtrl* colorPicker = nullptr;
 
     int contourType = ID_Circle;

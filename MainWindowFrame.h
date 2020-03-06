@@ -24,6 +24,7 @@ class MainWindowFrame : public wxFrame
     NumCtrlPanel* numCtrlPanel;
     VariableEditPanel* varEditPanel;
     wxMenu* menuWindow;
+    wxToolBar* toolbar;
     std::string saveFileName = "";
     std::string saveFilePath = "";
 
