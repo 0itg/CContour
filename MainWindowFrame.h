@@ -7,40 +7,50 @@ class OutputPlane;
 class NumCtrlPanel;
 class VariableEditPanel;
 
-class MainWindowFrame : public wxFrame {
- public:
-   MainWindowFrame(const wxString& title, const wxPoint& pos,
-                   const wxSize& size,
-                   const long style = wxDEFAULT_FRAME_STYLE);
-   ~MainWindowFrame() {
-      aui.UnInit();
-   }
+class MainWindowFrame : public wxFrame
+{
+  public:
+    MainWindowFrame(const wxString& title, const wxPoint& pos,
+                    const wxSize& size,
+                    const long style = wxDEFAULT_FRAME_STYLE);
+    ~MainWindowFrame()
+    {
+        aui.UnInit();
+    }
 
- private:
-   InputPlane* input;
-   OutputPlane* output;
-   NumCtrlPanel* numCtrlPanel;
-   VariableEditPanel* varEditPanel;
-   wxMenu* menuWindow;
+  private:
+    InputPlane* input;
+    OutputPlane* output;
+    NumCtrlPanel* numCtrlPanel;
+    VariableEditPanel* varEditPanel;
+    wxMenu* menuWindow;
+    std::string saveFileName = "";
+    std::string saveFilePath = "";
 
-   void OnExit(wxCommandEvent& event);
-   void OnAbout(wxCommandEvent& event);
-   void OnButtonSelectionTool(wxCommandEvent& event);
-   void OnToolbarContourSelect(wxCommandEvent& event);
-   void OnColorPicked(wxColourPickerEvent& col);
-   void OnButtonColorRandomizer(wxCommandEvent& event);
-   void OnButtonPaintbrush(wxCommandEvent& event);
-   void OnFunctionEntry(wxCommandEvent& event);
-   void OnGridResCtrl(wxSpinEvent& event);
-   void OnGridResCtrl(wxCommandEvent& event);
-   void OnContourResCtrl(wxSpinEvent& event);
-   void OnContourResCtrl(wxCommandEvent& event);
-   void OnShowAxes_ShowGrid(wxCommandEvent& event);
-   void OnShowNumCtrlWin(wxCommandEvent& event);
-   void OnShowVarWin(wxCommandEvent& event);
-   void OnAuiPaneClose(wxAuiManagerEvent& event);
+    void OnExit(wxCommandEvent& event);
+    void OnAbout(wxCommandEvent& event);
+    void OnButtonSelectionTool(wxCommandEvent& event);
+    void OnToolbarContourSelect(wxCommandEvent& event);
+    void OnColorPicked(wxColourPickerEvent& col);
+    void OnButtonColorRandomizer(wxCommandEvent& event);
+    void OnButtonPaintbrush(wxCommandEvent& event);
+    void OnFunctionEntry(wxCommandEvent& event);
+    void OnGridResCtrl(wxSpinEvent& event);
+    void OnGridResCtrl(wxCommandEvent& event);
+    void OnContourResCtrl(wxSpinEvent& event);
+    void OnContourResCtrl(wxCommandEvent& event);
+    void OnShowAxes_ShowGrid(wxCommandEvent& event);
+    void OnShowNumCtrlWin(wxCommandEvent& event);
+    void OnShowVarWin(wxCommandEvent& event);
+    void OnAuiPaneClose(wxAuiManagerEvent& event);
+    void OnOpen(wxCommandEvent& event);
+    void OnSave(wxCommandEvent& event);
+    void OnSaveAs(wxCommandEvent& event);
 
-   wxAuiManager aui;
+    void Save(std::string& path);
+    void Load(std::string& path);
 
-   wxDECLARE_EVENT_TABLE();
+    wxAuiManager aui;
+
+    wxDECLARE_EVENT_TABLE();
 };

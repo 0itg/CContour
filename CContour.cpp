@@ -13,26 +13,28 @@
 // App which graphs a complex function as a mapping between two complex planes.
 // Allows for drawing and editing of contours which are mapped in real time.
 
-class ContourViewer : public wxApp {
- public:
-   virtual bool OnInit();
-   //virtual int OnExit();
+class ContourViewer : public wxApp
+{
+  public:
+    virtual bool OnInit();
+    // virtual int OnExit();
 };
 
 wxDECLARE_APP(ContourViewer);
 wxIMPLEMENT_APP(ContourViewer);
 
-bool ContourViewer::OnInit() {
+bool ContourViewer::OnInit()
+{
 
-   //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-   //_CrtSetBreakAlloc(9554);
-   //_CrtSetBreakAlloc(9553);
-   //_CrtSetBreakAlloc(9552);
-   MainWindowFrame* frame = new MainWindowFrame(
-       "Complex Contour Visualizer", wxDefaultPosition, wxSize(1300, 650));
-   frame->Show(true);
-   return true;
+    //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //_CrtSetBreakAlloc(9554);
+    //_CrtSetBreakAlloc(9553);
+    //_CrtSetBreakAlloc(9552);
+    MainWindowFrame* frame = new MainWindowFrame(
+        "Complex Contour Visualizer", wxDefaultPosition, wxSize(1300, 650));
+    frame->Show(true);
+    return true;
 }
-//int ContourViewer::OnExit() {
+// int ContourViewer::OnExit() {
 //   return _CrtDumpMemoryLeaks();
 //}
