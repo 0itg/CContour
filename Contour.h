@@ -23,6 +23,8 @@ class InputPlane;
 class ContourPolygon;
 class ComplexPlane;
 class ToolPanel;
+template <class T>
+class ParsedFunc;
 
 // All contours include a set of points, may be open or closed,
 // and need to define a function for interpolating the points
@@ -87,18 +89,30 @@ class Contour
     // Creates a polygonal approximation of the contour with number of segments
     // dependent on res. No actual necessity for the number to equal res
     // precisely, but it would be expected from the user.
-    virtual ContourPolygon* Subdivide(int res) = 0;
+    virtual void Subdivide(int res) = 0;
+
+    // Creates a Polygon by applying f to the subDiv points. 
+    virtual ContourPolygon* Map(ParsedFunc<cplx>& f);
+
     int GetPointCount()
     {
         return (int)points.size();
+    }
+    void Reserve(size_t size)
+    {
+        points.reserve(size);
     }
 
     void DrawCtrlPoint(wxDC* dc, wxPoint p);
     wxColor color = *wxRED;
 
+    // Used for deciding whether OutputPlane needs to recalculate curves.
+    bool markedForRedraw = true;
+
   protected:
     std::string name;
     std::vector<cplx> points;
+    std::vector<cplx> subDiv;
 
   private:
     template <class Archive>

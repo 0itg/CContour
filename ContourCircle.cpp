@@ -4,7 +4,6 @@
 #include "LinkedTextCtrl.h"
 #include "ToolPanel.h"
 
-// BOOST_CLASS_EXPORT_GUID(ContourCircle, "ContourCircle")
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourCircle)
 
 ContourCircle::ContourCircle(cplx c, double r, wxColor col, std::string n)
@@ -20,7 +19,6 @@ void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
     wxPoint p = canvas->ComplexToScreen(points[0]);
     auto r1   = (wxCoord)canvas->LengthXToScreen(radius);
     auto r2   = (wxCoord)canvas->LengthYToScreen(radius);
-    // dc->DrawCircle(p, (wxCoord)canvas->LengthXToScreen(radius));
     dc->DrawEllipse(p.x - r1, p.y - r2, 2 * r1, 2 * r2);
     DrawCtrlPoint(dc, p);
 }
@@ -56,16 +54,15 @@ cplx ContourCircle::Interpolate(double t)
            cplx(radius * cos(2 * M_PI * t), radius * sin(2 * M_PI * t));
 }
 
-ContourPolygon* ContourCircle::Subdivide(int res)
+void ContourCircle::Subdivide(int res)
 {
-    ContourPolygon* D = new ContourPolygon();
+    subDiv.clear();
+    subDiv.reserve(res);
     for (int i = 0; i <= res; i++)
     {
         double t = (double)i / res;
-        D->AddPoint(Interpolate(t));
+        subDiv.push_back(Interpolate(t));
     }
-    D->color = color;
-    return D;
 }
 
 std::tuple<int, int, int> ContourCircle::PopulateSupplementalMenu(ToolPanel* TP)

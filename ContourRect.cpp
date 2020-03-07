@@ -2,7 +2,6 @@
 #include "ComplexPlane.h"
 #include "ToolPanel.h"
 
-// BOOST_CLASS_EXPORT_GUID(ContourRect, "ContourRect")
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourRect)
 
 ContourRect::ContourRect(cplx c, wxColor col, std::string n)

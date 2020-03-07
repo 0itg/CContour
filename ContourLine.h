@@ -34,7 +34,7 @@ class ContourLine : public Contour
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                   int pixPrecision = 3);
     virtual cplx Interpolate(double t);
-    virtual ContourPolygon* Subdivide(int res);
+    virtual void Subdivide(int res);
 
   private:
     template <class Archive>

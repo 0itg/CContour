@@ -1,7 +1,9 @@
 #include "Contour.h"
+#include "ContourPolygon.h"
 #include "ComplexPlane.h"
 #include "LinkedTextCtrl.h"
 #include "ToolPanel.h"
+#include "Parser.h"
 #include <algorithm>
 #include <numeric>
 
@@ -75,6 +77,16 @@ void Contour::PopulateMenu(ToolPanel* TP)
     panel->SetVirtualSize(vExtent);
 
     panel->Fit();
+}
+
+ContourPolygon* Contour::Map(ParsedFunc<cplx>& f)
+{
+    ContourPolygon* C = new ContourPolygon(color, "f(" + name + ")");
+    C->Reserve(subDiv.size());
+
+    for (auto& z : subDiv)
+        C->AddPoint(f(z));
+    return C;
 }
 
 void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p)
