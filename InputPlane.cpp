@@ -30,8 +30,6 @@ wxEND_EVENT_TABLE();
 
 InputPlane::~InputPlane()
 {
-    for (auto C : subDivContours)
-        delete C;
     delete grid;
 }
 
@@ -61,11 +59,10 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             toolPanel->PopulateContourTextCtrls(contours[state]);
             // For now delete the whole subvidived contour and recalculate.
             // Later, could recalculate only the affected portion.
-            delete subDivContours[state];
-            subDivContours[state] = contours[state]->Subdivide(res);
-            state                 = STATE_IDLE;
-            highlightedContour    = -1;
-            highlightedCtrlPoint  = -1;
+            contours[state]->Subdivide(res);
+            state                = STATE_IDLE;
+            highlightedContour   = -1;
+            highlightedCtrlPoint = -1;
         }
         // If not, user must be drawing a contour with multiple control points,
         // so move on to the next one
@@ -104,7 +101,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             if (snap)
                 contours.back()->SetCtrlPoint(0, c);
 
-            subDivContours.push_back(contours.back()->Subdivide(res));
+            contours.back()->Subdivide(res);
             state              = contours.size() - 1;
             highlightedContour = state;
             toolPanel->PopulateContourTextCtrls(contours[state]);
@@ -138,9 +135,8 @@ void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
 
     if (highlightedContour > -1)
     {
-        contours[highlightedContour]->color                 = color;
-        subDivContours[highlightedContour]->color           = color;
-        subDivContours[highlightedContour]->markedForRedraw = true;
+        contours[highlightedContour]->color           = color;
+        contours[highlightedContour]->markedForRedraw = true;
     }
     Refresh();
     Update();
@@ -251,8 +247,8 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         {
             contours[state]->moveCtrlPoint(mousePos, highlightedCtrlPoint);
         }
-        delete subDivContours[state];
-        subDivContours[state] = contours[state]->Subdivide(res);
+        contours[state]->Subdivide(res);
+        contours[state]->markedForRedraw = true;
         toolPanel->Refresh();
         toolPanel->Update();
         Refresh();
@@ -374,34 +370,15 @@ void InputPlane::OnContourResCtrl(wxSpinEvent& event)
 void InputPlane::OnContourResCtrl(wxCommandEvent& event)
 {
     res = resCtrl->GetValue();
-    for (auto C : subDivContours)
-        delete C;
-    std::transform(contours.begin(), contours.end(), subDivContours.begin(),
-                   [&](Contour* C) {
-                       return C->Subdivide(res);
-                   });
+    RecalcAll();
     Update();
     Refresh();
 }
 
 void InputPlane::RecalcAll()
 {
-    for (auto C : subDivContours)
-        delete C;
-    subDivContours.resize(contours.size());
-    for (int i = 0; i < contours.size(); i++)
-    {
-        subDivContours[i] = contours[i]->Subdivide(res);
-    }
-}
-
-void InputPlane::ClearSubDivs()
-{
-    for (auto C : subDivContours)
-    {
-        delete C;
-    }
-    subDivContours.clear();
+    for (auto C : contours)
+        C->Subdivide(res);
 }
 
 void InputPlane::SetContourType(int id)
@@ -413,8 +390,6 @@ void InputPlane::RemoveContour(int index)
 {
     delete contours[index];
     contours.erase(contours.begin() + index);
-    delete subDivContours[index];
-    subDivContours.erase(subDivContours.begin() + index);
 
     for (auto out : outputs)
     {
@@ -482,5 +457,4 @@ void InputPlane::PrepareForLoadFromFile()
 {
     delete grid;
     ClearContours();
-    ClearSubDivs();
 }

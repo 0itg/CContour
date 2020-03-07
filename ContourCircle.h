@@ -30,7 +30,7 @@ class ContourCircle : public Contour
     bool IsPointOnContour(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     int OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     cplx Interpolate(double t);
-    ContourPolygon* Subdivide(int res);
+    void Subdivide(int res);
 
     virtual std::tuple<int, int, int> PopulateSupplementalMenu(ToolPanel* TP);
 

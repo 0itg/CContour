@@ -54,7 +54,6 @@ class InputPlane : public ComplexPlane
         return res;
     }
     void RecalcAll();
-    void ClearSubDivs();
 
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
@@ -80,9 +79,7 @@ class InputPlane : public ComplexPlane
   private:
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 200;
-    // drawnContours stores contours in original form for editing.
-    // subDivContours stores them as approximating polygons for mapping
-    std::vector<ContourPolygon*> subDivContours;
+
     // Pointers to outputs for or sending refresh signals.
     // App only uses one output for now, but more might be nice later.
     std::vector<OutputPlane*> outputs;

@@ -11,8 +11,6 @@
 #include <iomanip>
 #include <sstream>
 
-// BOOST_CLASS_EXPORT_GUID(ComplexPlane, "ComplexPlane")
-
 ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
     : axes(this), wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                           wxFULL_REPAINT_ON_RESIZE),

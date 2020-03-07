@@ -12,9 +12,9 @@ class ContourPolygon : public Contour
 
   public:
     // ContourPolygon() {}
-    ContourPolygon(cplx c, wxColor col = wxColor(255, 255, 255),
+    ContourPolygon(cplx c, wxColor col = wxColor(0, 0, 0),
                    std::string n = "Polygon");
-    ContourPolygon(wxColor col   = wxColor(255, 255, 255),
+    ContourPolygon(wxColor col   = wxColor(0, 0, 0),
                    std::string n = "Polygon");
     virtual ContourPolygon* Clone()
     {
@@ -28,12 +28,7 @@ class ContourPolygon : public Contour
                                   int pixPrecision = 3);
     virtual void Finalize();
     cplx Interpolate(double t);
-    ContourPolygon* Subdivide(int res);
-    void Apply(ParsedFunc<cplx>& f);
-    ContourPolygon* ApplyToClone(ParsedFunc<cplx>& f);
-
-    // Used for deciding whether OutputPlane needs to recalculate curves.
-    bool markedForRedraw = true;
+    void Subdivide(int res);
 
   protected:
     bool closed = false;

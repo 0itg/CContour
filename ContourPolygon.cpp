@@ -4,7 +4,6 @@
 #include <numeric>
 #include <thread>
 
-// BOOST_CLASS_EXPORT_GUID(ContourPolygon, "ContourPolygon")
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourPolygon)
 
 ContourPolygon::ContourPolygon(cplx c, wxColor col, std::string n)
@@ -16,7 +15,7 @@ ContourPolygon::ContourPolygon(cplx c, wxColor col, std::string n)
 }
 ContourPolygon::ContourPolygon(wxColor col, std::string n)
 {
-    color = wxColor(rand() % 255, rand() % 255, rand() % 255);
+    color = col;
     name  = n;
 }
 
@@ -125,9 +124,10 @@ cplx ContourPolygon::Interpolate(double t)
         return points[0];
 }
 
-ContourPolygon* ContourPolygon::Subdivide(int res)
+void ContourPolygon::Subdivide(int res)
 {
-    ContourPolygon* D = new ContourPolygon();
+    subDiv.clear();
+    subDiv.reserve(res + points.size());
     res               = (int)(std::max(points.size(), res - points.size()));
     int sideIndex     = 0;
     double t          = 0;
@@ -144,7 +144,7 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
             // t just passed the edge of one side.
             sideIndex++;
             lengthTraversed += sideLengths[sideIndex];
-            D->AddPoint(points[sideIndex]); // add the endpoint of each segment
+            subDiv.push_back(points[sideIndex]); // add the endpoint of each segment
         }
         // Within one side, linearly interpolate the points
         // such that we get res points in total.
@@ -154,40 +154,20 @@ ContourPolygon* ContourPolygon::Subdivide(int res)
                 double sideParam = abs(t * perimeter - lengthTraversed) /
                                    sideLengths[sideIndex];
                 if (sideIndex < points.size() - 1)
-                    D->AddPoint(points[(__int64)sideIndex + 1] *
+                    subDiv.push_back(points[(__int64)sideIndex + 1] *
                                     (1 - sideParam) +
                                 points[sideIndex] * sideParam);
                 else
-                    D->AddPoint(points[0] * (1 - sideParam) +
+                    subDiv.push_back(points[0] * (1 - sideParam) +
                                 points[sideIndex] * sideParam);
             }
     }
-    D->color = color;
     // Degenerate polygons may occur but are discarded by the code above.
     // In that case, put in two points so the drawing
     // functions have what they expect.
-    if (D->points.size() == 0)
+    if (subDiv.size() == 0)
     {
-        D->AddPoint(points[0]);
-        D->AddPoint(points[0]);
+        subDiv.push_back(points[0]);
+        subDiv.push_back(points[0]);
     }
-    if (closed)
-    {
-        D->AddPoint(0); // Because ContourPolygon's Finalize() pops last point.
-        D->Finalize();
-    }
-    return D;
-}
-
-inline void ContourPolygon::Apply(ParsedFunc<cplx>& f)
-{
-    for (auto& z : points)
-        z = f(z);
-}
-
-ContourPolygon* ContourPolygon::ApplyToClone(ParsedFunc<cplx>& f)
-{
-    ContourPolygon* C = Clone();
-    C->Apply(f);
-    return C;
 }

@@ -95,13 +95,13 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
     if (showGrid)
         tGrid->Draw(&dc, this);
 
-    auto& inputContours = in->subDivContours;
+    auto& inputContours = in->contours;
     for (int i = 0; i < inputContours.size(); i++)
     {
         if (inputContours[i]->markedForRedraw)
         {
             delete contours[i];
-            contours[i] = inputContours[i]->ApplyToClone(f);
+            contours[i] = inputContours[i]->Map(f);
             inputContours[i]->markedForRedraw = false;
         }
     }
@@ -167,11 +167,11 @@ void OutputPlane::MarkAllForRedraw()
     for (auto C : contours)
         delete C;
     in->RecalcAll();
-    auto& inputContours = in->subDivContours;
+    auto& inputContours = in->contours;
     contours.resize(inputContours.size());
     for (int i = 0; i < contours.size(); i++)
     {
-        contours[i] = inputContours[i]->ApplyToClone(f);
+        contours[i] = inputContours[i]->Map(f);
     }
 }
 

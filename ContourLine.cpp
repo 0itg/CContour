@@ -2,7 +2,6 @@
 #include "ComplexPlane.h"
 #include "ContourPolygon.h"
 
-// BOOST_CLASS_EXPORT_GUID(ContourLine, "ContourLine")
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourLine)
 
 ContourLine::ContourLine(cplx c, wxColor col, std::string n)
@@ -49,13 +48,12 @@ cplx ContourLine::Interpolate(double t)
     return points[0] * t + points[1] * (1 - t);
 }
 
-ContourPolygon* ContourLine::Subdivide(int res)
+void ContourLine::Subdivide(int res)
 {
-    ContourPolygon* D = new ContourPolygon();
+    subDiv.clear();
+    subDiv.reserve(res);
     cplx zStep((points[1].real() - points[0].real()) / res,
-               (points[1].imag() - points[0].imag()) / res);
+                              (points[1].imag() - points[0].imag()) / res);
     for (int i = 0; i < res; i++)
-        D->AddPoint(points[0] + (double)i * zStep);
-    D->color = color;
-    return D;
+        subDiv.push_back(points[0] + (double)i * zStep);
 }

@@ -8,7 +8,6 @@
 //#include <thread>
 //#include <execution>
 
-// BOOST_CLASS_EXPORT_GUID(TransformedGrid, "TransformedGrid")
 BOOST_CLASS_EXPORT_IMPLEMENT(TransformedGrid)
 
 Grid::~Grid()
@@ -37,21 +36,22 @@ void Grid::CalcVisibleGrid()
     const auto vMax = parent->axes.imagMax;
     lines.reserve((hMax - hMin) / hStep + (vMax - vMin) / vStep);
 
-    wxPoint corner(parent->GetClientSize().x, parent->GetClientSize().y);
-    double hOffset = fmod(parent->ScreenToComplex(wxPoint(0, 0)).real(), hStep);
-    double vOffset = fmod(parent->ScreenToComplex(corner).imag(), vStep);
+    auto ULcorner = parent->ScreenToComplex(wxPoint(0, 0));
+    auto BRcorner = parent->ScreenToComplex(
+        wxPoint(parent->GetClientSize().x, parent->GetClientSize().y));
+
+    double hOffset = fmod(ULcorner.real(), hStep);
+    double vOffset = fmod(BRcorner.imag(), vStep);
 
     for (double y = vMin - vOffset; y <= vMax; y += vStep)
     {
-        lines.push_back(new ContourLine(
-            cplx(parent->ScreenToComplex(wxPoint(0, 0)).real(), y),
-            cplx(parent->ScreenToComplex(corner).real(), y)));
+        lines.push_back(new ContourLine(cplx(ULcorner.real(), y),
+                                        cplx(BRcorner.real(), y)));
     }
     for (double x = hMin - hOffset; x <= hMax; x += hStep)
     {
-        lines.push_back(new ContourLine(
-            cplx(x, parent->ScreenToComplex(wxPoint(x, 0)).imag()),
-            cplx(x, parent->ScreenToComplex(corner).imag())));
+        lines.push_back(new ContourLine(cplx(x, ULcorner.imag()),
+                                        cplx(x, BRcorner.imag())));
     }
 }
 
@@ -73,37 +73,38 @@ void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f)
     for (auto v : lines)
         delete v;
     lines.clear();
+    lines.reserve(grid->lines.size());
 
     for (auto v : grid->lines)
     {
-        lines.push_back(new ContourPolygon());
-        double t;
-        for (double i = 0; i <= res; i++)
-        {
-            t = i / res;
-            lines.back()->AddPoint(
-                f(v->GetCtrlPoint(0) * t + v->GetCtrlPoint(1) * (1 - t)));
+        auto p1 = v->GetCtrlPoint(0);
+        auto p2 = v->GetCtrlPoint(1);
+    lines.push_back(new ContourPolygon());
+    double t;
+    for (double i = 0; i <= res; i++)
+    {
+        t = i / res;
+        lines.back()->AddPoint(
+            f(p1 * t + p2 * (1 - t)));
 
-            // In the case of division by zero, move along the gridline
-            // a bit further until we find a defined point.
-            // Rarely should this take more than one step.
-            while (isnan(lines.back()->GetCtrlPoint(i).real()))
-            {
-                lines.back()->RemovePoint(i);
-                double t_avoid_pole = 1.0 / res / 100;
-                lines.back()->AddPoint(
-                    f(v->GetCtrlPoint(0) * (t + t_avoid_pole) +
-                      v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
-            }
-            while (isnan(lines.back()->GetCtrlPoint(i).imag()))
-            {
-                lines.back()->RemovePoint(i);
-                double t_avoid_pole = 1.0 / res / 100;
-                lines.back()->AddPoint(
-                    f(v->GetCtrlPoint(0) * (t + t_avoid_pole) +
-                      v->GetCtrlPoint(1) * (1 - t - t_avoid_pole)));
-            }
+        // In the case of division by zero, move along the gridline
+        // a bit further until we find a defined point.
+        // Rarely should this take more than one step.
+        while (isnan(lines.back()->GetCtrlPoint(i).real()))
+        {
+            lines.back()->RemovePoint(i);
+            double t_avoid_pole = 1.0 / res / 100;
+            lines.back()->AddPoint(
+                f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole)));
         }
+        while (isnan(lines.back()->GetCtrlPoint(i).imag()))
+        {
+            lines.back()->RemovePoint(i);
+            double t_avoid_pole = 1.0 / res / 100;
+            lines.back()->AddPoint(
+                f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole)));
+        }
+    }
     }
     // Multithreaded version of the same code. Functions, but isn't noticeably
     //  faster. Drawing is probably the bottleneck.
