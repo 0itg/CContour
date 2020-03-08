@@ -3,6 +3,7 @@
 #include "ComplexPlane.h"
 #include "Parser.h"
 #include "ToolPanel.h"
+#include "Grid.h"
 
 #include <complex>
 #include <wx/spinctrl.h>
@@ -31,8 +32,8 @@ class OutputPlane : public ComplexPlane
   public:
     OutputPlane() {}
     OutputPlane(wxWindow* parent, InputPlane* In,
-                const std::string& name = "output");
-    ~OutputPlane();
+                const std::string& name = "Output");
+
     void OnMouseLeftUp(wxMouseEvent& mouse);
     // void OnMouseRightUp(wxMouseEvent& mouse);
     // void OnMouseRightDown(wxMouseEvent& mouse);
@@ -55,7 +56,6 @@ class OutputPlane : public ComplexPlane
     {
         varPanel = var;
     }
-    void PrepareForLoadFromFile();
 
     int GetRes();
 
@@ -63,15 +63,15 @@ class OutputPlane : public ComplexPlane
 
   private:
     Parser<cplx> parser;
+    TransformedGrid tGrid;
+
     InputPlane* in;
-    TransformedGrid* tGrid;
     wxTextCtrl* funcInput;
     VariableEditPanel* varPanel;
 
     template <class Archive>
     void save(Archive& ar, const unsigned int version) const
     {
-
         ar << boost::serialization::base_object<ComplexPlane>(*this);
         ar << parser;
         ar << tGrid;
@@ -83,6 +83,7 @@ class OutputPlane : public ComplexPlane
         ar >> boost::serialization::base_object<ComplexPlane>(*this);
         ar >> parser;
         ar >> tGrid;
+        resCtrl->SetValue(tGrid.res);
         std::string savedFunc;
         ar >> savedFunc;
         std::map<std::string, cplx> varMap;

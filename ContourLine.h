@@ -12,11 +12,11 @@ class ContourLine : public Contour
   public:
     // ContourLine() {}
     ContourLine(cplx c, wxColor col = wxColor(255, 255, 255),
-                std::string n = "Line");
+                std::string n = "Line") noexcept;
     ContourLine(cplx c, cplx d, wxColor col = wxColor(255, 255, 255),
-                std::string n = "Line");
-    ContourLine(wxColor col = wxColor(255, 255, 255));
-    virtual ContourLine* Clone()
+                std::string n = "Line") noexcept;
+    ContourLine(wxColor col = wxColor(255, 255, 255)) noexcept;
+    virtual ContourLine* Clone() noexcept
     {
         return new ContourLine(*this);
     };

@@ -6,14 +6,14 @@
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourPolygon)
 
-ContourPolygon::ContourPolygon(cplx c, wxColor col, std::string n)
+ContourPolygon::ContourPolygon(cplx c, wxColor col, std::string n) noexcept
 {
     points.push_back(c);
     points.push_back(c);
     color = col;
     name  = n;
 }
-ContourPolygon::ContourPolygon(wxColor col, std::string n)
+ContourPolygon::ContourPolygon(wxColor col, std::string n) noexcept
 {
     color = col;
     name  = n;
@@ -82,6 +82,7 @@ inline void ContourPolygon::Finalize()
     {
         closed = true;
         points.pop_back();
+        markedForRedraw = true;
     }
 }
 

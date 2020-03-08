@@ -44,9 +44,13 @@ void Contour::PopulateMenu(ToolPanel* TP)
     auto sizer      = new wxBoxSizer(wxVERTICAL);
     auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
     TP->intermediate->SetSizer(sizer);
+    wxFont normalFont = TP->intermediate->GetFont();
+
+    TP->intermediate->SetFont(normalFont.Bold());
     TP->AddDecoration(new wxStaticText(TP->intermediate, wxID_ANY,
                                        wxString(GetName() + ":"),
                                        wxDefaultPosition, wxDefaultSize));
+    TP->intermediate->SetFont(normalFont);
     sizer->Add(TP->GetDecoration(0), sizerFlags);
 
     std::tuple<int, int, int> sup = PopulateSupplementalMenu(TP);

@@ -4,7 +4,7 @@
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourRect)
 
-ContourRect::ContourRect(cplx c, wxColor col, std::string n)
+ContourRect::ContourRect(cplx c, wxColor col, std::string n) noexcept
     : ContourPolygon(c, col)
 {
     // Two corner points define the rectangle, but adding the other two

@@ -61,8 +61,9 @@ template <typename T> constexpr T ipow(T num, unsigned int exp)
 
 // "An Efficient Algorithm for the Riemann Zeta Function". P. Borwein.
 // http://www.cecm.sfu.ca/personal/pborwein/PAPERS/P155.pdf
+// Simplistic implementation of algorithm #3.
 
-constexpr int ZETA_PRECISION = 15;
+constexpr int ZETA_PRECISION = 30;
 
 constexpr long int zetaCoeff(int j)
 {

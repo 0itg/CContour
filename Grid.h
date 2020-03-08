@@ -13,12 +13,14 @@
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/unique_ptr.hpp>
 #include <complex>
+
+#include "ContourLine.h"
+#include "ContourPolygon.h"
 
 typedef std::complex<double> cplx;
 
-class ContourLine;
-class ContourPolygon;
 class ComplexPlane;
 template <class T> class ParsedFunc;
 
@@ -34,7 +36,6 @@ class Grid
         : hStep(h), vStep(v), parent(par)
     {
     }
-    ~Grid();
 
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);
 
@@ -50,8 +51,7 @@ class Grid
     ComplexPlane* parent;
 
   private:
-    // std::vector<ContourLine*> horiz;
-    std::vector<ContourLine*> lines;
+    std::vector<std::unique_ptr<ContourLine>> lines;
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -68,17 +68,16 @@ class TransformedGrid : public Grid
   public:
     TransformedGrid() {}
     TransformedGrid(ComplexPlane* par) : Grid(par) {}
-    ~TransformedGrid();
+
     void Draw(wxDC* dc, ComplexPlane* canvas);
 
     // applies a function to the lines of the input grid and stores them
     // as open polygons in this object.
-    void MapGrid(Grid* grid, ParsedFunc<cplx>& f);
+    void MapGrid(const Grid& grid, ParsedFunc<cplx>& f);
     int res = 200;
 
   private:
-    // std::vector<ContourPolygon*> horiz;
-    std::vector<ContourPolygon*> lines;
+    std::vector<std::unique_ptr<ContourPolygon>> lines;
 
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)

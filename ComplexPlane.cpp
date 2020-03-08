@@ -19,12 +19,6 @@ ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
 
-ComplexPlane::~ComplexPlane()
-{
-    for (auto C : contours)
-        delete C;
-}
-
 cplx ComplexPlane::ScreenToComplex(wxPoint P)
 {
     return cplx(
@@ -231,10 +225,6 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
 
 void ComplexPlane::ClearContours()
 {
-    for (auto C : contours)
-    {
-        delete C;
-    }
     contours.clear();
     highlightedContour   = -1;
     highlightedCtrlPoint = -1;

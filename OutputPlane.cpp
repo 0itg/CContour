@@ -31,17 +31,11 @@ wxEND_EVENT_TABLE();
 // clang-format on
 
 OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, const std::string& n)
-    : ComplexPlane(parent, n), in(In)
+    : ComplexPlane(parent, n), in(In), tGrid(this)
 {
     f = parser.Parse("z*z");
     In->outputs.push_back(this);
-    tGrid = new TransformedGrid(this);
 };
-
-OutputPlane::~OutputPlane()
-{
-    delete tGrid;
-}
 
 void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 {
@@ -81,7 +75,7 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
     wxGCDC dc(pdc);
     // wxDCClipper(dc, GetClientSize());
     dc.Clear();
-    wxPen pen(tGrid->color, 1);
+    wxPen pen(tGrid.color, 1);
     wxBrush brush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(pen);
     dc.SetBrush(brush);
@@ -89,25 +83,25 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
     // Only recalculate the mapping if the viewport changed.
     if (movedViewPort)
     {
-        tGrid->MapGrid(in->grid, f);
+        tGrid.MapGrid(in->grid, f);
     }
 
     if (showGrid)
-        tGrid->Draw(&dc, this);
+        tGrid.Draw(&dc, this);
 
     auto& inputContours = in->contours;
     for (int i = 0; i < inputContours.size(); i++)
     {
         if (inputContours[i]->markedForRedraw)
         {
-            delete contours[i];
-            contours[i] = inputContours[i]->Map(f);
+            contours[i] =
+                std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
             inputContours[i]->markedForRedraw = false;
         }
     }
     pen.SetWidth(2);
 
-    for (auto C : contours)
+    for (auto& C : contours)
     {
         pen.SetColour(C->color);
         dc.SetPen(pen);
@@ -128,12 +122,12 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
 
 void OutputPlane::OnGridResCtrl(wxSpinEvent& event)
 {
-    tGrid->res = resCtrl->GetValue();
+    tGrid.res = resCtrl->GetValue();
 }
 
 void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 {
-    tGrid->res    = resCtrl->GetValue();
+    tGrid.res    = resCtrl->GetValue();
     movedViewPort = true;
     Refresh();
     Update();
@@ -164,24 +158,16 @@ void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
 
 void OutputPlane::MarkAllForRedraw()
 {
-    for (auto C : contours)
-        delete C;
     in->RecalcAll();
     auto& inputContours = in->contours;
     contours.resize(inputContours.size());
     for (int i = 0; i < contours.size(); i++)
     {
-        contours[i] = inputContours[i]->Map(f);
+        contours[i] = std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
     }
-}
-
-void OutputPlane::PrepareForLoadFromFile()
-{
-    delete tGrid;
-    ClearContours();
 }
 
 int OutputPlane::GetRes()
 {
-    return tGrid->res;
+    return tGrid.res;
 }

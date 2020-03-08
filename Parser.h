@@ -1,5 +1,4 @@
 #pragma once
-#define BOOST_SERIALIZATION_DYN_LINK 1
 #include "Token.h"
 #include "zeta.h"
 
@@ -16,6 +15,7 @@
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/unique_ptr.hpp>
 
 template <typename T> class Symbol;
 template <typename T> class ParsedFunc;
@@ -39,24 +39,26 @@ template <typename T> class Parser
 
   public:
     Parser();
-    ~Parser();
     void RecognizeToken(Symbol<T>* sym)
     {
-        tokenLibrary[sym->GetToken()] = sym;
+        tokenLibrary[sym->GetToken()] = std::unique_ptr<Symbol<T>>(sym);
     }
-    template <typename... Ts>
-    void RecognizeFunc(const std::function<T(Ts...)>& f,
+    template <typename... Args>
+    void RecognizeFunc(const std::function<T(Args...)>& f,
                        const std::string& name)
     {
-        RecognizeToken(new SymbolFunc<T, Ts...>(f, name));
+        RecognizeToken(new SymbolFunc<T, Args...>(f, name));
     }
     void Initialize();
     ParsedFunc<T> Parse(std::string str);
 
   private:
     ParsedFunc<T> f;
-    std::map<std::string, Symbol<T>*, cmp_length_then_alpha> tokenLibrary;
+    std::map<std::string, std::unique_ptr<Symbol<T>>,
+        cmp_length_then_alpha> tokenLibrary;
 
+
+    // Save/Load via Boost.Serialization
     template <class Archive>
     void save(Archive& ar, const unsigned int version) const
     {
@@ -95,18 +97,9 @@ template <typename T> class ParsedFunc
     {
         *this = in;
     }
-    ~ParsedFunc()
-    {
-        for (auto tok : tokens)
-        {
-            delete tok.second;
-        }
-    }
 
     ParsedFunc& operator=(ParsedFunc&& in) noexcept
     {
-        for (auto tok : tokens)
-            delete tok.second;
         symbolStack = std::move(in.symbolStack);
         tokens      = std::move(in.tokens);
         inputText   = std::move(in.inputText);
@@ -118,7 +111,7 @@ template <typename T> class ParsedFunc
     }
     ParsedFunc& operator=(const ParsedFunc& in) noexcept
     {
-        Symbol<T>* sym;
+        std::unique_ptr<Symbol<T>> sym;
         for (auto S : in.symbolStack)
         {
             std::string tok = S->GetToken();
@@ -126,17 +119,17 @@ template <typename T> class ParsedFunc
             {
                 if (tokens.find(tok) == tokens.end())
                 {
-                    sym = S->Clone();
+                    sym.reset(S->Clone());
                     sym->SetParent(this);
-                    tokens[tok] = sym;
+                    tokens[tok] = std::move(sym);
                 }
-                symbolStack.push_back(tokens[tok]);
+                symbolStack.push_back(tokens[tok].get());
             }
             else
             {
-                sym = S->Clone();
+                sym.reset(S->Clone());
                 sym->SetParent(this);
-                symbolStack.push_back(sym);
+                symbolStack.push_back(sym.get());
             }
         }
         inputText = in.inputText;
@@ -147,9 +140,11 @@ template <typename T> class ParsedFunc
         itr = symbolStack.end() - 1;
         return (*itr)->eval().GetVal();
     };
+
     void setVariable(const std::string& name, const T& val);
 
     typename std::vector<Symbol<T>*>::iterator itr;
+
     auto GetMinItr()
     {
         return symbolStack.begin();
@@ -160,12 +155,12 @@ template <typename T> class ParsedFunc
         Symbol<T>* S;
         if (tokens.find(token->GetToken()) == tokens.end())
         {
-            S                         = token->Clone();
-            tokens[token->GetToken()] = S;
+            S = token->Clone();
+            tokens[token->GetToken()] = std::unique_ptr<Symbol<T>>(S);
             S->SetParent(this);
         }
         else
-            S = tokens[token->GetToken()];
+            S = tokens[token->GetToken()].get();
         symbolStack.push_back(S);
     }
     void PopToken()
@@ -189,7 +184,8 @@ template <typename T> class ParsedFunc
     // Custom comparator puts longest tokenLibrary first. When tokenizing the
     // input, replacing the longest ones first prevents them being damaged when
     // they contain shorter tokenLibrary.
-    std::map<std::string, Symbol<T>*, cmp_length_then_alpha> tokens;
+    std::map<std::string, std::unique_ptr<Symbol<T>>, cmp_length_then_alpha>
+        tokens;
     std::vector<Symbol<T>*> symbolStack;
     std::string inputText = "";
 };
@@ -197,12 +193,6 @@ template <typename T> class ParsedFunc
 template <typename T> inline Parser<T>::Parser()
 {
     Initialize();
-}
-
-template <typename T> inline Parser<T>::~Parser()
-{
-    for (auto S : tokenLibrary)
-        delete S.second;
 }
 
 template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
@@ -270,13 +260,13 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
             // if the parser is reused without clearing mapped tokenLibrary.
             s = "\\" + s;
             if (tokenLibrary.find(s) == tokenLibrary.end())
-                tokenLibrary[s] = new SymbolNum<T>(t);
+                tokenLibrary[s] = std::make_unique<SymbolNum<T>>(t);
             tokenVec.push_back(s);
             if (ss >> s)
             {
                 if (tokenLibrary.find(s) == tokenLibrary.end())
                 {
-                    tokenLibrary[s] = new SymbolVar<T>(s, 0);
+                    tokenLibrary[s] = std::make_unique<SymbolVar<T>>(s, 0);
                     tokenVec.push_back(s);
                 }
                 else
@@ -285,7 +275,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
         }
         else if (tokenLibrary.find(s) == tokenLibrary.end())
         {
-            tokenLibrary[s] = new SymbolVar<T>(s);
+            tokenLibrary[s] = std::make_unique<SymbolVar<T>>(s);
             tokenVec.push_back(s);
         }
         else
@@ -339,7 +329,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
         // Implied multiplication between parens, other parens, and numbers.
         else if (currentTokenPrec == sym_lparen && i > 0)
         {
-            Symbol<T>* prev = tokenLibrary[tokenVec[i - 1]];
+            Symbol<T>* prev = tokenLibrary[tokenVec[i - 1]].get();
             if (prev->GetPrecedence() == sym_num ||
                 prev->GetPrecedence() == sym_rparen)
             {
@@ -349,7 +339,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
         }
         else if (currentTokenPrec == sym_rparen && i < tokenVec.size() - 1)
         {
-            Symbol<T>* next = tokenLibrary[tokenVec[i + 1]];
+            Symbol<T>* next = tokenLibrary[tokenVec[i + 1]].get();
             if (next->GetPrecedence() == sym_num ||
                 next->GetPrecedence() == sym_lparen)
             {
@@ -409,7 +399,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
         if (opStack.empty() || tokPrec < opStack.back()->GetPrecedence() ||
             (!tokenLibrary[op]->IsLeftAssoc() &&
              tokPrec == opStack.back()->GetPrecedence()))
-            PushOp(tokenLibrary[op]);
+            PushOp(tokenLibrary[op].get());
         else if (tokPrec >= opStack.back()->GetPrecedence())
         {
             // Right paren means, assuming it matches with a left, everything on
@@ -433,7 +423,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
                     }
                     catch (std::invalid_argument& msg)
                     {
-                        PushOp(tokenLibrary["("]);
+                        PushOp(tokenLibrary["("].get());
                         std::cout << msg.what();
                     }
                 }
@@ -451,7 +441,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
                     f.PushToken(opStack.back());
                     opStack.pop_back();
                 }
-                PushOp(tokenLibrary[op]);
+                PushOp(tokenLibrary[op].get());
             }
         }
     }
@@ -516,7 +506,7 @@ template <typename T> inline auto ParsedFunc<T>::GetVars()
     for (auto& tok : tokens)
     {
         if (tok.second != nullptr && tok.second->IsVar())
-            vars.push_back(tok.second);
+            vars.push_back(tok.second.get());
     }
     return vars;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "ComplexPlane.h"
+#include "Grid.h"
 #include "Event_IDs.h"
 
 #include <boost/archive/text_iarchive.hpp>
@@ -14,7 +15,6 @@ typedef std::complex<double> cplx;
 
 class ContourPolygon;
 class OutputPlane;
-class Grid;
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
 // complex numbers and mapped to the ouput panel under some complex function.
@@ -26,8 +26,7 @@ class InputPlane : public ComplexPlane
 
   public:
     InputPlane() {}
-    InputPlane(wxWindow* parent, const std::string& name = "input");
-    ~InputPlane();
+    InputPlane(wxWindow* parent, const std::string& name = "Input");
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
     void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
@@ -45,11 +44,11 @@ class InputPlane : public ComplexPlane
     void OnContourResCtrl(wxSpinEvent& event);
     void OnContourResCtrl(wxCommandEvent& event);
 
-    int GetState()
+    int GetState() const
     {
         return state;
     }
-    int GetRes()
+    int GetRes() const
     {
         return res;
     }
@@ -58,15 +57,13 @@ class InputPlane : public ComplexPlane
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
     void RemoveContour(int index);
-    Contour* CreateContour(wxPoint mousePos);
+    std::unique_ptr<Contour> CreateContour(wxPoint mousePos);
 
     void SetColorPicker(wxColourPickerCtrl* ptr)
     {
         colorPicker = ptr;
     };
     wxColor RandomColor();
-
-    void PrepareForLoadFromFile();
 
     // If true, when axes step values change, grid step values
     // change accordingly
@@ -77,13 +74,18 @@ class InputPlane : public ComplexPlane
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
   private:
+    int CircleCount                = 0;
+    int PolygonCount               = 0;
+    int RectCount                  = 0;
+    int LineCount                  = 0;
     const int CIRCLED_POINT_RADIUS = 7;
-    int res                        = 200;
+    int res                        = 500;
+    Grid grid;
 
     // Pointers to outputs for or sending refresh signals.
     // App only uses one output for now, but more might be nice later.
     std::vector<OutputPlane*> outputs;
-    Grid* grid;
+
     wxColourPickerCtrl* colorPicker = nullptr;
 
     int contourType = ID_Circle;
@@ -94,6 +96,7 @@ class InputPlane : public ComplexPlane
         ar& boost::serialization::base_object<ComplexPlane>(*this);
         ar& linkGridToAxes;
         ar& res;
+        resCtrl->SetValue(res);
         ar& grid;
     }
     wxDECLARE_EVENT_TABLE();

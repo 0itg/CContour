@@ -13,10 +13,10 @@ class ContourPolygon : public Contour
   public:
     // ContourPolygon() {}
     ContourPolygon(cplx c, wxColor col = wxColor(0, 0, 0),
-                   std::string n = "Polygon");
+                   std::string n = "Polygon") noexcept;
     ContourPolygon(wxColor col   = wxColor(0, 0, 0),
-                   std::string n = "Polygon");
-    virtual ContourPolygon* Clone()
+                   std::string n = "Polygon") noexcept;
+    virtual ContourPolygon* Clone() noexcept
     {
         return new ContourPolygon(*this);
     };
@@ -33,10 +33,10 @@ class ContourPolygon : public Contour
   protected:
     bool closed = false;
     std::vector<double> sideLengths;
+    double perimeter = 0;
     void CalcSideLengths();
 
   private:
-    double perimeter = 0;
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
