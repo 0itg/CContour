@@ -21,6 +21,7 @@
 #include <boost/serialization/complex.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/unique_ptr.hpp>
 
 typedef std::complex<double> cplx;
 
@@ -83,7 +84,7 @@ class ComplexPlane : public wxPanel
   public:
     ComplexPlane() {}
     ComplexPlane(wxWindow* parent, const std::string& name);
-    virtual ~ComplexPlane();
+    virtual ~ComplexPlane() {}
 
     // Functions for converting between screen and mathematical coordinates.
     cplx ScreenToComplex(wxPoint P);
@@ -160,7 +161,7 @@ class ComplexPlane : public wxPanel
 
   protected:
     std::string name;
-    std::vector<Contour*> contours;
+    std::vector<std::unique_ptr<Contour>> contours;
     int highlightedContour   = -1;
     int state                = -1;
     int highlightedCtrlPoint = -1;

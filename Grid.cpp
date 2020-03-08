@@ -10,16 +10,10 @@
 
 BOOST_CLASS_EXPORT_IMPLEMENT(TransformedGrid)
 
-Grid::~Grid()
-{
-    for (auto v : lines)
-        delete v;
-}
-
 void Grid::Draw(wxDC* dc, ComplexPlane* canvas)
 {
     CalcVisibleGrid();
-    for (auto v : lines)
+    for (auto& v : lines)
         v->Draw(dc, canvas);
 }
 
@@ -27,8 +21,6 @@ void Grid::CalcVisibleGrid()
 {
     // Draws gridlines every hStep x VStep, offset to line up with the origin
     // If the viewport has been panned around.
-    for (auto v : lines)
-        delete v;
     lines.clear();
     const auto hMin = parent->axes.realMin;
     const auto hMax = parent->axes.realMax;
@@ -45,41 +37,32 @@ void Grid::CalcVisibleGrid()
 
     for (double y = vMin - vOffset; y <= vMax; y += vStep)
     {
-        lines.push_back(new ContourLine(cplx(ULcorner.real(), y),
+        lines.push_back(std::make_unique<ContourLine>(cplx(ULcorner.real(), y),
                                         cplx(BRcorner.real(), y)));
     }
     for (double x = hMin - hOffset; x <= hMax; x += hStep)
     {
-        lines.push_back(new ContourLine(cplx(x, ULcorner.imag()),
-                                        cplx(x, BRcorner.imag())));
+        lines.push_back(std::make_unique<ContourLine>(
+            cplx(x, ULcorner.imag()), cplx(x, BRcorner.imag())));
     }
-}
-
-TransformedGrid::~TransformedGrid()
-{
-    for (auto v : lines)
-        delete v;
-    Grid::~Grid();
 }
 
 void TransformedGrid::Draw(wxDC* dc, ComplexPlane* canvas)
 {
-    for (auto v : lines)
+    for (auto& v : lines)
         v->Draw(dc, canvas);
 }
 
-void TransformedGrid::MapGrid(Grid* grid, ParsedFunc<cplx>& f)
+void TransformedGrid::MapGrid(const Grid& grid, ParsedFunc<cplx>& f)
 {
-    for (auto v : lines)
-        delete v;
     lines.clear();
-    lines.reserve(grid->lines.size());
+    lines.reserve(grid.lines.size());
 
-    for (auto v : grid->lines)
+    for (auto& v : grid.lines)
     {
         auto p1 = v->GetCtrlPoint(0);
         auto p2 = v->GetCtrlPoint(1);
-    lines.push_back(new ContourPolygon());
+        lines.push_back(std::make_unique<ContourPolygon>());
     double t;
     for (double i = 0; i <= res; i++)
     {
