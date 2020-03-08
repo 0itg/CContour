@@ -32,7 +32,7 @@ class OutputPlane : public ComplexPlane
   public:
     OutputPlane() {}
     OutputPlane(wxWindow* parent, InputPlane* In,
-                const std::string& name = "output");
+                const std::string& name = "Output");
 
     void OnMouseLeftUp(wxMouseEvent& mouse);
     // void OnMouseRightUp(wxMouseEvent& mouse);

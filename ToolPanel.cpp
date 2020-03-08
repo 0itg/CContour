@@ -16,11 +16,15 @@
 wxBEGIN_EVENT_TABLE(NumCtrlPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_PAINT(ToolPanel::OnPaintEvent)
+EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
+EVT_SPIN_DOWN(wxID_ANY, ToolPanel::OnSpinButtonDown)
 wxEND_EVENT_TABLE();
 
 wxBEGIN_EVENT_TABLE(VariableEditPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_PAINT(VariableEditPanel::OnPaintEvent)
+EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
+EVT_SPIN_DOWN(wxID_ANY, ToolPanel::OnSpinButtonDown)
 wxEND_EVENT_TABLE();
 // clang-format on
 
@@ -32,6 +36,9 @@ ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
     intermediate    = new wxPanel(this);
     siz->Add(intermediate, wxSizerFlags(1).Expand());
     SetSizer(siz);
+    //wxFont font = intermediate->GetFont();
+    //font.SetFamily(wxFONTFAMILY_MODERN);
+    //intermediate->SetFont(font);
 }
 
 ToolPanel::~ToolPanel()
@@ -48,6 +55,50 @@ void ToolPanel::OnTextEntry(wxCommandEvent& event)
         if (ctrl->GetId() == event.GetId())
         {
             ctrl->WriteLinked();
+        }
+    }
+    RefreshLinked();
+}
+
+void ToolPanel::OnSpinButtonUp(wxSpinEvent& event)
+{
+    for (auto ctrl : controls)
+    {
+        auto spin = dynamic_cast<LinkedCplxSpinCtrl*>(ctrl);
+        if (spin)
+        {
+            if (spin->GetIdReSpin() == event.GetId())
+            {
+                spin->Add(cplx(0.1, 0));
+                spin->ReadLinked();
+            }
+            else if (spin->GetIdImSpin() == event.GetId())
+            {
+                spin->Add(cplx(0, 0.1));
+                spin->ReadLinked();
+            }
+        }
+    }
+    RefreshLinked();
+}
+
+void ToolPanel::OnSpinButtonDown(wxSpinEvent& event)
+{
+    for (auto ctrl : controls)
+    {
+        auto spin = dynamic_cast<LinkedCplxSpinCtrl*>(ctrl);
+        if (spin)
+        {
+            if (spin->GetIdReSpin() == event.GetId())
+            {
+                spin->Add(cplx(-0.1, 0));
+                spin->ReadLinked();
+            }
+            else if (spin->GetIdImSpin() == event.GetId())
+            {
+                spin->Add(cplx(0, -0.1));
+                spin->ReadLinked();
+            }
         }
     }
     RefreshLinked();
@@ -75,13 +126,16 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
     auto sizer = new wxBoxSizer(wxVERTICAL);
     wxSizerFlags sizerFlags(1);
     sizerFlags.Expand().Border(wxLEFT | wxRIGHT, 3);
+    wxFont normalFont = intermediate->GetFont();
 
     if (input != nullptr)
     {
-        decorations.push_back(new wxStaticText(
+        intermediate->SetFont(normalFont.Bold());
+            decorations.push_back(new wxStaticText(
             intermediate, wxID_ANY, wxString(input->GetName() + ":"),
             wxDefaultPosition, wxDefaultSize));
         sizer->Add(decorations.back(), sizerFlags);
+            intermediate->SetFont(normalFont);
 
         for (int i = 0; i < 4; i++)
         {
@@ -97,17 +151,20 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
             sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
         }
     }
+    sizer->AddSpacer(ROW_HEIGHT);
     if (!outputs.empty())
     {
         for (int i = 0; i < 4 * outputs.size(); i++)
         {
             if (i % 4 == 0)
             {
+                intermediate->SetFont(normalFont.Bold());
                 decorations.push_back(
                     new wxStaticText(intermediate, wxID_ANY,
                                      wxString(outputs[i]->GetName() + ":"),
                                      wxDefaultPosition, wxDefaultSize));
                 sizer->Add(decorations.back(), sizerFlags);
+                intermediate->SetFont(normalFont);
             }
             double c = outputs[i / 4]->axes.c[i % 4];
             AddDecoration(new wxStaticText(intermediate, wxID_ANY,
@@ -127,10 +184,10 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
     intermediate->SetMaxClientSize(wxSize(GetClientSize().x, -1));
     intermediate->Layout();
     intermediate->FitInside();
-    intermediate->SetMaxClientSize(
-        wxSize(-1, (4 * SPACING + ROW_HEIGHT) * (1 + outputs.size())));
-    SetVirtualSize(
-        wxSize(-1, (4 * SPACING + ROW_HEIGHT) * (1 + outputs.size())));
+    intermediate->SetMaxClientSize(wxSize(
+        -1, ROW_HEIGHT + (4 * SPACING + ROW_HEIGHT) * (1 + outputs.size())));
+    SetVirtualSize(wxSize(-1, ROW_HEIGHT + (4 * SPACING + ROW_HEIGHT) *
+                                               (1 + outputs.size())));
 
     Layout();
     Thaw();
@@ -200,9 +257,14 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
     auto sizer = new wxBoxSizer(wxVERTICAL);
     wxSizerFlags sizerFlags(1);
     sizerFlags.Expand().Border(wxLEFT | wxRIGHT, 3);
+    wxFont normalFont = intermediate->GetFont();
+
+    intermediate->SetFont(normalFont.Bold());
     AddDecoration(new wxStaticText(intermediate, wxID_ANY,
                                    wxString("Parameters :"), wxDefaultPosition,
                                    wxDefaultSize));
+    intermediate->SetFont(normalFont);
+
     sizer->Add(decorations.back(), sizerFlags);
 
     std::vector<Symbol<cplx>*> vars = F.GetVars();

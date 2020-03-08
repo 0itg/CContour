@@ -6,7 +6,8 @@
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourCircle)
 
-ContourCircle::ContourCircle(cplx c, double r, wxColor col, std::string n)
+ContourCircle::ContourCircle(cplx c, double r, wxColor col,
+                             std::string n) noexcept
     : radius(r)
 {
     points.push_back(c);

@@ -43,11 +43,11 @@ template <typename T> class Parser
     {
         tokenLibrary[sym->GetToken()] = std::unique_ptr<Symbol<T>>(sym);
     }
-    template <typename... Ts>
-    void RecognizeFunc(const std::function<T(Ts...)>& f,
+    template <typename... Args>
+    void RecognizeFunc(const std::function<T(Args...)>& f,
                        const std::string& name)
     {
-        RecognizeToken(new SymbolFunc<T, Ts...>(f, name));
+        RecognizeToken(new SymbolFunc<T, Args...>(f, name));
     }
     void Initialize();
     ParsedFunc<T> Parse(std::string str);

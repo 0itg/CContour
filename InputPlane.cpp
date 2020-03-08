@@ -104,7 +104,8 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             for (auto out : outputs)
             {
                 out->highlightedContour = state;
-                out->contours.push_back(CreateContour(wxPoint(0, 0)));
+                // make space for transformed contour later on
+                out->contours.push_back(nullptr);
             }
         }
         // If not, then make the highlighted contour active.
@@ -413,28 +414,33 @@ std::unique_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)
     switch (contourType)
     {
     case ID_Circle:
-        return std::make_unique<ContourCircle>(ScreenToComplex(mousePos), 0,
-                                               colorToDraw);
+        CircleCount++;
+        return std::make_unique<ContourCircle>(ScreenToComplex(mousePos), 0, colorToDraw,
+            "Circle " + std::to_string(CircleCount));
         break;
     case ID_Rect:
+        RectCount++;
         highlightedCtrlPoint = 1;
-        return std::make_unique<ContourRect>(ScreenToComplex(mousePos),
-                                               colorToDraw);
+        return std::make_unique<ContourRect>(ScreenToComplex(mousePos), colorToDraw,
+            "Rectangle " + std::to_string(RectCount));
         break;
     case ID_Polygon:
+        PolygonCount++;
         highlightedCtrlPoint = 1;
-        return std::make_unique<ContourPolygon>(ScreenToComplex(mousePos),
-                                               colorToDraw);
+        return std::make_unique<ContourPolygon>(ScreenToComplex(mousePos), colorToDraw,
+            "Polygon " + std::to_string(PolygonCount));
         break;
     case ID_Line:
+        LineCount++;
         highlightedCtrlPoint = 1;
-        return std::make_unique<ContourLine>(ScreenToComplex(mousePos),
-                                               colorToDraw);
+        return std::make_unique<ContourLine>(ScreenToComplex(mousePos), colorToDraw,
+            "Line " + std::to_string(LineCount));
         break;
     }
     // Default in case we get a bad ID somehow
-    return std::make_unique<ContourCircle>(ScreenToComplex(mousePos), 0,
-                                           colorToDraw);
+    CircleCount++;
+    return std::make_unique<ContourCircle>(ScreenToComplex(mousePos), 0, colorToDraw,
+        "Circle " + std::to_string(CircleCount));
 }
 
 wxColor InputPlane::RandomColor()

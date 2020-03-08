@@ -11,10 +11,10 @@ class ContourCircle : public Contour
     friend class boost::serialization::access;
 
   public:
-    ContourCircle() {}
+    ContourCircle() noexcept {}
     ContourCircle(cplx c, double r = 0, wxColor col = wxColor(255, 255, 255),
-                  std::string n = "Circle");
-    virtual ContourCircle* Clone()
+                  std::string n = "Circle") noexcept;
+    virtual ContourCircle* Clone() noexcept
     {
         return new ContourCircle(*this);
     };

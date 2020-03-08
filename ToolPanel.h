@@ -35,6 +35,8 @@ class ToolPanel : public wxVScrolledWindow
     ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
     ~ToolPanel();
     virtual void OnTextEntry(wxCommandEvent& event);
+    virtual void OnSpinButtonUp(wxSpinEvent& event);
+    virtual void OnSpinButtonDown(wxSpinEvent& event);
     void OnPaintEvent(wxPaintEvent& event);
     void ClearPanel();
 

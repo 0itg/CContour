@@ -26,7 +26,7 @@ class InputPlane : public ComplexPlane
 
   public:
     InputPlane() {}
-    InputPlane(wxWindow* parent, const std::string& name = "input");
+    InputPlane(wxWindow* parent, const std::string& name = "Input");
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
     void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
@@ -74,6 +74,10 @@ class InputPlane : public ComplexPlane
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
   private:
+    int CircleCount                = 0;
+    int PolygonCount               = 0;
+    int RectCount                  = 0;
+    int LineCount                  = 0;
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 500;
     Grid grid;

@@ -4,7 +4,7 @@
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourLine)
 
-ContourLine::ContourLine(cplx c, wxColor col, std::string n)
+ContourLine::ContourLine(cplx c, wxColor col, std::string n) noexcept
 {
     points.push_back(c);
     points.push_back(c);
@@ -12,7 +12,7 @@ ContourLine::ContourLine(cplx c, wxColor col, std::string n)
     name  = n;
 }
 
-ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n)
+ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n) noexcept
 {
     points.push_back(c);
     points.push_back(d);
@@ -20,7 +20,7 @@ ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n)
     name  = n;
 }
 
-ContourLine::ContourLine(wxColor col)
+ContourLine::ContourLine(wxColor col) noexcept
 {
     color = wxColor(rand() % 255, rand() % 255, rand() % 255);
     name  = "Line";

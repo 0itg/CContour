@@ -10,10 +10,10 @@ class ContourRect : public ContourPolygon
     friend class boost::serialization::access;
 
   public:
-    ContourRect() {}
+    ContourRect() noexcept {}
     ContourRect(cplx c, wxColor col = wxColor(255, 255, 255),
-                std::string n = "Rectangle");
-    ContourRect* Clone()
+                std::string n = "Rectangle") noexcept;
+    ContourRect* Clone() noexcept
     {
         return new ContourRect(*this);
     };
@@ -28,7 +28,6 @@ class ContourRect : public ContourPolygon
     void Finalize(){};
 
   private:
-    std::vector<double> sideLengths;
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
