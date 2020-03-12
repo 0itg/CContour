@@ -19,7 +19,7 @@ template <typename T> constexpr long long int ipow(T num, unsigned int exp)
         return num * ipow(num, exp - 1);
 }
 
-constexpr int ZETA_PRECISION = 32;
+constexpr int ZETA_TERMS = 32;
 
 // Based on Borwein's algorithm 2.
 template <typename T>
@@ -42,7 +42,7 @@ constexpr T d_k(long n, long k)
 template <typename T>
 constexpr T zetaCoeff(int j)
 {
-    T res = d_k<T>(ZETA_PRECISION, j) - d_k<T>(ZETA_PRECISION, ZETA_PRECISION);
+    T res = d_k<T>(ZETA_TERMS, j) - d_k<T>(ZETA_TERMS, ZETA_TERMS);
 
     if (j % 2)
         return -res;
@@ -53,12 +53,12 @@ template <typename T, int N> struct zeta_coeff_table
 {
     constexpr zeta_coeff_table() : values()
     {
-        for (auto i = 0; i <= N; ++i)
+        for (auto i = 0; i < N; ++i)
         {
             values[i] = zetaCoeff<T>(i);
         }
     }
-    T values[N+1];
+    T values[N];
 };
 
 template <typename T> T zeta(T s)
@@ -67,10 +67,10 @@ template <typename T> T zeta(T s)
     U res              = 0;
     U z                = s;
 
-    static auto zCoeff = zeta_coeff_table<long double, ZETA_PRECISION>();
-    static auto d_n = d_k<long double>(ZETA_PRECISION, ZETA_PRECISION);
+    static constexpr auto zCoeff = zeta_coeff_table<long double, ZETA_TERMS>();
+    static constexpr auto d_n = d_k<long double>(ZETA_TERMS, ZETA_TERMS);
 
-    for (int i = 0; i < ZETA_PRECISION; i++)
+    for (int i = 0; i < ZETA_TERMS; i++)
     {
         res += (U)zCoeff.values[i] / pow(i + 1.0, z);
     }

@@ -20,7 +20,7 @@ class ContourCircle : public Contour
     };
 
     void Draw(wxDC* dc, ComplexPlane* canvas);
-    void moveCtrlPoint(cplx mousePos, int ptIndex = -1);
+    void MoveCtrlPoint(cplx mousePos, int ptIndex = -1);
     // Changes the radius, rather than translating.
     void ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
     bool IsDone()

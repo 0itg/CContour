@@ -43,6 +43,8 @@ class OutputPlane : public ComplexPlane
     void OnGridResCtrl(wxCommandEvent& event);
     void OnFunctionEntry(wxCommandEvent& event);
 
+    void EnterFunction(std::string s);
+
     void MarkAllForRedraw();
     void SetFuncInput(wxTextCtrl* fIn)
     {

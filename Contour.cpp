@@ -106,7 +106,7 @@ void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p)
     dc->DrawCircle(p, 1);
 }
 
-void Contour::moveCtrlPoint(cplx mousePos, int ptIndex)
+void Contour::MoveCtrlPoint(cplx mousePos, int ptIndex)
 {
     points[ptIndex] = mousePos;
 }

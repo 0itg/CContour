@@ -243,7 +243,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         }
         else
         {
-            contours[state]->moveCtrlPoint(mousePos, highlightedCtrlPoint);
+            contours[state]->MoveCtrlPoint(mousePos, highlightedCtrlPoint);
         }
         contours[state]->Subdivide(res);
         contours[state]->markedForRedraw = true;

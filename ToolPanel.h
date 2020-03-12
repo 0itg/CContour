@@ -21,6 +21,7 @@ class Contour;
 class InputPlane;
 class OutputPlane;
 class LinkedCtrl;
+class Animation;
 template <class T> class Symbol;
 template <class T> class ParsedFunc;
 
@@ -29,7 +30,7 @@ template <class T> class ParsedFunc;
 // wxControl-derived class could be stored there) and "controls" (must derive
 // from LinkedCtrl. Outside classes may handle the population of controls, or a
 // derived class may be used to provide that function.
-class ToolPanel : public wxVScrolledWindow
+class ToolPanel : public wxHVScrolledWindow
 {
   public:
     ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
@@ -42,22 +43,26 @@ class ToolPanel : public wxVScrolledWindow
 
     void AddDecoration(wxControl* D)
     {
-        decorations.push_back(D);
+        wxCtrls.push_back(D);
     }
     void AddLinkedCtrl(LinkedCtrl* L)
     {
-        controls.push_back(L);
+        linkedCtrls.push_back(L);
     }
     auto GetDecoration(size_t i)
     {
-        return decorations[i];
+        return wxCtrls[i];
     }
     auto GetLinkedCtrl(size_t i)
     {
-        return controls[i];
+        return linkedCtrls[i];
     }
 
     virtual wxCoord OnGetRowHeight(size_t row) const
+    {
+        return ROW_HEIGHT;
+    }
+    virtual wxCoord OnGetColumnWidth(size_t row) const
     {
         return ROW_HEIGHT;
     }
@@ -74,8 +79,8 @@ class ToolPanel : public wxVScrolledWindow
     wxPanel* intermediate;
     // wxDECLARE_EVENT_TABLE();
   protected:
-    std::vector<wxControl*> decorations;
-    std::vector<LinkedCtrl*> controls;
+    std::vector<wxControl*> wxCtrls;
+    std::vector<LinkedCtrl*> linkedCtrls;
 };
 
 // Panel which dynamically shows either Axis controls or Contour controls,
@@ -141,4 +146,17 @@ class VariableEditPanel : public ToolPanel
 
   private:
     OutputPlane* output;
+};
+
+class AnimPanel : public ToolPanel
+{
+  public:
+    AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
+              InputPlane* in = nullptr)
+        : ToolPanel(parent, ID, pos, size), input(in)
+    {
+    }
+    //std::vector<std::unique_ptr<Animation>> animations;
+  private:
+    InputPlane* input;
 };

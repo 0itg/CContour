@@ -44,7 +44,7 @@ class Contour
     virtual void Draw(wxDC* dc, ComplexPlane* canvas) = 0;
     virtual void AddPoint(cplx mousePos);
     virtual void RemovePoint(int index);
-    virtual void moveCtrlPoint(cplx mousePos, int ptIndex = -1);
+    virtual void MoveCtrlPoint(cplx mousePos, int ptIndex);
 
     // Action to be taken when selecting the contour between control
     // points. Typically it will just call the Translate function.

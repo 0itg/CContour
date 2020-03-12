@@ -30,7 +30,7 @@ void ContourRect::RemovePoint(int index)
     points.clear(); // Removing a point means it's no longer a rectangle
 }
 
-void ContourRect::moveCtrlPoint(cplx mousePos, int ptIndex)
+void ContourRect::MoveCtrlPoint(cplx mousePos, int ptIndex)
 {
     points[ptIndex] = mousePos;
     // When moving one point, automatically move the adjacent points to

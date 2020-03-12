@@ -20,7 +20,7 @@ class ContourRect : public ContourPolygon
 
     void Draw(wxDC* dc, ComplexPlane* canvas);
     void RemovePoint(int index);
-    void moveCtrlPoint(cplx mousePos, int ptIndex = -1);
+    void MoveCtrlPoint(cplx mousePos, int ptIndex = -1);
     bool IsDone()
     {
         return true;

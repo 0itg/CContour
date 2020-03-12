@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Animation.cpp" />
     <ClCompile Include="CContour.cpp" />
     <ClCompile Include="ContourCircle.cpp" />
     <ClCompile Include="Contour.cpp" />
@@ -161,6 +162,8 @@
     <ClCompile Include="ToolPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="Commands.h" />
     <ClInclude Include="ContourCircle.h" />
     <ClInclude Include="Contour.h" />
     <ClInclude Include="ContourLine.h" />

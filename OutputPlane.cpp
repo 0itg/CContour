@@ -127,18 +127,22 @@ void OutputPlane::OnGridResCtrl(wxSpinEvent& event)
 
 void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 {
-    tGrid.res    = resCtrl->GetValue();
+    tGrid.res     = resCtrl->GetValue();
     movedViewPort = true;
     Refresh();
     Update();
 }
 
-void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
+void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
+    EnterFunction(funcInput->GetLineText(0));
+}
+
+void OutputPlane::EnterFunction(std::string s)
 {
     ParsedFunc g = f;
     try
     {
-        f = parser.Parse(funcInput->GetLineText(0));
+        f = parser.Parse(s);
         f.eval();
     }
     catch (std::invalid_argument& func)

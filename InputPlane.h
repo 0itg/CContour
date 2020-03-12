@@ -58,6 +58,10 @@ class InputPlane : public ComplexPlane
     void SetContourType(int id);
     void RemoveContour(int index);
     std::unique_ptr<Contour> CreateContour(wxPoint mousePos);
+    void AddContour(std::unique_ptr<Contour> C)
+    {
+        contours.push_back(std::move(C));
+    }
 
     void SetColorPicker(wxColourPickerCtrl* ptr)
     {

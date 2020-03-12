@@ -29,7 +29,7 @@ wxEND_EVENT_TABLE();
 // clang-format on
 
 ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
-    : wxVScrolledWindow(parent, ID, pos, size)
+    : wxHVScrolledWindow(parent, ID, pos, size)
 {
     SetRowCount(20);
     wxBoxSizer* siz = new wxBoxSizer(wxVERTICAL);
@@ -44,13 +44,13 @@ ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
 ToolPanel::~ToolPanel()
 {
     intermediate->Destroy();
-    for (auto C : controls)
+    for (auto C : linkedCtrls)
         delete C;
 }
 
 void ToolPanel::OnTextEntry(wxCommandEvent& event)
 {
-    for (auto ctrl : controls)
+    for (auto ctrl : linkedCtrls)
     {
         if (ctrl->GetId() == event.GetId())
         {
@@ -62,7 +62,7 @@ void ToolPanel::OnTextEntry(wxCommandEvent& event)
 
 void ToolPanel::OnSpinButtonUp(wxSpinEvent& event)
 {
-    for (auto ctrl : controls)
+    for (auto ctrl : linkedCtrls)
     {
         auto spin = dynamic_cast<LinkedCplxSpinCtrl*>(ctrl);
         if (spin)
@@ -84,7 +84,7 @@ void ToolPanel::OnSpinButtonUp(wxSpinEvent& event)
 
 void ToolPanel::OnSpinButtonDown(wxSpinEvent& event)
 {
-    for (auto ctrl : controls)
+    for (auto ctrl : linkedCtrls)
     {
         auto spin = dynamic_cast<LinkedCplxSpinCtrl*>(ctrl);
         if (spin)
@@ -108,7 +108,7 @@ void ToolPanel::OnPaintEvent(wxPaintEvent& event)
 {
     if (NeedsUpdate()) // && !controls.empty())
     {
-        for (auto ctrl : controls)
+        for (auto ctrl : linkedCtrls)
         {
             ctrl->ReadLinked();
         }
@@ -131,10 +131,10 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
     if (input != nullptr)
     {
         intermediate->SetFont(normalFont.Bold());
-            decorations.push_back(new wxStaticText(
+            wxCtrls.push_back(new wxStaticText(
             intermediate, wxID_ANY, wxString(input->GetName() + ":"),
             wxDefaultPosition, wxDefaultSize));
-        sizer->Add(decorations.back(), sizerFlags);
+        sizer->Add(wxCtrls.back(), sizerFlags);
             intermediate->SetFont(normalFont);
 
         for (int i = 0; i < 4; i++)
@@ -147,8 +147,8 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
                 intermediate, wxID_ANY, wxString(std::to_string(c)),
                 wxDefaultPosition, TEXTBOX_SIZE, wxTE_PROCESS_ENTER,
                 input->axes.c + i));
-            sizer->Add(decorations.back(), sizerFlags);
-            sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
+            sizer->Add(wxCtrls.back(), sizerFlags);
+            sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
         }
     }
     sizer->AddSpacer(ROW_HEIGHT);
@@ -159,11 +159,11 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
             if (i % 4 == 0)
             {
                 intermediate->SetFont(normalFont.Bold());
-                decorations.push_back(
+                wxCtrls.push_back(
                     new wxStaticText(intermediate, wxID_ANY,
                                      wxString(outputs[i]->GetName() + ":"),
                                      wxDefaultPosition, wxDefaultSize));
-                sizer->Add(decorations.back(), sizerFlags);
+                sizer->Add(wxCtrls.back(), sizerFlags);
                 intermediate->SetFont(normalFont);
             }
             double c = outputs[i / 4]->axes.c[i % 4];
@@ -174,8 +174,8 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
                 intermediate, wxID_ANY, wxString(std::to_string(c)),
                 wxDefaultPosition, TEXTBOX_SIZE, wxTE_PROCESS_ENTER,
                 outputs[i / 4]->axes.c + (i % 4)));
-            sizer->Add(decorations.back(), sizerFlags);
-            sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
+            sizer->Add(wxCtrls.back(), sizerFlags);
+            sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
         }
     }
     intermediate->SetSizer(sizer);
@@ -223,16 +223,16 @@ void NumCtrlPanel::RefreshLinked()
 
 void ToolPanel::ClearPanel()
 {
-    for (auto C : controls)
+    for (auto C : linkedCtrls)
     {
         C->Destroy();
     }
-    for (auto D : decorations)
+    for (auto D : wxCtrls)
     {
         D->Destroy();
     }
-    controls.clear();
-    decorations.clear();
+    linkedCtrls.clear();
+    wxCtrls.clear();
     if (intermediate != nullptr)
     {
         if (auto size = intermediate->GetSizer(); size != nullptr)
@@ -265,7 +265,7 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
                                    wxDefaultSize));
     intermediate->SetFont(normalFont);
 
-    sizer->Add(decorations.back(), sizerFlags);
+    sizer->Add(wxCtrls.back(), sizerFlags);
 
     std::vector<Symbol<cplx>*> vars = F.GetVars();
     SetRowCount(2 * vars.size());
@@ -283,8 +283,8 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
         AddLinkedCtrl(new LinkedVarTextCtrl(intermediate, wxID_ANY, c,
                                             wxDefaultPosition, wxDefaultSize,
                                             wxTE_PROCESS_ENTER, v));
-        sizer->Add(decorations.back(), sizerFlags);
-        sizer->Add(controls.back()->GetCtrlPtr(), sizerFlags);
+        sizer->Add(wxCtrls.back(), sizerFlags);
+        sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
     }
     intermediate->SetMinClientSize(
         wxSize(GetClientSize().x, SPACING * (vars.size()) - ROW_HEIGHT));
@@ -301,7 +301,7 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
 
 void VariableEditPanel::OnPaintEvent(wxPaintEvent& event)
 {
-    for (auto ctrl : controls)
+    for (auto ctrl : linkedCtrls)
     {
         ctrl->ReadLinked();
     }

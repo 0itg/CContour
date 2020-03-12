@@ -24,7 +24,7 @@ void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
     DrawCtrlPoint(dc, p);
 }
 
-void ContourCircle::moveCtrlPoint(cplx mousePos, int ptIndex)
+void ContourCircle::MoveCtrlPoint(cplx mousePos, int ptIndex)
 {
     points[0] = mousePos;
 }

@@ -9,7 +9,7 @@ void LinkedCtrlPointTextCtrl::WriteLinked()
     try
     {
         cplx val = parser.Parse(textCtrl->GetValue()).eval();
-        src->moveCtrlPoint(val, i);
+        src->MoveCtrlPoint(val, i);
     }
     catch (std::invalid_argument& func)
     {
