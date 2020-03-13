@@ -56,4 +56,5 @@ void ContourLine::Subdivide(int res)
                               (points[1].imag() - points[0].imag()) / res);
     for (int i = 0; i < res; i++)
         subDiv.push_back(points[0] + (double)i * zStep);
+    markedForRedraw = true;
 }

@@ -15,6 +15,8 @@
 
 #include <fstream>
 
+#include "Animation.h"
+#include "Commands.h"
 #include "ContourCircle.h"
 #include "ContourLine.h"
 #include "ContourPolygon.h"
@@ -48,6 +50,9 @@ EVT_MENU(wxID_OPEN, MainWindowFrame::OnOpen)
 EVT_MENU(wxID_SAVE, MainWindowFrame::OnSave)
 EVT_MENU(wxID_SAVEAS, MainWindowFrame::OnSaveAs)
 EVT_AUI_PANE_CLOSE(MainWindowFrame::OnAuiPaneClose)
+
+EVT_MENU(ID_Test, MainWindowFrame::OnAnimTest)
+
 wxEND_EVENT_TABLE();
 // clang-format on
 
@@ -67,6 +72,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     menuFile->Append(wxID_SAVE);
     menuFile->Append(wxID_SAVEAS);
     menuFile->Append(wxID_EXIT);
+    menuFile->Append(ID_Test, "Animation test");
 
     menuWindow = new wxMenu;
     menuWindow->AppendCheckItem(ID_NumCtrlPanel, "&Numerical Controls");
@@ -361,6 +367,40 @@ void MainWindowFrame::OnSaveAs(wxCommandEvent& event)
         saveFileName = save.GetFilename();
         saveFilePath = save.GetPath();
         Save(saveFilePath);
+    }
+}
+
+void MainWindowFrame::OnAnimTest(wxCommandEvent& event)
+{
+    input->animating = true;
+    auto C           = input->GetContour(0);
+    auto testAnim = std::make_unique<Animation>([](cplx c) {
+        return c * cplx(1, 1);
+    });
+    testAnim->AddCommand(std::make_unique<CommandContourPlaceAt>(C, 0));
+    testAnim->AddCommand(
+        std::make_unique<CommandContourSubdivide>(C, input->GetRes()));
+    input->AddAnimation(std::move(testAnim));
+
+    auto D        = input->GetContour(1);
+    testAnim = std::make_unique<Animation>([](cplx c) {
+        return cos(2*M_PI * c) + cplx(0,1) * sin(2*M_PI * c);
+    });
+    testAnim->AddCommand(std::make_unique<CommandContourPlaceAt>(D, 1));
+    testAnim->AddCommand(
+        std::make_unique<CommandContourSubdivide>(D, input->GetRes()));
+    testAnim->bounce = false;
+    input->AddAnimation(std::move(testAnim));
+
+    Bind(wxEVT_IDLE, &MainWindowFrame::AnimOnIdle, this);
+}
+
+void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
+{
+    if (input->animating)
+    {
+        input->Update();
+        input->Refresh();
     }
 }
 

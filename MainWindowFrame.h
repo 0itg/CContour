@@ -27,6 +27,7 @@ class MainWindowFrame : public wxFrame
     wxToolBar* toolbar;
     std::string saveFileName = "";
     std::string saveFilePath = "";
+    wxTimer* frameTimer;
 
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
@@ -47,6 +48,9 @@ class MainWindowFrame : public wxFrame
     void OnOpen(wxCommandEvent& event);
     void OnSave(wxCommandEvent& event);
     void OnSaveAs(wxCommandEvent& event);
+
+    void OnAnimTest(wxCommandEvent& event);
+    void AnimOnIdle(wxIdleEvent& idle);
 
     void Save(std::string& path);
     void Load(std::string& path);

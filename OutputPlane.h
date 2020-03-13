@@ -1,9 +1,9 @@
 #pragma once
 
 #include "ComplexPlane.h"
+#include "Grid.h"
 #include "Parser.h"
 #include "ToolPanel.h"
-#include "Grid.h"
 
 #include <complex>
 #include <wx/spinctrl.h>
@@ -42,6 +42,9 @@ class OutputPlane : public ComplexPlane
     void OnGridResCtrl(wxSpinEvent& event);
     void OnGridResCtrl(wxCommandEvent& event);
     void OnFunctionEntry(wxCommandEvent& event);
+
+    void Pan(wxPoint mousePos);
+    void Zoom(wxPoint mousePos, int zoomSteps);
 
     void EnterFunction(std::string s);
 

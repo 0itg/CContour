@@ -64,6 +64,7 @@ void ContourCircle::Subdivide(int res)
         double t = (double)i / res;
         subDiv.push_back(Interpolate(t));
     }
+   markedForRedraw = true;
 }
 
 std::tuple<int, int, int> ContourCircle::PopulateSupplementalMenu(ToolPanel* TP)

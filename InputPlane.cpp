@@ -28,11 +28,6 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-InputPlane::InputPlane(wxWindow* parent, const std::string& n)
-    : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
-{
-}
-
 void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 {
     // Workaround for wxWidgets handling double clicks poorly in save dialog
@@ -246,7 +241,6 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
             contours[state]->MoveCtrlPoint(mousePos, highlightedCtrlPoint);
         }
         contours[state]->Subdivide(res);
-        contours[state]->markedForRedraw = true;
         toolPanel->Refresh();
         toolPanel->Update();
         Refresh();
@@ -310,6 +304,9 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
     wxBrush brush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(pen);
     dc.SetBrush(brush);
+
+    for (auto& A : animations)
+        A->NextFrame();
 
     if (showGrid)
         grid.Draw(&dc, this);
@@ -378,7 +375,6 @@ void InputPlane::RecalcAll()
     for (auto& C : contours)
     {
         C->Subdivide(res);
-        C->markedForRedraw = true;
     }
 }
 

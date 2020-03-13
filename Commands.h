@@ -1,9 +1,12 @@
 #pragma once
 #pragma warning(disable : 4996)
+#define WXUSINGDLL
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
 
-#include "Contour.h"
-#include "InputPlane.h"
-#include "OutputPlane.h"
+#include <complex>
 
 typedef std::complex<double> cplx;
 
@@ -13,6 +16,11 @@ typedef std::complex<double> cplx;
 // enclose a function which returns to that in exex() if necessary.
 // SetPositionParam() is used to to pass a cplx to the command, intended
 // For updating the animation parameter, but maybe useful for user editing.
+
+class Contour;
+class InputPlane;
+class OutputPlane;
+struct Axes;
 
 class Command
 {
@@ -30,10 +38,7 @@ class CommandContourTranslate : public Command
     {
     }
 
-    void exec()
-    {
-        subject->Translate(newPos, oldPos);
-    }
+    void exec();
     void SetPositionParam(cplx c)
     {
         newPos = c;
@@ -45,6 +50,25 @@ class CommandContourTranslate : public Command
     Contour* subject;
 };
 
+class CommandContourPlaceAt : public Command
+{
+  public:
+    CommandContourPlaceAt(Contour* s, cplx n)
+        : newPos(n), subject(s)
+    {
+    }
+
+    void exec();
+    void SetPositionParam(cplx c)
+    {
+        newPos = c;
+    }
+
+  private:
+    cplx newPos;
+    Contour* subject;
+};
+
 class CommandContourMovePoint : public Command
 {
   public:
@@ -53,10 +77,7 @@ class CommandContourMovePoint : public Command
     {
     }
 
-    void exec()
-    {
-        subject->MoveCtrlPoint(newPos, index);
-    }
+    void exec();
     void SetPositionParam(cplx c)
     {
         newPos = c;
@@ -73,10 +94,7 @@ class CommandContourAddPoint : public Command
   public:
     CommandContourAddPoint(Contour* s, cplx n) : mPos(n), subject(s) {}
 
-    void exec()
-    {
-        subject->AddPoint(mPos);
-    }
+    void exec();
     void SetPositionParam(cplx c)
     {
         mPos = c;
@@ -92,10 +110,7 @@ class CommandContourRemovePoint : public Command
   public:
     CommandContourRemovePoint(Contour* s, int i) : index(i), subject(s) {}
 
-    void exec()
-    {
-        subject->RemovePoint(index);
-    }
+    void exec();
 
   private:
     int index;
@@ -107,14 +122,7 @@ class CommandContourSubdivide : public Command
   public:
     CommandContourSubdivide(Contour* s, int i) : res(i), subject(s) {}
 
-    void exec()
-    {
-        subject->Subdivide(res);
-    }
-    void SetPositionParam(cplx c)
-    {
-        res = c.real();
-    }
+    void exec();
 
   private:
     int res;
@@ -129,10 +137,7 @@ class CommandInputPlaneCreateContour : public Command
     {
     }
 
-    void exec()
-    {
-        subject->AddContour(std::move(subject->CreateContour(mPos)));
-    }
+    void exec();
 
   private:
     wxPoint mPos;
@@ -147,13 +152,7 @@ class CommandAxesSet : public Command
     {
     }
 
-    void exec()
-    {
-        subject->realMax = realMax;
-        subject->realMin = realMin;
-        subject->imagMax = imagMax;
-        subject->imagMin = imagMin;
-    }
+    void exec();
 
   private:
     Axes* subject;
@@ -165,13 +164,7 @@ class CommandAxesReset : public Command
   public:
     CommandAxesReset(Axes* a) : subject(a) {}
 
-    void exec()
-    {
-        subject->realMax = 10;
-        subject->realMin = -10;
-        subject->imagMax = 10;
-        subject->imagMin = -10;
-    }
+    void exec();
 
   private:
     Axes* subject;
@@ -182,10 +175,7 @@ class CommandOutputPlaneFuncEntry : public Command
   public:
     CommandOutputPlaneFuncEntry(OutputPlane* a, std::string s) : subject(a), func(s) {}
 
-    void exec()
-    {
-        subject->EnterFunction(func);
-    }
+    void exec();
 
   private:
     OutputPlane* subject;

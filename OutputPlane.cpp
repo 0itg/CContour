@@ -137,6 +137,30 @@ void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
     EnterFunction(funcInput->GetLineText(0));
 }
 
+// Override necessary to make sure animations play smoothly while
+// interacting with the input plane;
+void OutputPlane::Pan(wxPoint mousePos)
+{
+    ComplexPlane::Pan(mousePos);
+    if (in->animating)
+    {
+        in->Update();
+        in->Refresh();
+    }
+}
+
+// Override necessary to make sure animations play smoothly while
+// interacting with the input plane;
+void OutputPlane::Zoom(wxPoint mousePos, int zoomSteps)
+{
+    ComplexPlane::Zoom(mousePos, zoomSteps);
+    if (in->animating)
+    {
+        in->Update();
+        in->Refresh();
+    }
+}
+
 void OutputPlane::EnterFunction(std::string s)
 {
     ParsedFunc g = f;

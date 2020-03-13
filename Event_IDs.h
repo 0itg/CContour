@@ -23,4 +23,6 @@ enum enum_buttons
     ID_Function_Entry,
     ID_NumCtrlPanel,
     ID_VarEditPanel,
+
+    ID_Test // Can be reused for any temporary testing widgets.
 };

@@ -179,4 +179,5 @@ void ContourPolygon::Subdivide(int res)
         subDiv.push_back(points[0]);
         subDiv.push_back(points[0]);
     }
+    markedForRedraw = true;
 }

@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="CContour.cpp" />
+    <ClCompile Include="Commands.cpp" />
     <ClCompile Include="ContourCircle.cpp" />
     <ClCompile Include="Contour.cpp" />
     <ClCompile Include="ContourLine.cpp" />

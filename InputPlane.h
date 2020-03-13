@@ -1,6 +1,7 @@
 #pragma once
 #include "ComplexPlane.h"
 #include "Grid.h"
+#include "Animation.h"
 #include "Event_IDs.h"
 
 #include <boost/archive/text_iarchive.hpp>
@@ -25,8 +26,11 @@ class InputPlane : public ComplexPlane
     friend class boost::serialization::access;
 
   public:
-    InputPlane() {}
-    InputPlane(wxWindow* parent, const std::string& name = "Input");
+    InputPlane(){}
+    InputPlane(wxWindow* parent, const std::string& n = "Input")
+        : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
+    {
+    }
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
     void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
@@ -62,6 +66,16 @@ class InputPlane : public ComplexPlane
     {
         contours.push_back(std::move(C));
     }
+    Contour* GetContour(size_t index)
+    {
+        if (index < contours.size())
+            return contours[index].get();
+        else
+            return nullptr;
+    }
+    void AddAnimation(std::unique_ptr<Animation> A) {
+        animations.push_back(std::move(A));
+    }
 
     void SetColorPicker(wxColourPickerCtrl* ptr)
     {
@@ -73,9 +87,12 @@ class InputPlane : public ComplexPlane
     // change accordingly
     bool linkGridToAxes                  = true;
     bool randomizeColor                  = true;
+    bool animating                       = false;
     wxColor color                        = wxColor(0, 0, 200);
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
+
+    std::vector<std::unique_ptr<Animation>> animations;
 
   private:
     int CircleCount                = 0;

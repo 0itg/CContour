@@ -6,7 +6,7 @@
 
 typedef std::complex<double> cplx;
 
-//class Contour;
+class Command;
 
 // Executes Commands parameterized by a complex function f(t) every frame,
 // advancing t each time. There is no particular restriction on what the 
@@ -16,17 +16,29 @@ typedef std::complex<double> cplx;
 class Animation
 {
   public:
+    Animation()
+        : f([](cplx c) {
+              return c;
+          })
+    {
+    }
     Animation(/*Contour* C, */ std::function<cplx(cplx)> func) : f(func) {}
     void NextFrame();
     void FrameAt(cplx c);
-    void Reset()
-    {
-        FrameAt(0);
-    };
+    void Reset();
     void AddCommand(std::unique_ptr<Command> C)
     {
         commands.push_back(std::move(C));
     }
+    void SetFunction(std::function<cplx(cplx)> func)
+    {
+        f = func;
+    }
+
+    // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then
+    // repeat. else, it will go from t=0 to t=1, then repeat.
+    bool bounce = true;
+
   private:
     //Contour* contour;
 
@@ -40,11 +52,7 @@ class Animation
     // a cplx anyway. Complex steps may be convenient for some things, like
     // Linear motion.
     cplx t; 
-    cplx tStep = 1.0 / 600;
+    cplx tStep = 1.0 / 60;
     cplx tStart = 0;
     cplx tEnd   = 1;
-
-    // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then
-    // repeat. else, it will go from t=0 to t=1, then repeat.
-    bool bounce = false;
 };
