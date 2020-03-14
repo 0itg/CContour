@@ -21,6 +21,7 @@
 #include "ContourLine.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
+#include "ContourParametric.h"
 #include "Event_IDs.h"
 #include "Grid.h"
 #include "InputPlane.h"
@@ -38,6 +39,7 @@ EVT_MENU(ID_VarEditPanel, MainWindowFrame::OnShowVarWin)
 EVT_TOOL(ID_Select, MainWindowFrame::OnButtonSelectionTool)
 EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
+EVT_TOOL(ID_Parametric, MainWindowFrame::OnButtonParametricCurve)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
 EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainWindowFrame::OnColorPicked)
 EVT_TOOL_RANGE(ID_Show_Axes,ID_Show_Grid, MainWindowFrame::OnShowAxes_ShowGrid)
@@ -124,6 +126,14 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                      wxBitmap(wxT("icons/paint-brush.png"), wxBITMAP_TYPE_PNG),
                      wxNullBitmap, wxITEM_RADIO, "Recolor a contour");
     toolbar->ToggleTool(ID_Circle, true);
+    toolbar->AddSeparator();
+
+    // Creates a contour from a parametric curve.
+
+    toolbar->AddTool(ID_Parametric, "Parametric Curve",
+        wxBitmap(wxT("icons/parametric-curve.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_NORMAL, "Opens a Parametric Curve dialog");
+    toolbar->AddSeparator();
     toolbar->AddSeparator();
 
     // Toggle axes and grid lines.
@@ -285,6 +295,51 @@ inline void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event)
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
 }
 
+void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
+{
+    wxDialog ParametricCreate(this, wxID_ANY, "Create a Parametric Curve");
+    wxBoxSizer sizer(wxVERTICAL);
+    wxSizerFlags flags(1);
+    flags.Expand().Border(wxALL, 3);
+
+    wxStaticText enterName(&ParametricCreate, wxID_ANY, "Curve name");
+    sizer.Add(&enterName, flags);
+    wxTextCtrl nameCtrl(&ParametricCreate, wxID_ANY, "Parametric Curve");
+    sizer.Add(&nameCtrl, flags);
+
+    wxStaticText enterFunc(&ParametricCreate, wxID_ANY, "Function f(t)");
+    sizer.Add(&enterFunc, flags);
+    wxTextCtrl funcCtrl(&ParametricCreate, wxID_ANY, "4*t*exp(4pi*i*t)");
+    sizer.Add(&funcCtrl, flags);
+
+    wxStaticText enterTStart(&ParametricCreate, wxID_ANY, "t Start");
+    sizer.Add(&enterTStart, flags);
+    wxSpinCtrlDouble tStartCtrl(&ParametricCreate, wxID_ANY, "0",
+        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -1e10, 1e10, 0, 0.1);
+    sizer.Add(&tStartCtrl, flags);
+
+    wxStaticText enterTEnd(&ParametricCreate, wxID_ANY, "t End");
+    sizer.Add(&enterTEnd, flags);
+    wxSpinCtrlDouble tEndCtrl(&ParametricCreate, wxID_ANY, "1.0",
+        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -1e10, 1e10, 1, 0.1);
+    sizer.Add(&tEndCtrl, flags);
+    sizer.Add(ParametricCreate.CreateButtonSizer(wxOK | wxCANCEL),
+        wxSizerFlags(1).Border(wxALL,3).CenterHorizontal());
+    ParametricCreate.SetSizer(&sizer);
+    ParametricCreate.Fit();
+
+    if (ParametricCreate.ShowModal() == wxID_OK)
+    {
+        input->AddContour(std::make_unique<ContourParametric>(
+            funcCtrl.GetValue(), input->GetRes(), input->color,
+            nameCtrl.GetValue(), tStartCtrl.GetValue(), tEndCtrl.GetValue()));
+        input->Refresh();
+        input->Update();
+    }
+    // Necessary to stop wxWidgets from deleting stack items twice.
+    ParametricCreate.SetSizer(NULL, false);
+}
+
 inline void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event)
 {
     output->OnFunctionEntry(event);
@@ -373,6 +428,7 @@ void MainWindowFrame::OnSaveAs(wxCommandEvent& event)
 void MainWindowFrame::OnAnimTest(wxCommandEvent& event)
 {
     input->animating = true;
+    input->animTimer.Start(1000);
     auto C           = input->GetContour(0);
     auto testAnim = std::make_unique<Animation>([](cplx c) {
         return c * cplx(1, 1);
@@ -384,13 +440,17 @@ void MainWindowFrame::OnAnimTest(wxCommandEvent& event)
 
     auto D        = input->GetContour(1);
     testAnim = std::make_unique<Animation>([](cplx c) {
-        return cos(2*M_PI * c) + cplx(0,1) * sin(2*M_PI * c);
+        return 3.0 * cos(2*M_PI * c) + cplx(0,3) * sin(2*M_PI * c);
     });
     testAnim->AddCommand(std::make_unique<CommandContourPlaceAt>(D, 1));
     testAnim->AddCommand(
         std::make_unique<CommandContourSubdivide>(D, input->GetRes()));
     testAnim->bounce = false;
+    testAnim->duration_ms = 4000;
     input->AddAnimation(std::move(testAnim));
+
+    input->AddContour(std::make_unique<ContourParametric>("sin(2pi*t) + 2i*cos(2pi*t)", 500, wxColor(255,128,128)));
+
 
     Bind(wxEVT_IDLE, &MainWindowFrame::AnimOnIdle, this);
 }

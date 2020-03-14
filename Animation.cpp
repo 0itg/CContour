@@ -1,24 +1,20 @@
 #include "Animation.h"
 #include "Commands.h"
 
-void Animation::NextFrame()
+void Animation::FrameAt(int t)
 {
-    FrameAt(t);
-    t += tStep;
-
-    if (bounce && (abs(t - tStart) < 0.000001 || abs(t - tEnd) < 0.000001))
-        tStep *= -1;
-    else if (abs(t - tEnd) < 0.000001)
-    {
-        t = tStart;
+    if (bounce) {
+        auto max = 2 * duration_ms;
+        t %= max;
+        if (t > duration_ms)
+            t = max - t;
     }
-}
+    else t %= duration_ms;
 
-void Animation::FrameAt(cplx c)
-{
+    double T = (double)t / duration_ms;
     for (auto& C : commands)
     {
-        C->SetPositionParam(f(c));
+        C->SetPositionParam(f(T));
         C->exec();
     }
 }

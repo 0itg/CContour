@@ -14,6 +14,7 @@
 #include <wx/vscroll.h>
 
 #include <complex>
+#include <functional>
 
 typedef std::complex<double> cplx;
 
@@ -70,6 +71,8 @@ class ToolPanel : public wxHVScrolledWindow
     virtual bool NeedsUpdate()   = 0;
     virtual void RefreshLinked() = 0;
 
+    virtual void RePopulate() { lastPopulateFn(); }
+
     static constexpr int ROW_HEIGHT = 24;
     static constexpr int SPACING    = 2 * ROW_HEIGHT;
     const wxSize TEXTBOX_SIZE =
@@ -81,6 +84,7 @@ class ToolPanel : public wxHVScrolledWindow
   protected:
     std::vector<wxControl*> wxCtrls;
     std::vector<LinkedCtrl*> linkedCtrls;
+    std::function<void(void)> lastPopulateFn = 0;
 };
 
 // Panel which dynamically shows either Axis controls or Contour controls,

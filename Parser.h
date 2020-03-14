@@ -141,7 +141,9 @@ template <typename T> class ParsedFunc
         return (*itr)->eval().GetVal();
     };
 
-    void setVariable(const std::string& name, const T& val);
+    void SetIV(std::string token) { IV_token = token; }
+    std::string GetIV() { return IV_token; }
+    void SetVariable(const std::string& name, const T& val);
 
     typename std::vector<Symbol<T>*>::iterator itr;
 
@@ -188,6 +190,7 @@ template <typename T> class ParsedFunc
         tokens;
     std::vector<Symbol<T>*> symbolStack;
     std::string inputText = "";
+    std::string IV_token = "z";
 };
 
 template <typename T> inline Parser<T>::Parser()
@@ -468,7 +471,7 @@ struct cmp_length_then_alpha
 };
 
 template <typename T>
-inline void ParsedFunc<T>::setVariable(const std::string& name, const T& val)
+inline void ParsedFunc<T>::SetVariable(const std::string& name, const T& val)
 {
     if (tokens.find(name) != tokens.end())
         tokens[name]->SetVal(val);
@@ -476,7 +479,7 @@ inline void ParsedFunc<T>::setVariable(const std::string& name, const T& val)
 
 template <typename T> inline T ParsedFunc<T>::operator()(T val)
 {
-    setVariable("z", val);
+    SetVariable(IV_token, val);
     return eval();
 }
 

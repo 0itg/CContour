@@ -9,12 +9,19 @@
 
 void Contour::AddPoint(cplx mousePos)
 {
+    center *= points.size();
+    center += mousePos;
+    center /= points.size() + 1;
     points.push_back(mousePos);
 }
 
 void Contour::RemovePoint(int index)
 {
-    points.erase(points.begin() + index);
+    auto p = points.begin() + index;
+    center *= points.size();
+    center -= *p;
+    center /= points.size() - 1;
+    points.erase(p);
 }
 
 int Contour::OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision)
@@ -36,7 +43,9 @@ cplx Contour::GetCtrlPoint(int index)
 
 void Contour::SetCtrlPoint(int index, cplx c)
 {
+    center -= points[index] / (double)points.size();
     points[index] = c;
+    center += points[index] / (double)points.size();
 }
 
 void Contour::PopulateMenu(ToolPanel* TP)
@@ -99,16 +108,17 @@ void Contour::DrawCtrlPoint(wxDC* dc, wxPoint p)
     pen.SetWidth(2);
     wxDCPenChanger temp(*dc, pen);
 
-    // Draws a sort of asterisk on the point. Didn't like it much.
-    /*dc->DrawLine(p + wxPoint(3, 2), p - wxPoint(3, 2));
-    dc->DrawLine(p + wxPoint(-3, 2), p - wxPoint(-3, 2));
-    dc->DrawLine(p + wxPoint(0, 3), p - wxPoint(0, 3));*/
     dc->DrawCircle(p, 1);
 }
 
-void Contour::MoveCtrlPoint(cplx mousePos, int ptIndex)
+cplx Contour::CalcCenter()
 {
-    points[ptIndex] = mousePos;
+    if (points.size())
+    {
+        center = std::accumulate(points.begin(), points.end(), cplx(0));
+        center /= points.size();
+    }
+    return center;
 }
 
 void Contour::Translate(cplx z2, cplx z1)
@@ -118,6 +128,7 @@ void Contour::Translate(cplx z2, cplx z1)
     {
         p += displacement;
     }
+    center += displacement;
 }
 
 double DistancePointToLine(cplx pt, cplx z1, cplx z2)

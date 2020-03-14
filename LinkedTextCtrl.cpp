@@ -1,6 +1,7 @@
 #include "LinkedTextCtrl.h"
 #include "Contour.h"
 #include "Parser.h"
+#include "ToolPanel.h"
 #include "wx/richtooltip.h"
 
 void LinkedCtrlPointTextCtrl::WriteLinked()
@@ -9,7 +10,7 @@ void LinkedCtrlPointTextCtrl::WriteLinked()
     try
     {
         cplx val = parser.Parse(textCtrl->GetValue()).eval();
-        src->MoveCtrlPoint(val, i);
+        src->SetCtrlPoint(i, val);
     }
     catch (std::invalid_argument& func)
     {
@@ -101,4 +102,32 @@ LinkedCplxSpinCtrl::LinkedCplxSpinCtrl(wxWindow* par, wxStandardID ID,
     sizer->Add(textCtrl, wxSizerFlags(1).Expand());
     sizer->Add(imSpin);
     panel->SetSizer(sizer);
+}
+
+LinkedFuncCtrl::LinkedFuncCtrl(ToolPanel* par, wxStandardID ID, wxString str,
+    wxPoint defaultPos, wxSize defSize, int style, ParsedFunc<cplx>* f)
+    : src(f), TP(par)
+{
+    textCtrl = new wxTextCtrl(par->intermediate, ID, str, defaultPos, defSize, style);
+}
+
+void LinkedFuncCtrl::WriteLinked()
+{
+    Parser<cplx> parser;
+    try
+    {
+        *src = parser.Parse(textCtrl->GetValue());
+        TP->RePopulate();
+    }
+    catch (std::invalid_argument & func)
+    {
+        wxRichToolTip errormsg(wxT("Invalid Input"), func.what());
+        errormsg.ShowFor(textCtrl);
+        ReadLinked();
+    }
+}
+
+void LinkedFuncCtrl::ReadLinked()
+{
+    textCtrl->ChangeValue(src->GetInputText());
 }

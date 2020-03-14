@@ -8,6 +8,7 @@ ContourLine::ContourLine(cplx c, wxColor col, std::string n) noexcept
 {
     points.push_back(c);
     points.push_back(c);
+    center = c;
     color = col;
     name  = n;
 }
@@ -16,6 +17,7 @@ ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n) noexcept
 {
     points.push_back(c);
     points.push_back(d);
+    center = c;
     color = col;
     name  = n;
 }

@@ -10,12 +10,15 @@ void CommandContourTranslate::exec()
 
 void CommandContourPlaceAt::exec()
 {
-    subject->Translate(newPos, subject->GetCtrlPoint(0));
+    if (point > -1)
+        subject->Translate(newPos, subject->GetCtrlPoint(point));
+    else
+        subject->Translate(newPos, subject->GetCenter());
 }
 
 void CommandContourMovePoint::exec()
 {
-    subject->MoveCtrlPoint(newPos, index);
+    subject->SetCtrlPoint(index, newPos);
 }
 
 void CommandContourAddPoint::exec()

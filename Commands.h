@@ -50,11 +50,14 @@ class CommandContourTranslate : public Command
     Contour* subject;
 };
 
+// Places the specified contour at the specified coordinates.
+// Defaults to moving the center to that point, but any other point may
+// be specified by its index.
 class CommandContourPlaceAt : public Command
 {
   public:
-    CommandContourPlaceAt(Contour* s, cplx n)
-        : newPos(n), subject(s)
+    CommandContourPlaceAt(Contour* s, cplx n, int pt = -1)
+        : newPos(n), subject(s), point(pt)
     {
     }
 
@@ -65,6 +68,7 @@ class CommandContourPlaceAt : public Command
     }
 
   private:
+    int point;
     cplx newPos;
     Contour* subject;
 };

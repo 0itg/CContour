@@ -62,10 +62,7 @@ class InputPlane : public ComplexPlane
     void SetContourType(int id);
     void RemoveContour(int index);
     std::unique_ptr<Contour> CreateContour(wxPoint mousePos);
-    void AddContour(std::unique_ptr<Contour> C)
-    {
-        contours.push_back(std::move(C));
-    }
+    void AddContour(std::unique_ptr<Contour> C);
     Contour* GetContour(size_t index)
     {
         if (index < contours.size())
@@ -93,6 +90,8 @@ class InputPlane : public ComplexPlane
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
     std::vector<std::unique_ptr<Animation>> animations;
+
+    wxStopWatch animTimer;
 
   private:
     int CircleCount                = 0;

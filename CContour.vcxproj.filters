@@ -60,6 +60,9 @@
     <ClCompile Include="Commands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ContourParametric.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainWindowFrame.h">
@@ -116,6 +119,9 @@
     <ClInclude Include="Commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ContourParametric.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icons\draw-rectangle.png">
@@ -146,6 +152,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="icons\tool-pointer.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\parametric-curve.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

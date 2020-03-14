@@ -152,6 +152,7 @@
     <ClCompile Include="ContourCircle.cpp" />
     <ClCompile Include="Contour.cpp" />
     <ClCompile Include="ContourLine.cpp" />
+    <ClCompile Include="ContourParametric.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="ContourPolygon.cpp" />
     <ClCompile Include="ContourRect.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="ContourCircle.h" />
     <ClInclude Include="Contour.h" />
     <ClInclude Include="ContourLine.h" />
+    <ClInclude Include="ContourParametric.h" />
     <ClInclude Include="Event_IDs.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ContourPolygon.h" />
@@ -210,6 +212,7 @@
     <Image Include="icons\paint-brush.png">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Image>
+    <Image Include="icons\parametric-curve.png" />
     <Image Include="icons\tool-pointer.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

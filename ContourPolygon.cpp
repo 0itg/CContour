@@ -10,6 +10,7 @@ ContourPolygon::ContourPolygon(cplx c, wxColor col, std::string n) noexcept
 {
     points.push_back(c);
     points.push_back(c);
+    center = c;
     color = col;
     name  = n;
 }
@@ -91,6 +92,7 @@ inline void ContourPolygon::Finalize()
         closed = true;
         points.pop_back();
         markedForRedraw = true;
+        CalcCenter();
     }
 }
 

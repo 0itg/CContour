@@ -117,6 +117,7 @@ void ToolPanel::OnPaintEvent(wxPaintEvent& event)
 
 void NumCtrlPanel::PopulateAxisTextCtrls()
 {
+    lastPopulateFn = [&]{PopulateAxisTextCtrls(); };
     Freeze();
 
     ClearPanel();
@@ -195,6 +196,7 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
 
 void NumCtrlPanel::PopulateContourTextCtrls(Contour* C)
 {
+    lastPopulateFn = [=] { PopulateContourTextCtrls(C); };
     Freeze();
     ClearPanel();
     SetRowCount(2 * C->GetPointCount() + 1);
@@ -272,7 +274,7 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
 
     for (auto v : vars)
     {
-        if (v->GetToken() == "z")
+        if (v->GetToken() == F.GetIV())
             continue;
         cplx val      = v->eval().GetVal();
         std::string c = std::to_string(val.real()) + " + " +

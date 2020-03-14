@@ -36,6 +36,7 @@ class MainWindowFrame : public wxFrame
     void OnColorPicked(wxColourPickerEvent& col);
     void OnButtonColorRandomizer(wxCommandEvent& event);
     void OnButtonPaintbrush(wxCommandEvent& event);
+    void OnButtonParametricCurve(wxCommandEvent& event);
     void OnFunctionEntry(wxCommandEvent& event);
     void OnGridResCtrl(wxSpinEvent& event);
     void OnGridResCtrl(wxCommandEvent& event);

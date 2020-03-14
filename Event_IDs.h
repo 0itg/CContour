@@ -12,8 +12,10 @@ enum enum_buttons
     ID_Rect,
     ID_Polygon,
     ID_Line,
-
     ID_Paintbrush,
+
+    ID_Parametric,
+
     ID_Color_Randomizer,
     ID_Color_Picker,
     ID_Show_Axes,

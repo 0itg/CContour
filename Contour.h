@@ -44,7 +44,6 @@ class Contour
     virtual void Draw(wxDC* dc, ComplexPlane* canvas) = 0;
     virtual void AddPoint(cplx mousePos);
     virtual void RemovePoint(int index);
-    virtual void MoveCtrlPoint(cplx mousePos, int ptIndex);
 
     // Action to be taken when selecting the contour between control
     // points. Typically it will just call the Translate function.
@@ -69,7 +68,7 @@ class Contour
     }
 
     // Any actions to be taken when editing is finished.
-    virtual void Finalize(){};
+    virtual void Finalize() { CalcCenter(); };
 
     // Base version draws the Contour's name, followed by a list of control
     // points and LinkedCtrls linked to them. See NumCtrlPanel in ToolPanel.h.
@@ -102,8 +101,12 @@ class Contour
     {
         points.reserve(size);
     }
-
+    cplx GetCenter() {
+        return center;
+    }
+    cplx CalcCenter();
     void DrawCtrlPoint(wxDC* dc, wxPoint p);
+
     wxColor color = *wxRED;
 
     // Used for deciding whether OutputPlane needs to recalculate curves.
@@ -113,6 +116,8 @@ class Contour
     std::string name;
     std::vector<cplx> points;
     std::vector<cplx> subDiv;
+
+    cplx center;
 
   private:
     template <class Archive>

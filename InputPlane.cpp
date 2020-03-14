@@ -238,7 +238,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         }
         else
         {
-            contours[state]->MoveCtrlPoint(mousePos, highlightedCtrlPoint);
+            contours[state]->SetCtrlPoint(highlightedCtrlPoint, mousePos);
         }
         contours[state]->Subdivide(res);
         toolPanel->Refresh();
@@ -306,7 +306,7 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
     dc.SetBrush(brush);
 
     for (auto& A : animations)
-        A->NextFrame();
+        A->FrameAt(animTimer.Time());
 
     if (showGrid)
         grid.Draw(&dc, this);
@@ -437,6 +437,13 @@ std::unique_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)
     CircleCount++;
     return std::make_unique<ContourCircle>(ScreenToComplex(mousePos), 0, colorToDraw,
         "Circle " + std::to_string(CircleCount));
+}
+
+void InputPlane::AddContour(std::unique_ptr<Contour> C)
+{
+    contours.push_back(std::move(C));
+    for (auto out : outputs)
+        out->contours.push_back(nullptr);
 }
 
 wxColor InputPlane::RandomColor()

@@ -18,7 +18,10 @@
 typedef std::complex<double> cplx;
 
 class Contour;
+class ToolPanel;
 template <class T> class Symbol;
+template <class T> class Parser;
+template <class T> class ParsedFunc;
 
 // Interface for GUI controls which write/read their values to/from a specified
 // destination, for example, a wxTextCtrl which displays the current value of a
@@ -153,4 +156,17 @@ class LinkedVarTextCtrl : public LinkedCplxSpinCtrl
 
   private:
     Symbol<cplx>* src;
+};
+
+class LinkedFuncCtrl : public LinkedTextCtrl
+{
+public:
+    LinkedFuncCtrl(ToolPanel* par, wxStandardID ID, wxString str,
+        wxPoint defaultPos, wxSize defSize, int style, ParsedFunc<cplx>* f);
+    void WriteLinked();
+    void ReadLinked();
+
+private:
+    ToolPanel* TP;
+    ParsedFunc<cplx>* src;
 };

@@ -11,6 +11,7 @@ ContourCircle::ContourCircle(cplx c, double r, wxColor col,
     : radius(r)
 {
     points.push_back(c);
+    center = c;
     color = col;
     name  = n;
 }
@@ -22,11 +23,6 @@ void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
     auto r2   = (wxCoord)canvas->LengthYToScreen(radius);
     dc->DrawEllipse(p.x - r1, p.y - r2, 2 * r1, 2 * r2);
     DrawCtrlPoint(dc, p);
-}
-
-void ContourCircle::MoveCtrlPoint(cplx mousePos, int ptIndex)
-{
-    points[0] = mousePos;
 }
 
 void ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)

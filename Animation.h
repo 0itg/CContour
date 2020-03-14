@@ -10,8 +10,10 @@ class Command;
 
 // Executes Commands parameterized by a complex function f(t) every frame,
 // advancing t each time. There is no particular restriction on what the 
-// commands may do. The user is responsible for managing the state of any
-// objects modified during the animation.
+// commands may do, but the animation system assumes that executing with a
+// given value of t will produce the same result each time. The user is
+// responsible for managing the state of any objects modified during the
+// animation.
 
 class Animation
 {
@@ -22,9 +24,8 @@ class Animation
           })
     {
     }
-    Animation(/*Contour* C, */ std::function<cplx(cplx)> func) : f(func) {}
-    void NextFrame();
-    void FrameAt(cplx c);
+    Animation(std::function<cplx(cplx)> func) : f(func) {}
+    void FrameAt(int t);
     void Reset();
     void AddCommand(std::unique_ptr<Command> C)
     {
@@ -38,10 +39,9 @@ class Animation
     // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then
     // repeat. else, it will go from t=0 to t=1, then repeat.
     bool bounce = true;
+    int duration_ms = 1000;
 
   private:
-    //Contour* contour;
-
     std::vector<std::unique_ptr<Command>> commands;
     
     // Function must be parameterized by a variable called 't', assumed to
@@ -51,8 +51,8 @@ class Animation
     // Parameter. Intended to be used as a real number, but the parser wants
     // a cplx anyway. Complex steps may be convenient for some things, like
     // Linear motion.
-    cplx t; 
+    /*cplx t; 
     cplx tStep = 1.0 / 60;
     cplx tStart = 0;
-    cplx tEnd   = 1;
+    cplx tEnd   = 1;*/
 };
