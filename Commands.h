@@ -56,7 +56,7 @@ class CommandContourTranslate : public Command
 class CommandContourPlaceAt : public Command
 {
   public:
-    CommandContourPlaceAt(Contour* s, cplx n, int pt = -1)
+    CommandContourPlaceAt(Contour* s, cplx n = 0, int pt = -1)
         : newPos(n), subject(s), point(pt)
     {
     }

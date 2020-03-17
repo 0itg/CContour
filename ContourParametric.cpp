@@ -2,6 +2,8 @@
 #include "ToolPanel.h"
 #include "LinkedTextCtrl.h"
 
+BOOST_CLASS_EXPORT_IMPLEMENT(ContourParametric)
+
 ContourParametric::ContourParametric(
     std::string func, int res, wxColor col, std::string n, double tS, double tE) :
     tStart(tS), tEnd(tE)

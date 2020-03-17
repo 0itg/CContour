@@ -9,12 +9,14 @@
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
 #include <wx/display.h>
-//#include <wx/spinctrl.h>
+#include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/vscroll.h>
 
 #include <complex>
 #include <functional>
+
+#include "Animation.h"
 
 typedef std::complex<double> cplx;
 
@@ -22,7 +24,6 @@ class Contour;
 class InputPlane;
 class OutputPlane;
 class LinkedCtrl;
-class Animation;
 template <class T> class Symbol;
 template <class T> class ParsedFunc;
 
@@ -35,14 +36,15 @@ class ToolPanel : public wxHVScrolledWindow
 {
   public:
     ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
-    ~ToolPanel();
+    virtual ~ToolPanel();
     virtual void OnTextEntry(wxCommandEvent& event);
     virtual void OnSpinButtonUp(wxSpinEvent& event);
     virtual void OnSpinButtonDown(wxSpinEvent& event);
     void OnPaintEvent(wxPaintEvent& event);
+    void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
     void ClearPanel();
 
-    void AddDecoration(wxControl* D)
+    void AddDecoration(wxWindow* D)
     {
         wxCtrls.push_back(D);
     }
@@ -82,7 +84,7 @@ class ToolPanel : public wxHVScrolledWindow
     wxPanel* intermediate;
     // wxDECLARE_EVENT_TABLE();
   protected:
-    std::vector<wxControl*> wxCtrls;
+    std::vector<wxWindow*> wxCtrls;
     std::vector<LinkedCtrl*> linkedCtrls;
     std::function<void(void)> lastPopulateFn = 0;
 };
@@ -160,7 +162,25 @@ class AnimPanel : public ToolPanel
         : ToolPanel(parent, ID, pos, size), input(in)
     {
     }
-    //std::vector<std::unique_ptr<Animation>> animations;
+    void SetInputPlane(InputPlane* in)
+    {
+        input = in;
+    }
+
+    bool NeedsUpdate()
+    {
+        return true;
+    }
+    void RefreshLinked() {};
+
+    void AddAnimCtrl();
+    void OnAddAnimCtrl(wxCommandEvent& event) { AddAnimCtrl(); }
+    void PopulateAnimCtrls();
+    void UpdateComboBoxes();
+    void FinishLayout();
+
+    wxDECLARE_EVENT_TABLE();
+
   private:
     InputPlane* input;
 };

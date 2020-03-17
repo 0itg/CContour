@@ -22,12 +22,12 @@ class ContourPolygon : public Contour
     };
 
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);
-    virtual void ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
+    virtual bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
     virtual bool IsDone();
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                   int pixPrecision = 3);
     virtual void Finalize();
-    cplx Interpolate(double t);
+    virtual cplx Interpolate(double t);
     void Subdivide(int res);
 
   protected:

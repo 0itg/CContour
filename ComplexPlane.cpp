@@ -231,6 +231,18 @@ void ComplexPlane::ClearContours()
     state                = -1;
 }
 
+wxArrayString ComplexPlane::GetContourNames()
+{
+    wxArrayString names;
+
+    for (auto& C : contours)
+    {
+        names.Add(C->GetName());
+    }
+
+	return names;
+}
+
 void Axes::Draw(wxDC* dc)
 {
     using namespace std::complex_literals;

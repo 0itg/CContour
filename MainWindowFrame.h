@@ -6,6 +6,7 @@ class InputPlane;
 class OutputPlane;
 class NumCtrlPanel;
 class VariableEditPanel;
+class AnimPanel;
 
 class MainWindowFrame : public wxFrame
 {
@@ -23,6 +24,7 @@ class MainWindowFrame : public wxFrame
     OutputPlane* output;
     NumCtrlPanel* numCtrlPanel;
     VariableEditPanel* varEditPanel;
+    AnimPanel* animPanel;
     wxMenu* menuWindow;
     wxToolBar* toolbar;
     std::string saveFileName = "";
@@ -45,12 +47,14 @@ class MainWindowFrame : public wxFrame
     void OnShowAxes_ShowGrid(wxCommandEvent& event);
     void OnShowNumCtrlWin(wxCommandEvent& event);
     void OnShowVarWin(wxCommandEvent& event);
+    void OnShowAnimWin(wxCommandEvent& event);
     void OnAuiPaneClose(wxAuiManagerEvent& event);
     void OnOpen(wxCommandEvent& event);
     void OnSave(wxCommandEvent& event);
     void OnSaveAs(wxCommandEvent& event);
+    void OnPlayButton(wxCommandEvent& event);
+    void OnPauseButton(wxCommandEvent& event);
 
-    void OnAnimTest(wxCommandEvent& event);
     void AnimOnIdle(wxIdleEvent& idle);
 
     void Save(std::string& path);

@@ -2,7 +2,11 @@
 #include "Contour.h"
 #include "Parser.h"
 #include "ToolPanel.h"
-#include "wx/richtooltip.h"
+#include "InputPlane.h"
+#include "Animation.h"
+#include "Commands.h"
+
+#include <wx/richtooltip.h>
 
 void LinkedCtrlPointTextCtrl::WriteLinked()
 {
@@ -36,7 +40,8 @@ void LinkedDoubleTextCtrl::WriteLinked()
     Parser<double> parser;
     try
     {
-        double val = parser.Parse(textCtrl->GetValue()).eval();
+        // Our own parser is more powerful than the default input handling.
+        double val = parser.Parse(textCtrl->GetText()->GetValue()).eval();
         *src       = val;
     }
     catch (std::invalid_argument& func)
@@ -130,4 +135,84 @@ void LinkedFuncCtrl::WriteLinked()
 void LinkedFuncCtrl::ReadLinked()
 {
     textCtrl->ChangeValue(src->GetInputText());
+}
+
+
+AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a) :
+    anim(a), input(in)
+{
+    panel = new wxPanel(parent);
+    contourChoices = input->GetContourNames();
+    handleChoices.Add("Center");
+    auto C = input->GetContour(0);
+    if (C)
+        for (int i = 0; i < input->GetContour(0)->GetPointCount(); i++)
+        {
+            handleChoices.Add("Ctrl Point " + std::to_string(i));
+        }
+    auto panelID = panel->GetId();
+    auto subjectLabel = new wxStaticText(panel, panelID, "Subject: ");
+    subjectMenu = new wxComboBox(panel, panelID,
+        "", wxDefaultPosition, wxDefaultSize, contourChoices, wxCB_READONLY);
+    auto commandLabel = new wxStaticText(panel, panelID, "Command: ");
+    commandMenu = new wxComboBox(panel, panelID, "", wxDefaultPosition,
+        wxDefaultSize, commandChoices, wxCB_READONLY);
+    auto handleLabel = new wxStaticText(panel, panelID, "Handle: ");
+    handleMenu = new wxComboBox(panel, panelID, "", wxDefaultPosition,
+        wxDefaultSize, handleChoices, wxCB_READONLY);
+    auto durationLabel = new wxStaticText(panel, panelID, "Duration: ");
+    durationCtrl = new LinkedDoubleTextCtrl(panel, panelID,
+        "1.0", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, &dur, 0.1, 1.0);
+
+    sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxSizerFlags flags(1);
+    flags.Border(wxALL, 3).Proportion(1);
+    wxSizerFlags labelFlags(1);
+    labelFlags.Border(wxALL, 3).Proportion(0);
+    sizer->Add(subjectLabel, labelFlags);
+    sizer->Add(subjectMenu, flags);
+    sizer->Add(commandLabel, labelFlags);
+    sizer->Add(commandMenu, flags);
+    sizer->Add(handleLabel, labelFlags);
+    sizer->Add(handleMenu, flags);
+    sizer->Add(durationLabel, labelFlags);
+    sizer->Add(durationCtrl->GetCtrlPtr(), flags);
+    panel->SetSizer(sizer);
+    panel->Fit();
+}
+
+void AnimCtrl::WriteLinked()
+{
+    anim->ClearCommands();
+    int subj = subjectMenu->GetSelection();
+    int com = commandMenu->GetSelection();
+    int handle = handleMenu->GetSelection();
+    durationCtrl->WriteLinked();
+    if (subj > -1 && com > -1 && handle > -1)
+    {
+        handle--;
+        anim->duration_ms = 1000 * dur;
+
+        auto C = input->GetContour(subj);
+        anim->SetFunction([=](double t) {
+            auto ptr = input->GetContour(com);
+            return ptr->Interpolate(t);
+            });
+        anim->AddCommand(std::make_unique<CommandContourPlaceAt>(C, 0, handle));
+        anim->AddCommand(
+            std::make_unique<CommandContourSubdivide>(C, input->GetRes()));
+    }
+}
+
+void AnimCtrl::ReadLinked()
+{
+    UpdateComboBoxes();
+}
+
+void AnimCtrl::UpdateComboBoxes()
+{
+    contourChoices = input->GetContourNames();
+    subjectMenu->Set(contourChoices);
+    commandMenu->Set(contourChoices);
+    handleMenu->Set(handleChoices);
 }

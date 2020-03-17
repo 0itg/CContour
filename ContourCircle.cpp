@@ -25,9 +25,10 @@ void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
     DrawCtrlPoint(dc, p);
 }
 
-void ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
+bool ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
 {
     radius = abs(points[0] - mousePos);
+    return true;
 }
 
 bool ContourCircle::IsPointOnContour(cplx pt, ComplexPlane* canvas,

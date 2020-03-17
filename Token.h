@@ -225,7 +225,6 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T>
     std::string name = "f";
 };
 
-
 // Used for parsing strings. Should never make it to the output queue
 template <typename T> class SymbolLParen : public Symbol<T>
 {

@@ -5,6 +5,7 @@
 #include "OutputPlane.h"
 #include "Parser.h"
 #include "Token.h"
+#include "Animation.h"
 
 #include <wx/richtooltip.h>
 
@@ -15,6 +16,7 @@
 
 wxBEGIN_EVENT_TABLE(NumCtrlPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
+EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
 EVT_PAINT(ToolPanel::OnPaintEvent)
 EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
 EVT_SPIN_DOWN(wxID_ANY, ToolPanel::OnSpinButtonDown)
@@ -22,9 +24,17 @@ wxEND_EVENT_TABLE();
 
 wxBEGIN_EVENT_TABLE(VariableEditPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
+EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
 EVT_PAINT(VariableEditPanel::OnPaintEvent)
 EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
 EVT_SPIN_DOWN(wxID_ANY, ToolPanel::OnSpinButtonDown)
+wxEND_EVENT_TABLE();
+
+wxBEGIN_EVENT_TABLE(AnimPanel, wxHVScrolledWindow)
+EVT_COMBOBOX(wxID_ANY, ToolPanel::OnTextEntry)
+EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
+EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
+EVT_BUTTON(ID_New_Anim, AnimPanel::OnAddAnimCtrl)
 wxEND_EVENT_TABLE();
 // clang-format on
 
@@ -307,4 +317,54 @@ void VariableEditPanel::OnPaintEvent(wxPaintEvent& event)
     {
         ctrl->ReadLinked();
     }
+}
+
+void AnimPanel::AddAnimCtrl()
+{
+    input->animations.push_back(std::make_unique<Animation>());
+    auto test = new AnimCtrl(intermediate, input, input->animations.back().get());
+    auto sizer = intermediate->GetSizer();
+    wxSizerFlags sizerFlags(1);
+    sizerFlags.Border(wxLEFT | wxRIGHT, 3);
+    sizer->Insert(sizer->GetItemCount() - 1, test->GetCtrlPtr(), sizerFlags);
+    AddLinkedCtrl(test);
+
+    FinishLayout();
+}
+
+void AnimPanel::PopulateAnimCtrls()
+{
+    Freeze();
+    ClearPanel();
+    input->animations.push_back(std::make_unique<Animation>());
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    intermediate->SetSizer(sizer);
+
+    auto newAnimButton = new wxButton(intermediate, ID_New_Anim, "New Animation");
+    AddDecoration(newAnimButton);
+    sizer->Add(newAnimButton);
+    AddAnimCtrl();
+
+    Thaw();
+}
+
+void AnimPanel::UpdateComboBoxes()
+{
+    for (auto C : linkedCtrls)
+        C->ReadLinked();
+}
+
+void AnimPanel::FinishLayout()
+{
+    intermediate->SetMinClientSize(
+        wxSize(700, ((wxCtrls.size() + linkedCtrls.size()) * (ROW_HEIGHT + 6))));
+    intermediate->SetMaxClientSize(
+        wxSize(700, ((wxCtrls.size() + linkedCtrls.size()) * (ROW_HEIGHT + 6))));
+    SetVirtualSize(700, ((wxCtrls.size() + linkedCtrls.size()) * (ROW_HEIGHT + 6)));
+
+    intermediate->FitInside();
+    intermediate->Layout();
+    SetColumnCount(35);
+    SetRowCount(wxCtrls.size() + linkedCtrls.size());
+    Layout();
 }

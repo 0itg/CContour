@@ -82,6 +82,7 @@ class OutputPlane : public ComplexPlane
         ar << tGrid;
         ar << this->f.GetInputText();
         ar << this->f.GetVarMap();
+        ar << this->f.GetIV();
     }
     template <class Archive> void load(Archive& ar, const unsigned int version)
     {
@@ -95,6 +96,9 @@ class OutputPlane : public ComplexPlane
         ar >> varMap;
         f = this->parser.Parse(savedFunc);
         f.RestoreVarsFromMap(varMap);
+        std::string IV;
+        ar >> IV;
+        f.SetIV(IV);
     }
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)

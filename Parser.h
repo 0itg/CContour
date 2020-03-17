@@ -142,7 +142,7 @@ template <typename T> class ParsedFunc
     };
 
     void SetIV(std::string token) { IV_token = token; }
-    std::string GetIV() { return IV_token; }
+    std::string GetIV() const { return IV_token; }
     void SetVariable(const std::string& name, const T& val);
 
     typename std::vector<Symbol<T>*>::iterator itr;
@@ -256,7 +256,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
         // If first char is a number, read in the whole number.
         // If anything remains, It is an unrecognized token,
         // so call it a variable and set it to zero.
-        if (isdigit(s[0]))
+        if (isdigit(s[0]) || s[0] == '.')
         {
             ss >> t;
             // Add "\\" to name to prevent issues tokenizing in the future

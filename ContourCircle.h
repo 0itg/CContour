@@ -21,7 +21,7 @@ class ContourCircle : public Contour
 
     void Draw(wxDC* dc, ComplexPlane* canvas);
     // Changes the radius, rather than translating.
-    void ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
+    bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
     bool IsDone()
     {
         return true;

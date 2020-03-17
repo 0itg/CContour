@@ -8,6 +8,7 @@ typedef std::complex<double> cplx;
 
 class ContourParametric : public ContourPolygon
 {
+	friend class boost::serialization::access;
 public:
 	ContourParametric() { }
 	ContourParametric(std::string func, int res = 200, wxColor col = wxColor(0,0,0),
@@ -23,6 +24,7 @@ public:
 		f = parser.Parse(func);
 	}
 	void Finalize() { CalcCenter(); }
+	bool IsDone() { return true; }
 
 	// Mouse-driven editing is disabled.
 	int OnCtrlPoint(cplx pt, ComplexPlane* canvas,
@@ -31,7 +33,7 @@ public:
 	}
 
 	// Mouse-driven editing is disabled.
-	void ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) {}
+	bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) { return false; }
 
 	virtual void PopulateMenu(ToolPanel* TP);
 
@@ -40,6 +42,37 @@ private:
 	double tEnd = 1;
 	Parser<cplx> parser;
 	ParsedFunc<cplx> f;
-	//std::function<cplx(cplx)> f;
+	template <class Archive>
+	void save(Archive& ar, const unsigned int version) const
+	{
+		ar << parser;
+		ar << tStart;
+		ar << tEnd;
+		ar << this->f.GetInputText();
+		ar << this->f.GetVarMap();
+		ar << this->f.GetIV();
+	}
+	template <class Archive> void load(Archive& ar, const unsigned int version)
+	{
+		ar >> parser;
+		ar >> tStart;
+		ar >> tEnd;
+		std::string savedFunc;
+		ar >> savedFunc;
+		std::map<std::string, cplx> varMap;
+		ar >> varMap;
+		f = this->parser.Parse(savedFunc);
+		f.RestoreVarsFromMap(varMap);
+		std::string IV;
+		ar >> IV;
+		f.SetIV(IV);
+	}
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		ar & boost::serialization::base_object<Contour, ContourParametric>(*this);
+		boost::serialization::split_member(ar, *this, version);
+	}
 };
 
+BOOST_CLASS_EXPORT_KEY(ContourParametric)

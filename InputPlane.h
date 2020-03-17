@@ -16,6 +16,7 @@ typedef std::complex<double> cplx;
 
 class ContourPolygon;
 class OutputPlane;
+class AnimPanel;
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
 // complex numbers and mapped to the ouput panel under some complex function.
@@ -79,6 +80,7 @@ class InputPlane : public ComplexPlane
         colorPicker = ptr;
     };
     wxColor RandomColor();
+    void SetAnimPanel(AnimPanel* a) { animPanel = a; }
 
     // If true, when axes step values change, grid step values
     // change accordingly
@@ -107,6 +109,7 @@ class InputPlane : public ComplexPlane
     std::vector<OutputPlane*> outputs;
 
     wxColourPickerCtrl* colorPicker = nullptr;
+    AnimPanel* animPanel = nullptr;
 
     int contourType = ID_Circle;
 

@@ -23,8 +23,7 @@ class InputPlane;
 class ContourPolygon;
 class ComplexPlane;
 class ToolPanel;
-template <class T>
-class ParsedFunc;
+template <class T> class ParsedFunc;
 
 // All contours include a set of points, may be open or closed,
 // and need to define a function for interpolating the points
@@ -47,7 +46,7 @@ class Contour
 
     // Action to be taken when selecting the contour between control
     // points. Typically it will just call the Translate function.
-    virtual void ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) = 0;
+    virtual bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) = 0;
 
     virtual void Translate(cplx z1, cplx z2);
 

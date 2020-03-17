@@ -46,9 +46,10 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
         DrawClippedLine(screenPoints.back(), screenPoints.front(), dc, canvas);
 }
 
-void ContourPolygon::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
+bool ContourPolygon::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
 {
     Translate(mousePos, lastPointClicked);
+    return true;
 }
 
 inline bool ContourPolygon::IsDone()

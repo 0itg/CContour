@@ -156,6 +156,8 @@ class ComplexPlane : public wxPanel
     }
     void ClearContours();
 
+    wxArrayString GetContourNames();
+
     Axes axes;
     bool movedViewPort = true;
 

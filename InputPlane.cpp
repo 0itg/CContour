@@ -95,6 +95,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             state              = contours.size() - 1;
             highlightedContour = state;
             toolPanel->PopulateContourTextCtrls(contours[state].get());
+            animPanel->UpdateComboBoxes();
 
             for (auto out : outputs)
             {
@@ -192,6 +193,7 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
             RemoveContour(state);
             nextState = STATE_IDLE;
             toolPanel->PopulateAxisTextCtrls();
+            animPanel->UpdateComboBoxes();
         }
         state = nextState;
         Refresh();
@@ -234,17 +236,31 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         CaptureMouseIfAble();
         if (highlightedCtrlPoint < 0)
         {
-            contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos);
+            if (contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos))
+            {
+                contours[state]->Subdivide(res);
+                toolPanel->Refresh();
+                toolPanel->Update();
+                Refresh();
+                Update();
+            }
+            else
+            {
+                highlightedContour = -1;
+                highlightedCtrlPoint = -1;
+                state = STATE_IDLE;
+                ReleaseMouseIfAble();
+            }
         }
         else
         {
             contours[state]->SetCtrlPoint(highlightedCtrlPoint, mousePos);
+            contours[state]->Subdivide(res);
+            toolPanel->Refresh();
+            toolPanel->Update();
+            Refresh();
+            Update();
         }
-        contours[state]->Subdivide(res);
-        toolPanel->Refresh();
-        toolPanel->Update();
-        Refresh();
-        Update();
     }
     // When the mouse moves, recheck for highlighted contours
     // and control points (and automatically highlight the contour).
@@ -289,6 +305,7 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
             highlightedContour = -1;
             Refresh();
             Update();
+            animPanel->UpdateComboBoxes();
         }
         break;
     }
@@ -305,8 +322,9 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    for (auto& A : animations)
-        A->FrameAt(animTimer.Time());
+    if (animating)
+        for (auto& A : animations)
+            A->FrameAt(animTimer.Time());
 
     if (showGrid)
         grid.Draw(&dc, this);
