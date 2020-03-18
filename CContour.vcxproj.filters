@@ -157,5 +157,14 @@
     <Image Include="icons\parametric-curve.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="icons\close.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\pause.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\play.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

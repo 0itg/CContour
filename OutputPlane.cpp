@@ -39,8 +39,7 @@ OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, const std::string& n)
 
 void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 {
-    if (panning)
-        state = STATE_IDLE;
+    if (panning) state = STATE_IDLE;
 }
 
 void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
@@ -81,13 +80,9 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
     dc.SetBrush(brush);
 
     // Only recalculate the mapping if the viewport changed.
-    if (movedViewPort)
-    {
-        tGrid.MapGrid(in->grid, f);
-    }
+    if (movedViewPort) { tGrid.MapGrid(in->grid, f); }
 
-    if (showGrid)
-        tGrid.Draw(&dc, this);
+    if (showGrid) tGrid.Draw(&dc, this);
 
     auto& inputContours = in->contours;
     for (int i = 0; i < inputContours.size(); i++)
@@ -115,8 +110,7 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
         contours[highlightedContour]->Draw(&dc, this);
     }
 
-    if (showAxes)
-        axes.Draw(&dc);
+    if (showAxes) axes.Draw(&dc);
     movedViewPort = false;
 }
 
@@ -133,7 +127,8 @@ void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
     Update();
 }
 
-void OutputPlane::OnFunctionEntry(wxCommandEvent& event) {
+void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
+{
     EnterFunction(funcInput->GetLineText(0));
 }
 
@@ -195,7 +190,4 @@ void OutputPlane::MarkAllForRedraw()
     }
 }
 
-int OutputPlane::GetRes()
-{
-    return tGrid.res;
-}
+int OutputPlane::GetRes() { return tGrid.res; }

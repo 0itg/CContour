@@ -3,10 +3,7 @@
 #include "InputPlane.h"
 #include "OutputPlane.h"
 
-void CommandContourTranslate::exec()
-{
-    subject->Translate(newPos, oldPos);
-}
+void CommandContourTranslate::exec() { subject->Translate(newPos, oldPos); }
 
 void CommandContourPlaceAt::exec()
 {
@@ -16,25 +13,13 @@ void CommandContourPlaceAt::exec()
         subject->Translate(newPos, subject->GetCenter());
 }
 
-void CommandContourMovePoint::exec()
-{
-    subject->SetCtrlPoint(index, newPos);
-}
+void CommandContourMovePoint::exec() { subject->SetCtrlPoint(index, newPos); }
 
-void CommandContourAddPoint::exec()
-{
-    subject->AddPoint(mPos);
-}
+void CommandContourAddPoint::exec() { subject->AddPoint(mPos); }
 
-void CommandContourRemovePoint::exec()
-{
-    subject->RemovePoint(index);
-}
+void CommandContourRemovePoint::exec() { subject->RemovePoint(index); }
 
-void CommandContourSubdivide::exec()
-{
-    subject->Subdivide(res);
-}
+void CommandContourSubdivide::exec() { subject->Subdivide(res); }
 
 void CommandInputPlaneCreateContour::exec()
 {
@@ -57,7 +42,4 @@ void CommandAxesReset::exec()
     subject->imagMin = -10;
 }
 
-void CommandOutputPlaneFuncEntry::exec()
-{
-    subject->EnterFunction(func);
-}
+void CommandOutputPlaneFuncEntry::exec() { subject->EnterFunction(func); }

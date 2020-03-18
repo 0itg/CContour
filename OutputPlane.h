@@ -49,18 +49,9 @@ class OutputPlane : public ComplexPlane
     void EnterFunction(std::string s);
 
     void MarkAllForRedraw();
-    void SetFuncInput(wxTextCtrl* fIn)
-    {
-        funcInput = fIn;
-    }
-    void RefreshFuncText()
-    {
-        funcInput->SetValue(f.GetInputText());
-    }
-    void SetVarPanel(VariableEditPanel* var)
-    {
-        varPanel = var;
-    }
+    void SetFuncInput(wxTextCtrl* fIn) { funcInput = fIn; }
+    void RefreshFuncText() { funcInput->SetValue(f.GetInputText()); }
+    void SetVarPanel(VariableEditPanel* var) { varPanel = var; }
 
     int GetRes();
 

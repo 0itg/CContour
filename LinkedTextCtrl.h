@@ -32,7 +32,7 @@ template <class T> class ParsedFunc;
 class LinkedCtrl
 {
   public:
-    virtual ~LinkedCtrl() {};
+    virtual ~LinkedCtrl(){};
     virtual void WriteLinked()     = 0;
     virtual void ReadLinked()      = 0;
     virtual wxWindowID GetId()     = 0;
@@ -46,43 +46,31 @@ class LinkedTextCtrl : public LinkedCtrl
   public:
     virtual void WriteLinked() = 0;
     virtual void ReadLinked()  = 0;
-    virtual wxWindowID GetId()
-    {
-        return textCtrl->GetId();
-    }
+    virtual wxWindowID GetId() { return textCtrl->GetId(); }
     virtual bool Destroy()
     {
         bool res = textCtrl->Destroy();
         delete this;
         return res;
     }
-    virtual wxTextCtrl* GetCtrlPtr()
-    {
-        return textCtrl;
-    }
+    virtual wxTextCtrl* GetCtrlPtr() { return textCtrl; }
     wxTextCtrl* textCtrl;
 };
 
 // Base class for LinkedCtrls which contain a wxSpinCtrlDouble.
 class LinkedSpinCtrlDouble : public LinkedCtrl
 {
-public:
+  public:
     virtual void WriteLinked() = 0;
-    virtual void ReadLinked() = 0;
-    virtual wxWindowID GetId()
-    {
-        return textCtrl->GetId();
-    }
+    virtual void ReadLinked()  = 0;
+    virtual wxWindowID GetId() { return textCtrl->GetId(); }
     virtual bool Destroy()
     {
         bool res = textCtrl->Destroy();
         delete this;
         return res;
     }
-    virtual wxSpinCtrlDouble* GetCtrlPtr()
-    {
-        return textCtrl;
-    }
+    virtual wxSpinCtrlDouble* GetCtrlPtr() { return textCtrl; }
     wxSpinCtrlDouble* textCtrl;
 };
 
@@ -94,23 +82,11 @@ class LinkedCplxSpinCtrl : public LinkedCtrl
 {
   public:
     LinkedCplxSpinCtrl(wxWindow* par, wxStandardID ID, wxString str,
-                      wxPoint defaultPos, wxSize defSize, int style);
-    virtual wxWindowID GetId()
-    {
-        return textCtrl->GetId();
-    }
-    virtual wxWindowID GetIdReSpin()
-    {
-        return reSpin->GetId();
-    }
-    virtual wxWindowID GetIdImSpin()
-    {
-        return imSpin->GetId();
-    }
-    virtual wxPanel* GetCtrlPtr()
-    {
-        return panel;
-    }
+                       wxPoint defaultPos, wxSize defSize, int style);
+    virtual wxWindowID GetId() { return textCtrl->GetId(); }
+    virtual wxWindowID GetIdReSpin() { return reSpin->GetId(); }
+    virtual wxWindowID GetIdImSpin() { return imSpin->GetId(); }
+    virtual wxPanel* GetCtrlPtr() { return panel; }
     virtual void Add(cplx c) = 0;
     virtual bool Destroy()
     {
@@ -131,16 +107,15 @@ class LinkedDoubleTextCtrl : public LinkedSpinCtrlDouble
   public:
     LinkedDoubleTextCtrl(wxWindow* par, wxWindowID ID, wxString str,
                          wxPoint defaultPos, wxSize defSize, int style,
-                         double* p, double step = 0.1, double init = 0, double min = -1e10, double max = 1e10)
+                         double* p, double step = 0.1, double init = 0,
+                         double min = -1e10, double max = 1e10)
         : src(p)
     {
-        textCtrl = new wxSpinCtrlDouble(par, ID, str, defaultPos, defSize, style, min, max, init, step);
+        textCtrl = new wxSpinCtrlDouble(par, ID, str, defaultPos, defSize,
+                                        style, min, max, init, step);
     }
     void WriteLinked();
-    void ReadLinked()
-    {
-        textCtrl->SetValue(*src);
-    }
+    void ReadLinked() { textCtrl->SetValue(*src); }
 
   private:
     double* src;
@@ -187,22 +162,27 @@ class LinkedVarTextCtrl : public LinkedCplxSpinCtrl
 
 class LinkedFuncCtrl : public LinkedTextCtrl
 {
-public:
+  public:
     LinkedFuncCtrl(ToolPanel* par, wxStandardID ID, wxString str,
-        wxPoint defaultPos, wxSize defSize, int style, ParsedFunc<cplx>* f);
+                   wxPoint defaultPos, wxSize defSize, int style,
+                   ParsedFunc<cplx>* f);
     void WriteLinked();
     void ReadLinked();
 
-private:
+  private:
     ToolPanel* TP;
     ParsedFunc<cplx>* src;
 };
 
 class AnimCtrl : public LinkedCtrl
 {
-public:
+  public:
     AnimCtrl(wxWindow* parent, InputPlane* input, Animation* a);
-    ~AnimCtrl() { delete durationCtrl; }
+    ~AnimCtrl()
+    {
+        delete durationCtrl;
+        delete durOffsetCtrl;
+    }
 
     virtual void WriteLinked();
     virtual void ReadLinked();
@@ -215,18 +195,27 @@ public:
     }
     virtual wxWindow* GetCtrlPtr() { return panel; };
     virtual void UpdateComboBoxes();
-private:
+
+  private:
+    void PopulateHandleMenu();
     wxPanel* panel;
     wxBoxSizer* sizer;
-    wxComboBox* subjectMenu;
     wxComboBox* commandMenu;
+    wxComboBox* subjectMenu;
+    wxComboBox* pathMenu;
     wxComboBox* handleMenu;
     LinkedDoubleTextCtrl* durationCtrl;
+    LinkedDoubleTextCtrl* durOffsetCtrl;
+    wxCheckBox* reverseCtrl;
+    wxCheckBox* bounceCtrl;
+    wxButton* removeButton;
     wxArrayString contourChoices;
     wxArrayString commandChoices;
     wxArrayString handleChoices;
 
     InputPlane* input;
     Animation* anim;
-    double dur = 3.0;
+    double dur    = 3.0;
+    double offset = 0;
+    int reverse   = 1; // set to -1 to reverse t;
 };

@@ -61,10 +61,7 @@ class Contour
                             int pixPrecision = 3);
     virtual cplx GetCtrlPoint(int index);
     virtual void SetCtrlPoint(int index, cplx c);
-    virtual std::string& GetName()
-    {
-        return name;
-    }
+    virtual std::string& GetName() { return name; }
 
     // Any actions to be taken when editing is finished.
     virtual void Finalize() { CalcCenter(); };
@@ -89,20 +86,12 @@ class Contour
     // precisely, but it would be expected from the user.
     virtual void Subdivide(int res) = 0;
 
-    // Creates a Polygon by applying f to the subDiv points. 
+    // Creates a Polygon by applying f to the subDiv points.
     virtual ContourPolygon* Map(ParsedFunc<cplx>& f);
 
-    int GetPointCount()
-    {
-        return (int)points.size();
-    }
-    void Reserve(size_t size)
-    {
-        points.reserve(size);
-    }
-    cplx GetCenter() {
-        return center;
-    }
+    int GetPointCount() { return (int)points.size(); }
+    void Reserve(size_t size) { points.reserve(size); }
+    cplx GetCenter() { return center; }
     cplx CalcCenter();
     void DrawCtrlPoint(wxDC* dc, wxPoint p);
 

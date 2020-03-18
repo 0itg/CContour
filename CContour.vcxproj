@@ -194,6 +194,7 @@
     <Image Include="icons\axis.png">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Image>
+    <Image Include="icons\close.png" />
     <Image Include="icons\color-randomizer.png">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Image>
@@ -219,6 +220,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Image>
     <Image Include="icons\parametric-curve.png" />
+    <Image Include="icons\pause.png" />
+    <Image Include="icons\play.png" />
     <Image Include="icons\tool-pointer.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

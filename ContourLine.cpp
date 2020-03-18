@@ -9,8 +9,8 @@ ContourLine::ContourLine(cplx c, wxColor col, std::string n) noexcept
     points.push_back(c);
     points.push_back(c);
     center = c;
-    color = col;
-    name  = n;
+    color  = col;
+    name   = n;
 }
 
 ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n) noexcept
@@ -18,8 +18,8 @@ ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n) noexcept
     points.push_back(c);
     points.push_back(d);
     center = c;
-    color = col;
-    name  = n;
+    color  = col;
+    name   = n;
 }
 
 ContourLine::ContourLine(wxColor col) noexcept
@@ -55,7 +55,7 @@ void ContourLine::Subdivide(int res)
     subDiv.clear();
     subDiv.reserve(res);
     cplx zStep((points[1].real() - points[0].real()) / res,
-                              (points[1].imag() - points[0].imag()) / res);
+               (points[1].imag() - points[0].imag()) / res);
     for (int i = 0; i < res; i++)
         subDiv.push_back(points[0] + (double)i * zStep);
     markedForRedraw = true;

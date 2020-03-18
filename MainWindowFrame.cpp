@@ -19,9 +19,9 @@
 #include "Commands.h"
 #include "ContourCircle.h"
 #include "ContourLine.h"
+#include "ContourParametric.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
-#include "ContourParametric.h"
 #include "Event_IDs.h"
 #include "Grid.h"
 #include "InputPlane.h"
@@ -131,7 +131,8 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
     // Creates a contour from a parametric curve.
 
-    toolbar->AddTool(ID_Parametric, "Parametric Curve",
+    toolbar->AddTool(
+        ID_Parametric, "Parametric Curve",
         wxBitmap(wxT("icons/parametric-curve.png"), wxBITMAP_TYPE_PNG),
         wxNullBitmap, wxITEM_NORMAL, "Opens a Parametric Curve dialog");
     toolbar->AddSeparator();
@@ -168,13 +169,11 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     // Pause and play buttons for animations
 
     toolbar->AddTool(ID_Play, "Play Animations",
-        wxBitmap(wxT("icons/play.png"), wxBITMAP_TYPE_PNG),
-        wxNullBitmap, wxITEM_RADIO,
-        "Play Animations");
+                     wxBitmap(wxT("icons/play.png"), wxBITMAP_TYPE_PNG),
+                     wxNullBitmap, wxITEM_RADIO, "Play Animations");
     toolbar->AddTool(ID_Pause, "Pause Animations",
-        wxBitmap(wxT("icons/pause.png"), wxBITMAP_TYPE_PNG),
-        wxNullBitmap, wxITEM_RADIO,
-        "Pause Animations");
+                     wxBitmap(wxT("icons/pause.png"), wxBITMAP_TYPE_PNG),
+                     wxNullBitmap, wxITEM_RADIO, "Pause Animations");
 
     toolbar->ToggleTool(ID_Pause, true);
 
@@ -250,9 +249,9 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     output->SetVarPanel(varEditPanel);
     varEditPanel->PopulateVarTextCtrls(output->f);
 
-    animPanel = new AnimPanel(this, ID_VarEditPanel, wxDefaultPosition,
-        wxSize(this->GetClientSize().x, 100), input);
-    animPanel->PopulateAnimCtrls();
+    animPanel = new AnimPanel(this, ID_AnimPanel, wxDefaultPosition,
+                              wxSize(this->GetClientSize().x, 100), input);
+    //animPanel->PopulateAnimCtrls();
     input->SetAnimPanel(animPanel);
 
     cPlaneSizer->Add(input, PlaneFlags);
@@ -260,35 +259,36 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     Cplanes->SetSizer(cPlaneSizer);
 
     aui.AddPane(Cplanes, wxAuiPaneInfo()
+                             .PaneBorder(false)
                              .Center()
                              .BestSize(1200, 700)
                              .MinSize(350, 200)
                              .CloseButton(false));
     aui.AddPane(numCtrlPanel, wxAuiPaneInfo()
+                                  .Caption("Numerical Controls")
                                   .Left()
                                   .BestSize(150, 700)
                                   .MinSize(20, 20)
                                   .TopDockable(false)
                                   .BottomDockable(false));
     aui.AddPane(varEditPanel, wxAuiPaneInfo()
+                                  .Caption("Function variables")
                                   .Right()
                                   .BestSize(150, 700)
                                   .MinSize(20, 20)
                                   .TopDockable(false)
                                   .BottomDockable(false));
     aui.AddPane(animPanel, wxAuiPaneInfo()
-        .Bottom()
-        .BestSize(700, 100)
-        .MinSize(20, 20)
-        .RightDockable(false)
-        .LeftDockable(false));
+                               .Caption("Animations")
+                               .Bottom()
+                               .BestSize(700, 100)
+                               .MinSize(20, 20)
+                               .RightDockable(false)
+                               .LeftDockable(false));
     aui.Update();
 }
 
-inline void MainWindowFrame::OnExit(wxCommandEvent& event)
-{
-    Close(true);
-}
+inline void MainWindowFrame::OnExit(wxCommandEvent& event) { Close(true); }
 
 inline void MainWindowFrame::OnAbout(wxCommandEvent& event)
 {
@@ -342,16 +342,18 @@ void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
     wxStaticText enterTStart(&ParametricCreate, wxID_ANY, "t Start");
     sizer.Add(&enterTStart, flags);
     wxSpinCtrlDouble tStartCtrl(&ParametricCreate, wxID_ANY, "0",
-        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -1e10, 1e10, 0, 0.1);
+                                wxDefaultPosition, wxDefaultSize,
+                                wxSP_ARROW_KEYS, -1e10, 1e10, 0, 0.1);
     sizer.Add(&tStartCtrl, flags);
 
     wxStaticText enterTEnd(&ParametricCreate, wxID_ANY, "t End");
     sizer.Add(&enterTEnd, flags);
     wxSpinCtrlDouble tEndCtrl(&ParametricCreate, wxID_ANY, "1.0",
-        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -1e10, 1e10, 1, 0.1);
+                              wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS,
+                              -1e10, 1e10, 1, 0.1);
     sizer.Add(&tEndCtrl, flags);
     sizer.Add(ParametricCreate.CreateButtonSizer(wxOK | wxCANCEL),
-        wxSizerFlags(1).Border(wxALL,3).CenterHorizontal());
+              wxSizerFlags(1).Border(wxALL, 3).CenterHorizontal());
     ParametricCreate.SetSizer(&sizer);
     ParametricCreate.Fit();
 
@@ -360,8 +362,7 @@ void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
         input->AddContour(std::make_unique<ContourParametric>(
             funcCtrl.GetValue(), input->GetRes(), input->color,
             nameCtrl.GetValue(), tStartCtrl.GetValue(), tEndCtrl.GetValue()));
-        if (input->randomizeColor)
-            input->color = input->RandomColor();
+        if (input->randomizeColor) input->color = input->RandomColor();
         input->Refresh();
         input->Update();
         animPanel->UpdateComboBoxes();

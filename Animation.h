@@ -17,12 +17,7 @@ class Command;
 class Animation
 {
   public:
-    Animation()
-        : f([](cplx c) {
-              return c;
-          })
-    {
-    }
+    Animation() : f([](cplx c) { return c; }) {}
     Animation(std::function<cplx(double)> func) : f(func) {}
     void FrameAt(int t);
     void Reset();
@@ -31,20 +26,18 @@ class Animation
         commands.push_back(std::move(C));
     }
     void ClearCommands() { commands.clear(); }
-    void SetFunction(std::function<cplx(double)> func)
-    {
-        f = func;
-    }
+    void SetFunction(std::function<cplx(double)> func) { f = func; }
+    bool IsEmpty() { return commands.empty(); }
 
     // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then
     // repeat. else, it will go from t=0 to t=1, then repeat.
-    bool bounce = false;
+    bool bounce     = false;
     int duration_ms = 1000;
 
   private:
     std::vector<std::unique_ptr<Command>> commands;
-    
+
     // Function must be parameterized by a variable called 't', assumed to
-    // range between 0 and 1 for now; 
-	std::function<cplx(double)> f;
+    // range between 0 and 1 for now;
+    std::function<cplx(double)> f;
 };

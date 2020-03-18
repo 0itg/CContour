@@ -14,10 +14,7 @@ class MainWindowFrame : public wxFrame
     MainWindowFrame(const wxString& title, const wxPoint& pos,
                     const wxSize& size,
                     const long style = wxDEFAULT_FRAME_STYLE);
-    ~MainWindowFrame()
-    {
-        aui.UnInit();
-    }
+    ~MainWindowFrame() { aui.UnInit(); }
 
   private:
     InputPlane* input;

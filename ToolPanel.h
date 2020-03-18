@@ -5,12 +5,12 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/aui/aui.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
 #include <wx/display.h>
 #include <wx/spinctrl.h>
-#include <wx/aui/aui.h>
 #include <wx/vscroll.h>
 
 #include <complex>
@@ -44,31 +44,13 @@ class ToolPanel : public wxHVScrolledWindow
     void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
     void ClearPanel();
 
-    void AddDecoration(wxWindow* D)
-    {
-        wxCtrls.push_back(D);
-    }
-    void AddLinkedCtrl(LinkedCtrl* L)
-    {
-        linkedCtrls.push_back(L);
-    }
-    auto GetDecoration(size_t i)
-    {
-        return wxCtrls[i];
-    }
-    auto GetLinkedCtrl(size_t i)
-    {
-        return linkedCtrls[i];
-    }
+    void AddDecoration(wxWindow* D) { wxCtrls.push_back(D); }
+    void AddLinkedCtrl(LinkedCtrl* L) { linkedCtrls.push_back(L); }
+    auto GetDecoration(size_t i) { return wxCtrls[i]; }
+    auto GetLinkedCtrl(size_t i) { return linkedCtrls[i]; }
 
-    virtual wxCoord OnGetRowHeight(size_t row) const
-    {
-        return ROW_HEIGHT;
-    }
-    virtual wxCoord OnGetColumnWidth(size_t row) const
-    {
-        return ROW_HEIGHT;
-    }
+    virtual wxCoord OnGetRowHeight(size_t row) const { return ROW_HEIGHT; }
+    virtual wxCoord OnGetColumnWidth(size_t row) const { return ROW_HEIGHT; }
 
     virtual bool NeedsUpdate()   = 0;
     virtual void RefreshLinked() = 0;
@@ -106,14 +88,8 @@ class NumCtrlPanel : public ToolPanel
     bool NeedsUpdate();
     void RefreshLinked();
 
-    void SetInputPlane(InputPlane* in)
-    {
-        input = in;
-    }
-    void SetOutputPlane(OutputPlane* out)
-    {
-        outputs.push_back(out);
-    }
+    void SetInputPlane(InputPlane* in) { input = in; }
+    void SetOutputPlane(OutputPlane* out) { outputs.push_back(out); }
 
     wxDECLARE_EVENT_TABLE();
 
@@ -133,20 +109,15 @@ class VariableEditPanel : public ToolPanel
         : ToolPanel(parent, ID, pos, size), output(out)
     {
     }
+
     void PopulateVarTextCtrls(ParsedFunc<cplx>& F);
 
     void OnPaintEvent(wxPaintEvent& event);
 
-    bool NeedsUpdate()
-    {
-        return true;
-    }
+    bool NeedsUpdate() { return true; }
     void RefreshLinked();
 
-    void SetOutputPlane(OutputPlane* out)
-    {
-        output = out;
-    }
+    void SetOutputPlane(OutputPlane* out) { output = out; }
 
     wxDECLARE_EVENT_TABLE();
 
@@ -157,25 +128,17 @@ class VariableEditPanel : public ToolPanel
 class AnimPanel : public ToolPanel
 {
   public:
-    AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
-              InputPlane* in = nullptr)
-        : ToolPanel(parent, ID, pos, size), input(in)
-    {
-    }
-    void SetInputPlane(InputPlane* in)
-    {
-        input = in;
-    }
+      AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
+          InputPlane* in = nullptr);
+    void SetInputPlane(InputPlane* in) { input = in; }
 
-    bool NeedsUpdate()
-    {
-        return true;
-    }
-    void RefreshLinked() {};
+    bool NeedsUpdate() { return true; }
+    void RefreshLinked(){};
 
     void AddAnimCtrl();
     void OnAddAnimCtrl(wxCommandEvent& event) { AddAnimCtrl(); }
-    void PopulateAnimCtrls();
+    void OnRemoveAnim(wxCommandEvent& event);
+    //void PopulateAnimCtrls();
     void UpdateComboBoxes();
     void FinishLayout();
 
@@ -183,4 +146,5 @@ class AnimPanel : public ToolPanel
 
   private:
     InputPlane* input;
+    wxButton* newAnimButton;
 };

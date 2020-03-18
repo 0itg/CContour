@@ -22,12 +22,19 @@ class InputPlane;
 class OutputPlane;
 struct Axes;
 
+enum enum_commands
+{
+    COMMAND_PLACE_AT = 0,
+    COMMAND_SET_PT
+};
+
 class Command
 {
   public:
     virtual ~Command() {}
     virtual void exec() = 0;
-    virtual void SetPositionParam(cplx c) {};
+    virtual void SetPositionParam(cplx c){};
+    // virtual cplx GetPositionParam() { return 0; };
 };
 
 class CommandContourTranslate : public Command
@@ -39,10 +46,7 @@ class CommandContourTranslate : public Command
     }
 
     void exec();
-    void SetPositionParam(cplx c)
-    {
-        newPos = c;
-    }
+    void SetPositionParam(cplx c) { newPos = c; }
 
   private:
     cplx newPos;
@@ -62,10 +66,11 @@ class CommandContourPlaceAt : public Command
     }
 
     void exec();
-    void SetPositionParam(cplx c)
-    {
-        newPos = c;
-    }
+    void SetPositionParam(cplx c) { newPos = c; }
+    // virtual cplx GetPositionParam()
+    //{
+    //    return newPos;
+    //}
 
   private:
     int point;
@@ -82,10 +87,11 @@ class CommandContourMovePoint : public Command
     }
 
     void exec();
-    void SetPositionParam(cplx c)
-    {
-        newPos = c;
-    }
+    void SetPositionParam(cplx c) { newPos = c; }
+    // virtual cplx GetPositionParam()
+    //{
+    //    return newPos;
+    //}
 
   private:
     cplx newPos;
@@ -99,10 +105,7 @@ class CommandContourAddPoint : public Command
     CommandContourAddPoint(Contour* s, cplx n) : mPos(n), subject(s) {}
 
     void exec();
-    void SetPositionParam(cplx c)
-    {
-        mPos = c;
-    }
+    void SetPositionParam(cplx c) { mPos = c; }
 
   private:
     cplx mPos;
@@ -177,7 +180,10 @@ class CommandAxesReset : public Command
 class CommandOutputPlaneFuncEntry : public Command
 {
   public:
-    CommandOutputPlaneFuncEntry(OutputPlane* a, std::string s) : subject(a), func(s) {}
+    CommandOutputPlaneFuncEntry(OutputPlane* a, std::string s)
+        : subject(a), func(s)
+    {
+    }
 
     void exec();
 

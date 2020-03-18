@@ -11,8 +11,8 @@ ContourPolygon::ContourPolygon(cplx c, wxColor col, std::string n) noexcept
     points.push_back(c);
     points.push_back(c);
     center = c;
-    color = col;
-    name  = n;
+    color  = col;
+    name   = n;
 }
 ContourPolygon::ContourPolygon(wxColor col, std::string n) noexcept
 {
@@ -26,11 +26,11 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
     std::vector<wxPoint> screenPoints;
     screenPoints.resize(points.size());
     std::transform(points.begin(), points.end(), screenPoints.begin(),
-                   [canvas](cplx z) {
-                       return canvas->ComplexToScreen(z);
-                   });
-    auto screenW = abs(canvas->LengthXToScreen(canvas->axes.realMax - canvas->axes.realMin));
-    auto screenH = abs(canvas->LengthYToScreen(canvas->axes.imagMax - canvas->axes.imagMin));
+                   [canvas](cplx z) { return canvas->ComplexToScreen(z); });
+    auto screenW = abs(
+        canvas->LengthXToScreen(canvas->axes.realMax - canvas->axes.realMin));
+    auto screenH = abs(
+        canvas->LengthYToScreen(canvas->axes.imagMax - canvas->axes.imagMin));
 
     // If the distance between two points is greater than the distance across
     // the screen, assume it really should be a discontinuity and skip it.
@@ -38,8 +38,7 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
     {
         auto p1 = *pt;
         auto p2 = *(pt + 1);
-        if ((abs(p2.x - p1.x) < screenW) &&
-            (abs(p2.y - p1.y) < screenH))
+        if ((abs(p2.x - p1.x) < screenW) && (abs(p2.y - p1.y) < screenH))
             DrawClippedLine(p1, p2, dc, canvas);
     }
     if (closed)
@@ -54,8 +53,7 @@ bool ContourPolygon::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
 
 inline bool ContourPolygon::IsDone()
 {
-    if (closed)
-        return true;
+    if (closed) return true;
     return abs(points[points.size() - 1] - points[0]) < 0.3;
 }
 
@@ -73,8 +71,7 @@ bool ContourPolygon::IsPointOnContour(cplx pt, ComplexPlane* canvas,
     int i;
     for (i = 0; i < points.size() - 1; i++)
     {
-        if (checkDist(pt, i + 1, i))
-            return true;
+        if (checkDist(pt, i + 1, i)) return true;
     }
     // Check the line from last point to first
     if (checkDist(pt, 0, i))
@@ -126,7 +123,7 @@ cplx ContourPolygon::Interpolate(double t)
     {
         double sideParam =
             abs(t * perimeter - lengthTraversed) / sideLengths[sideIndex];
-        if (sideIndex < points.size())
+        if (sideIndex < points.size() - 1)
             return points[(__int64)sideIndex + 1] * (1 - sideParam) +
                    points[sideIndex] * sideParam;
         else
@@ -140,9 +137,9 @@ void ContourPolygon::Subdivide(int res)
 {
     subDiv.clear();
     subDiv.reserve(res + points.size());
-    res               = (int)(std::max(points.size(), res - points.size()));
-    int sideIndex     = 0;
-    double t          = 0;
+    res           = (int)(std::max(points.size(), res - points.size()));
+    int sideIndex = 0;
+    double t      = 0;
     CalcSideLengths();
     double lengthTraversed = sideLengths[0];
 
@@ -156,7 +153,8 @@ void ContourPolygon::Subdivide(int res)
             // t just passed the edge of one side.
             sideIndex++;
             lengthTraversed += sideLengths[sideIndex];
-            subDiv.push_back(points[sideIndex]); // add the endpoint of each segment
+            subDiv.push_back(
+                points[sideIndex]); // add the endpoint of each segment
         }
         // Within one side, linearly interpolate the points
         // such that we get res points in total.
@@ -167,11 +165,11 @@ void ContourPolygon::Subdivide(int res)
                                    sideLengths[sideIndex];
                 if (sideIndex < points.size() - 1)
                     subDiv.push_back(points[(__int64)sideIndex + 1] *
-                                    (1 - sideParam) +
-                                points[sideIndex] * sideParam);
+                                         (1 - sideParam) +
+                                     points[sideIndex] * sideParam);
                 else
                     subDiv.push_back(points[0] * (1 - sideParam) +
-                                points[sideIndex] * sideParam);
+                                     points[sideIndex] * sideParam);
             }
     }
     // Degenerate polygons may occur but are discarded by the code above.

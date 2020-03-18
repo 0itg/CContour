@@ -12,8 +12,8 @@ ContourCircle::ContourCircle(cplx c, double r, wxColor col,
 {
     points.push_back(c);
     center = c;
-    color = col;
-    name  = n;
+    color  = col;
+    name   = n;
 }
 
 void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
@@ -61,7 +61,7 @@ void ContourCircle::Subdivide(int res)
         double t = (double)i / res;
         subDiv.push_back(Interpolate(t));
     }
-   markedForRedraw = true;
+    markedForRedraw = true;
 }
 
 std::tuple<int, int, int> ContourCircle::PopulateSupplementalMenu(ToolPanel* TP)

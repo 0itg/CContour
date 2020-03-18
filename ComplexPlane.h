@@ -20,8 +20,8 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/complex.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 
 typedef std::complex<double> cplx;
 
@@ -104,42 +104,22 @@ class ComplexPlane : public wxPanel
 
     void RefreshShowAxes_ShowGrid();
 
-    std::string& GetName()
-    {
-        return name;
-    }
+    std::string& GetName() { return name; }
 
-    wxSize DoBestClientSize() const
-    {
-        return wxSize(200, 200);
-    }
-    void SetToolbar(wxToolBar* tb)
-    {
-        toolbar = tb;
-    }
-    void SetStatusBar(wxStatusBar* ptr)
-    {
-        statBar = ptr;
-    };
-    void SetToolPanel(NumCtrlPanel* ptr)
-    {
-        toolPanel = ptr;
-    };
-    virtual void PrepareForLoadFromFile()
-    {
-        ClearContours();
-    }
+    wxSize DoBestClientSize() const { return wxSize(200, 200); }
+    void SetToolbar(wxToolBar* tb) { toolbar = tb; }
+    void SetStatusBar(wxStatusBar* ptr) { statBar = ptr; };
+    void SetToolPanel(NumCtrlPanel* ptr) { toolPanel = ptr; };
+    virtual void PrepareForLoadFromFile() { ClearContours(); }
 
     // For convenience
     void CaptureMouseIfAble()
     {
-        if (!HasCapture())
-            CaptureMouse();
+        if (!HasCapture()) CaptureMouse();
     }
     void ReleaseMouseIfAble()
     {
-        if (HasCapture())
-            ReleaseMouse();
+        if (HasCapture()) ReleaseMouse();
     }
 
     // Flags the contour/control point under this point as highlighted,
@@ -150,10 +130,7 @@ class ComplexPlane : public wxPanel
     // void InversePan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);
 
-    void SetResCtrl(wxSpinCtrl* r)
-    {
-        resCtrl = r;
-    }
+    void SetResCtrl(wxSpinCtrl* r) { resCtrl = r; }
     void ClearContours();
 
     wxArrayString GetContourNames();
@@ -172,9 +149,9 @@ class ComplexPlane : public wxPanel
     cplx lastMidClick;
 
     bool mouseLeftDown = false;
-    bool panning  = false;
-    bool showAxes = true;
-    bool showGrid = true;
+    bool panning       = false;
+    bool showAxes      = true;
+    bool showGrid      = true;
     wxSpinCtrl* resCtrl;
     wxStatusBar* statBar;
     wxToolBar* toolbar;

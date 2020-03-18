@@ -16,10 +16,7 @@ class ContourLine : public Contour
     ContourLine(cplx c, cplx d, wxColor col = wxColor(255, 255, 255),
                 std::string n = "Line") noexcept;
     ContourLine(wxColor col = wxColor(255, 255, 255)) noexcept;
-    virtual ContourLine* Clone() noexcept
-    {
-        return new ContourLine(*this);
-    };
+    virtual ContourLine* Clone() noexcept { return new ContourLine(*this); };
 
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);
     virtual void AddPoint(cplx mousePos){};
@@ -28,10 +25,7 @@ class ContourLine : public Contour
         Translate(mousePos, lastPointClicked);
         return true;
     };
-    virtual bool IsDone()
-    {
-        return true;
-    };
+    virtual bool IsDone() { return true; };
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                   int pixPrecision = 3);
     virtual cplx Interpolate(double t);

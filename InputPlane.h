@@ -1,8 +1,8 @@
 #pragma once
-#include "ComplexPlane.h"
-#include "Grid.h"
 #include "Animation.h"
+#include "ComplexPlane.h"
 #include "Event_IDs.h"
+#include "Grid.h"
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -27,7 +27,7 @@ class InputPlane : public ComplexPlane
     friend class boost::serialization::access;
 
   public:
-    InputPlane(){}
+    InputPlane() {}
     InputPlane(wxWindow* parent, const std::string& n = "Input")
         : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
     {
@@ -49,14 +49,8 @@ class InputPlane : public ComplexPlane
     void OnContourResCtrl(wxSpinEvent& event);
     void OnContourResCtrl(wxCommandEvent& event);
 
-    int GetState() const
-    {
-        return state;
-    }
-    int GetRes() const
-    {
-        return res;
-    }
+    int GetState() const { return state; }
+    int GetRes() const { return res; }
     void RecalcAll();
 
     // "Type" meaning Circle, Polygon, Rectangle, etc.
@@ -71,14 +65,12 @@ class InputPlane : public ComplexPlane
         else
             return nullptr;
     }
-    void AddAnimation(std::unique_ptr<Animation> A) {
+    void AddAnimation(std::unique_ptr<Animation> A)
+    {
         animations.push_back(std::move(A));
     }
 
-    void SetColorPicker(wxColourPickerCtrl* ptr)
-    {
-        colorPicker = ptr;
-    };
+    void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
     wxColor RandomColor();
     void SetAnimPanel(AnimPanel* a) { animPanel = a; }
 
@@ -109,7 +101,7 @@ class InputPlane : public ComplexPlane
     std::vector<OutputPlane*> outputs;
 
     wxColourPickerCtrl* colorPicker = nullptr;
-    AnimPanel* animPanel = nullptr;
+    AnimPanel* animPanel            = nullptr;
 
     int contourType = ID_Circle;
 

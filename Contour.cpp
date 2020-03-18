@@ -1,9 +1,9 @@
 #include "Contour.h"
-#include "ContourPolygon.h"
 #include "ComplexPlane.h"
+#include "ContourPolygon.h"
 #include "LinkedTextCtrl.h"
-#include "ToolPanel.h"
 #include "Parser.h"
+#include "ToolPanel.h"
 #include <algorithm>
 #include <numeric>
 
@@ -36,10 +36,7 @@ int Contour::OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision)
     return -1;
 }
 
-cplx Contour::GetCtrlPoint(int index)
-{
-    return points[index];
-}
+cplx Contour::GetCtrlPoint(int index) { return points[index]; }
 
 void Contour::SetCtrlPoint(int index, cplx c)
 {
@@ -178,8 +175,7 @@ void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas)
         if (dx)
         {
             slope = dy / dx;
-            if (slope)
-                slopeRecip = 1.0 / slope;
+            if (slope) slopeRecip = 1.0 / slope;
         }
 
         for (auto p : {p1, p2})
@@ -226,8 +222,5 @@ void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas)
             }
         }
     }
-    if (!IsLineOffscreen(p1, p2))
-    {
-        dc->DrawLine(p1, p2);
-    }
+    if (!IsLineOffscreen(p1, p2)) { dc->DrawLine(p1, p2); }
 }

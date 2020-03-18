@@ -26,10 +26,7 @@ enum precedence_list
 };
 
 #define DEF_CLONE_FUNC(X)                                                      \
-    virtual X<T>* Clone() noexcept                                             \
-    {                                                                          \
-        return new X<T>(*this);                                                \
-    };
+    virtual X<T>* Clone() noexcept { return new X<T>(*this); };
 
 // Base class for parsed symbols. Symbol pointers are stored in a vector, and
 // each symbol has a pointer "src" to that vector. Symbols recursively
@@ -41,45 +38,24 @@ template <typename T> class Symbol
   public:
     virtual Symbol<T>* Clone() noexcept = 0;
     // Various flags and virtual "members" used by the parser.
-    virtual int GetPrecedence() const   = 0;
+    virtual int GetPrecedence() const    = 0;
     virtual std::string GetToken() const = 0;
-    virtual bool IsLeftAssoc() const
-    {
-        return true;
-    }
-    virtual bool IsDyad() const
-    {
-        return false;
-    }
-    virtual bool IsMonad() const
-    {
-        return false;
-    }
+    virtual bool IsLeftAssoc() const { return true; }
+    virtual bool IsDyad() const { return false; }
+    virtual bool IsMonad() const { return false; }
     /* virtual bool IsPunctuation() {
         return false;
      }*/
-    virtual bool IsVar() const
-    {
-        return false;
-    }
+    virtual bool IsVar() const { return false; }
 
     Symbol(){};
     virtual ~Symbol(){};
     Symbol(ParsedFunc<T>* par) noexcept : parent(par){};
 
-    virtual SymbolNum<T> eval() const
-    {
-        return SymbolError<T>();
-    }
-    virtual T GetVal() const
-    {
-        return T();
-    };
+    virtual SymbolNum<T> eval() const { return SymbolError<T>(); }
+    virtual T GetVal() const { return T(); };
     virtual void SetVal(const T& v){};
-    void SetParent(ParsedFunc<T>* p)
-    {
-        parent = p;
-    }
+    void SetParent(ParsedFunc<T>* p) { parent = p; }
 
   protected:
     ParsedFunc<T>* parent = nullptr;
@@ -115,10 +91,7 @@ template <typename T> class Dyad : public Symbol<T>
         SymbolNum<T> s2 = (*(--this->parent->itr))->eval();
         return Apply(std::move(s1), std::move(s2));
     }
-    bool IsDyad() const
-    {
-        return true;
-    }
+    bool IsDyad() const { return true; }
 };
 
 // One-argument operations inherit from this
@@ -140,10 +113,7 @@ template <typename T> class Monad : public Symbol<T>
         }
         return Apply(std::move((*(--this->parent->itr))->eval()));
     }
-    bool IsMonad() const
-    {
-        return true;
-    }
+    bool IsMonad() const { return true; }
 };
 
 // Generates a sequence of integers for use in other templates
@@ -212,14 +182,8 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T>
         }
         return Apply(s);
     }
-    virtual int GetPrecedence() const
-    {
-        return sym_func;
-    }
-    virtual std::string GetToken() const
-    {
-        return name;
-    }
+    virtual int GetPrecedence() const { return sym_func; }
+    virtual std::string GetToken() const { return name; }
 
   private:
     std::string name = "f";
@@ -230,18 +194,9 @@ template <typename T> class SymbolLParen : public Symbol<T>
 {
   public:
     DEF_CLONE_FUNC(SymbolLParen)
-    virtual int GetPrecedence() const
-    {
-        return sym_lparen;
-    }
-    virtual std::string GetToken() const
-    {
-        return "(";
-    }
-    virtual bool IsPunctuation() const
-    {
-        return true;
-    }
+    virtual int GetPrecedence() const { return sym_lparen; }
+    virtual std::string GetToken() const { return "("; }
+    virtual bool IsPunctuation() const { return true; }
 };
 
 // Used for parsing strings. Should never make it to the output queue
@@ -249,18 +204,9 @@ template <typename T> class SymbolRParen : public Symbol<T>
 {
   public:
     DEF_CLONE_FUNC(SymbolRParen);
-    virtual int GetPrecedence() const
-    {
-        return sym_rparen;
-    }
-    virtual std::string GetToken() const
-    {
-        return ")";
-    }
-    virtual bool IsPunctuation() const
-    {
-        return true;
-    }
+    virtual int GetPrecedence() const { return sym_rparen; }
+    virtual std::string GetToken() const { return ")"; }
+    virtual bool IsPunctuation() const { return true; }
 };
 
 // Causes T to be initialized with an argument of 1 if possible,
@@ -283,35 +229,20 @@ template <typename T> class SymbolNum : public Symbol<T>
     DEF_CLONE_FUNC(SymbolNum)
     SymbolNum() noexcept : Symbol<T>() {}
     SymbolNum(const T& v) noexcept : val(v) {}
-    SymbolNum(const SymbolNum<T>&& S) noexcept
-    {
-        val = S.val;
-    }
-    SymbolNum(const SymbolNum<T>* ptr) noexcept
-    {
-        val = ptr->val;
-    }
+    SymbolNum(const SymbolNum<T>&& S) noexcept { val = S.val; }
+    SymbolNum(const SymbolNum<T>* ptr) noexcept { val = ptr->val; }
     SymbolNum(SymbolNum<T>& S) noexcept : val(S.val){};
 
-    virtual int GetPrecedence() const
-    {
-        return sym_num;
-    }
+    virtual int GetPrecedence() const { return sym_num; }
 
     virtual std::string GetToken() const
     {
         return GetToken_(); // Helper function for specializing. Maybe a better
                             // way exists.
     }
-    virtual T GetVal() const
-    {
-        return val;
-    }
+    virtual T GetVal() const { return val; }
     virtual void SetVal(const T& v) {}
-    virtual SymbolNum<T> eval() const
-    {
-        return SymbolNum<T>(this);
-    }
+    virtual SymbolNum<T> eval() const { return SymbolNum<T>(this); }
 
   protected:
     T val = initialize_with_1<T>::value;
@@ -340,28 +271,16 @@ template <typename T> class SymbolVar : public SymbolNum<T>
 {
   public:
     DEF_CLONE_FUNC(SymbolVar)
-    SymbolVar(SymbolVar<T>& S) noexcept : name(S.name) 
+    SymbolVar(SymbolVar<T>& S) noexcept : name(S.name)
     {
         this->val = S.GetVal();
     };
     SymbolVar(const std::string& s, T v) noexcept : name(s), SymbolNum<T>(v) {}
     SymbolVar(const std::string& s) noexcept : name(s), SymbolNum<T>() {}
-    virtual int GetPrecedence() const
-    {
-        return sym_num;
-    }
-    virtual std::string GetToken() const
-    {
-        return name;
-    }
-    virtual bool IsVar() const
-    {
-        return true;
-    }
-    virtual void SetVal(const T& v)
-    {
-        this->val = v;
-    }
+    virtual int GetPrecedence() const { return sym_num; }
+    virtual std::string GetToken() const { return name; }
+    virtual bool IsVar() const { return true; }
+    virtual void SetVal(const T& v) { this->val = v; }
 
   private:
     std::string name;
@@ -379,14 +298,8 @@ template <typename T> class SymbolConst : public SymbolNum<T>
     SymbolConst(const std::string& s, T v) noexcept : name(s), SymbolNum<T>(v)
     {
     }
-    virtual int GetPrecedence() const
-    {
-        return sym_num;
-    }
-    virtual std::string GetToken() const
-    {
-        return name;
-    }
+    virtual int GetPrecedence() const { return sym_num; }
+    virtual std::string GetToken() const { return name; }
 
   private:
     std::string name;
@@ -401,22 +314,10 @@ template <typename T> class SymbolComma : public Monad<T>
   public:
     DEF_CLONE_FUNC(SymbolComma)
     // SymbolComma(){};
-    virtual int GetPrecedence() const
-    {
-        return sym_comma;
-    }
-    virtual std::string GetToken() const
-    {
-        return ",";
-    }
-    virtual bool IsPunctuation() const
-    {
-        return true;
-    }
-    virtual SymbolNum<T> Apply(SymbolNum<T> t1) const
-    {
-        return this->eval();
-    }
+    virtual int GetPrecedence() const { return sym_comma; }
+    virtual std::string GetToken() const { return ","; }
+    virtual bool IsPunctuation() const { return true; }
+    virtual SymbolNum<T> Apply(SymbolNum<T> t1) const { return this->eval(); }
 };
 
 template <typename T> class SymbolError : public SymbolNum<T>
@@ -424,14 +325,8 @@ template <typename T> class SymbolError : public SymbolNum<T>
   public:
     DEF_CLONE_FUNC(SymbolError)
     // SymbolError(){};
-    virtual int GetPrecedence() const
-    {
-        return -100;
-    }
-    virtual std::string GetToken() const
-    {
-        return "error";
-    }
+    virtual int GetPrecedence() const { return -100; }
+    virtual std::string GetToken() const { return "error"; }
 };
 
 template <typename T> class SymbolAdd : public Dyad<T>
@@ -439,14 +334,8 @@ template <typename T> class SymbolAdd : public Dyad<T>
 
   public:
     DEF_CLONE_FUNC(SymbolAdd)
-    virtual int GetPrecedence() const
-    {
-        return sym_add;
-    }
-    virtual std::string GetToken() const
-    {
-        return "+";
-    }
+    virtual int GetPrecedence() const { return sym_add; }
+    virtual std::string GetToken() const { return "+"; }
     virtual SymbolNum<T> Apply(SymbolNum<T> t1, SymbolNum<T> t2) const
     {
         return SymbolNum<T>(t2.GetVal() + t1.GetVal());
@@ -458,14 +347,8 @@ template <typename T> class SymbolSub : public Dyad<T>
 
   public:
     DEF_CLONE_FUNC(SymbolSub)
-    virtual int GetPrecedence() const
-    {
-        return sym_sub;
-    }
-    virtual std::string GetToken() const
-    {
-        return "-";
-    }
+    virtual int GetPrecedence() const { return sym_sub; }
+    virtual std::string GetToken() const { return "-"; }
     virtual SymbolNum<T> Apply(SymbolNum<T> t1, SymbolNum<T> t2) const
     {
         return SymbolNum<T>(t2.GetVal() - t1.GetVal());
@@ -477,14 +360,8 @@ template <typename T> class SymbolMul : public Dyad<T>
 
   public:
     DEF_CLONE_FUNC(SymbolMul)
-    virtual int GetPrecedence() const
-    {
-        return sym_mul;
-    }
-    virtual std::string GetToken() const
-    {
-        return "*";
-    }
+    virtual int GetPrecedence() const { return sym_mul; }
+    virtual std::string GetToken() const { return "*"; }
     virtual SymbolNum<T> Apply(SymbolNum<T> t1, SymbolNum<T> t2) const
     {
         return SymbolNum<T>(t2.GetVal() * t1.GetVal());
@@ -496,14 +373,8 @@ template <typename T> class SymbolDiv : public Dyad<T>
 
   public:
     DEF_CLONE_FUNC(SymbolDiv)
-    virtual int GetPrecedence() const
-    {
-        return sym_div;
-    }
-    virtual std::string GetToken() const
-    {
-        return "/";
-    }
+    virtual int GetPrecedence() const { return sym_div; }
+    virtual std::string GetToken() const { return "/"; }
     virtual SymbolNum<T> Apply(SymbolNum<T> t1, SymbolNum<T> t2) const
     {
         return SymbolNum<T>(t2.GetVal() / t1.GetVal());
@@ -515,18 +386,9 @@ template <typename T> class SymbolPow : public Dyad<T>
 
   public:
     DEF_CLONE_FUNC(SymbolPow)
-    virtual int GetPrecedence() const
-    {
-        return sym_pow;
-    }
-    virtual bool IsLeftAssoc() const
-    {
-        return false;
-    }
-    virtual std::string GetToken() const
-    {
-        return "^";
-    }
+    virtual int GetPrecedence() const { return sym_pow; }
+    virtual bool IsLeftAssoc() const { return false; }
+    virtual std::string GetToken() const { return "^"; }
     virtual SymbolNum<T> Apply(SymbolNum<T> t1, SymbolNum<T> t2) const
     {
         return SymbolNum<T>(pow(t2.GetVal(), t1.GetVal()));
@@ -538,14 +400,8 @@ template <typename T> class SymbolNeg : public Monad<T>
 
   public:
     DEF_CLONE_FUNC(SymbolNeg)
-    virtual int GetPrecedence() const
-    {
-        return sym_neg;
-    }
-    virtual std::string GetToken() const
-    {
-        return "~";
-    }
+    virtual int GetPrecedence() const { return sym_neg; }
+    virtual std::string GetToken() const { return "~"; }
     virtual SymbolNum<T> Apply(SymbolNum<T> t1) const
     {
         return SymbolNum<T>(-t1.GetVal());
