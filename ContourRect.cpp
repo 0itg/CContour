@@ -11,6 +11,7 @@ ContourRect::ContourRect(cplx c, wxColor col, std::string n) noexcept
     // points allows all corners to be used for resizing it
     points.push_back(c);
     points.push_back(c);
+    center = c;
     closed = true;
     name   = n;
 }
@@ -30,7 +31,7 @@ void ContourRect::RemovePoint(int index)
     points.clear(); // Removing a point means it's no longer a rectangle
 }
 
-void ContourRect::moveCtrlPoint(cplx mousePos, int ptIndex)
+void ContourRect::SetCtrlPoint(int ptIndex, cplx mousePos)
 {
     points[ptIndex] = mousePos;
     // When moving one point, automatically move the adjacent points to
@@ -45,4 +46,5 @@ void ContourRect::moveCtrlPoint(cplx mousePos, int ptIndex)
         points[1] = cplx(points[0].real(), points[2].imag());
         points[3] = cplx(points[2].real(), points[0].imag());
     }
+    CalcCenter();
 }

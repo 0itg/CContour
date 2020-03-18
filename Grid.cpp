@@ -37,8 +37,8 @@ void Grid::CalcVisibleGrid()
 
     for (double y = vMin - vOffset; y <= vMax; y += vStep)
     {
-        lines.push_back(std::make_unique<ContourLine>(cplx(ULcorner.real(), y),
-                                        cplx(BRcorner.real(), y)));
+        lines.push_back(std::make_unique<ContourLine>(
+            cplx(ULcorner.real(), y), cplx(BRcorner.real(), y)));
     }
     for (double x = hMin - hOffset; x <= hMax; x += hStep)
     {
@@ -63,31 +63,30 @@ void TransformedGrid::MapGrid(const Grid& grid, ParsedFunc<cplx>& f)
         auto p1 = v->GetCtrlPoint(0);
         auto p2 = v->GetCtrlPoint(1);
         lines.push_back(std::make_unique<ContourPolygon>());
-    double t;
-    for (double i = 0; i <= res; i++)
-    {
-        t = i / res;
-        lines.back()->AddPoint(
-            f(p1 * t + p2 * (1 - t)));
+        double t;
+        for (double i = 0; i <= res; i++)
+        {
+            t = i / res;
+            lines.back()->AddPoint(f(p1 * t + p2 * (1 - t)));
 
-        // In the case of division by zero, move along the gridline
-        // a bit further until we find a defined point.
-        // Rarely should this take more than one step.
-        while (isnan(lines.back()->GetCtrlPoint(i).real()))
-        {
-            lines.back()->RemovePoint(i);
-            double t_avoid_pole = 1.0 / res / 100;
-            lines.back()->AddPoint(
-                f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole)));
+            // In the case of division by zero, move along the gridline
+            // a bit further until we find a defined point.
+            // Rarely should this take more than one step.
+            while (isnan(lines.back()->GetCtrlPoint(i).real()))
+            {
+                lines.back()->RemovePoint(i);
+                double t_avoid_pole = 1.0 / res / 100;
+                lines.back()->AddPoint(
+                    f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole)));
+            }
+            while (isnan(lines.back()->GetCtrlPoint(i).imag()))
+            {
+                lines.back()->RemovePoint(i);
+                double t_avoid_pole = 1.0 / res / 100;
+                lines.back()->AddPoint(
+                    f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole)));
+            }
         }
-        while (isnan(lines.back()->GetCtrlPoint(i).imag()))
-        {
-            lines.back()->RemovePoint(i);
-            double t_avoid_pole = 1.0 / res / 100;
-            lines.back()->AddPoint(
-                f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole)));
-        }
-    }
     }
     // Multithreaded version of the same code. Functions, but isn't noticeably
     //  faster. Drawing is probably the bottleneck.

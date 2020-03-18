@@ -23,8 +23,7 @@ class InputPlane;
 class ContourPolygon;
 class ComplexPlane;
 class ToolPanel;
-template <class T>
-class ParsedFunc;
+template <class T> class ParsedFunc;
 
 // All contours include a set of points, may be open or closed,
 // and need to define a function for interpolating the points
@@ -44,11 +43,10 @@ class Contour
     virtual void Draw(wxDC* dc, ComplexPlane* canvas) = 0;
     virtual void AddPoint(cplx mousePos);
     virtual void RemovePoint(int index);
-    virtual void moveCtrlPoint(cplx mousePos, int ptIndex = -1);
 
     // Action to be taken when selecting the contour between control
     // points. Typically it will just call the Translate function.
-    virtual void ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) = 0;
+    virtual bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) = 0;
 
     virtual void Translate(cplx z1, cplx z2);
 
@@ -63,13 +61,10 @@ class Contour
                             int pixPrecision = 3);
     virtual cplx GetCtrlPoint(int index);
     virtual void SetCtrlPoint(int index, cplx c);
-    virtual std::string& GetName()
-    {
-        return name;
-    }
+    virtual std::string& GetName() { return name; }
 
     // Any actions to be taken when editing is finished.
-    virtual void Finalize(){};
+    virtual void Finalize() { CalcCenter(); };
 
     // Base version draws the Contour's name, followed by a list of control
     // points and LinkedCtrls linked to them. See NumCtrlPanel in ToolPanel.h.
@@ -91,19 +86,15 @@ class Contour
     // precisely, but it would be expected from the user.
     virtual void Subdivide(int res) = 0;
 
-    // Creates a Polygon by applying f to the subDiv points. 
+    // Creates a Polygon by applying f to the subDiv points.
     virtual ContourPolygon* Map(ParsedFunc<cplx>& f);
 
-    int GetPointCount()
-    {
-        return (int)points.size();
-    }
-    void Reserve(size_t size)
-    {
-        points.reserve(size);
-    }
-
+    int GetPointCount() { return (int)points.size(); }
+    void Reserve(size_t size) { points.reserve(size); }
+    cplx GetCenter() { return center; }
+    cplx CalcCenter();
     void DrawCtrlPoint(wxDC* dc, wxPoint p);
+
     wxColor color = *wxRED;
 
     // Used for deciding whether OutputPlane needs to recalculate curves.
@@ -113,6 +104,8 @@ class Contour
     std::string name;
     std::vector<cplx> points;
     std::vector<cplx> subDiv;
+
+    cplx center;
 
   private:
     template <class Archive>

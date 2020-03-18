@@ -12,8 +12,8 @@
 #include <boost/serialization/complex.hpp>
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 #include <complex>
 
 #include "ContourLine.h"

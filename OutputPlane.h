@@ -1,9 +1,9 @@
 #pragma once
 
 #include "ComplexPlane.h"
+#include "Grid.h"
 #include "Parser.h"
 #include "ToolPanel.h"
-#include "Grid.h"
 
 #include <complex>
 #include <wx/spinctrl.h>
@@ -43,19 +43,15 @@ class OutputPlane : public ComplexPlane
     void OnGridResCtrl(wxCommandEvent& event);
     void OnFunctionEntry(wxCommandEvent& event);
 
+    void Pan(wxPoint mousePos);
+    void Zoom(wxPoint mousePos, int zoomSteps);
+
+    void EnterFunction(std::string s);
+
     void MarkAllForRedraw();
-    void SetFuncInput(wxTextCtrl* fIn)
-    {
-        funcInput = fIn;
-    }
-    void RefreshFuncText()
-    {
-        funcInput->SetValue(f.GetInputText());
-    }
-    void SetVarPanel(VariableEditPanel* var)
-    {
-        varPanel = var;
-    }
+    void SetFuncInput(wxTextCtrl* fIn) { funcInput = fIn; }
+    void RefreshFuncText() { funcInput->SetValue(f.GetInputText()); }
+    void SetVarPanel(VariableEditPanel* var) { varPanel = var; }
 
     int GetRes();
 
@@ -77,6 +73,7 @@ class OutputPlane : public ComplexPlane
         ar << tGrid;
         ar << this->f.GetInputText();
         ar << this->f.GetVarMap();
+        ar << this->f.GetIV();
     }
     template <class Archive> void load(Archive& ar, const unsigned int version)
     {
@@ -90,6 +87,9 @@ class OutputPlane : public ComplexPlane
         ar >> varMap;
         f = this->parser.Parse(savedFunc);
         f.RestoreVarsFromMap(varMap);
+        std::string IV;
+        ar >> IV;
+        f.SetIV(IV);
     }
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)

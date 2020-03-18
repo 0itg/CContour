@@ -1,7 +1,8 @@
 #pragma once
+#include "Animation.h"
 #include "ComplexPlane.h"
-#include "Grid.h"
 #include "Event_IDs.h"
+#include "Grid.h"
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -15,6 +16,7 @@ typedef std::complex<double> cplx;
 
 class ContourPolygon;
 class OutputPlane;
+class AnimPanel;
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
 // complex numbers and mapped to the ouput panel under some complex function.
@@ -26,7 +28,10 @@ class InputPlane : public ComplexPlane
 
   public:
     InputPlane() {}
-    InputPlane(wxWindow* parent, const std::string& name = "Input");
+    InputPlane(wxWindow* parent, const std::string& n = "Input")
+        : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
+    {
+    }
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
     void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
@@ -44,34 +49,43 @@ class InputPlane : public ComplexPlane
     void OnContourResCtrl(wxSpinEvent& event);
     void OnContourResCtrl(wxCommandEvent& event);
 
-    int GetState() const
-    {
-        return state;
-    }
-    int GetRes() const
-    {
-        return res;
-    }
+    int GetState() const { return state; }
+    int GetRes() const { return res; }
     void RecalcAll();
 
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
     void RemoveContour(int index);
     std::unique_ptr<Contour> CreateContour(wxPoint mousePos);
-
-    void SetColorPicker(wxColourPickerCtrl* ptr)
+    void AddContour(std::unique_ptr<Contour> C);
+    Contour* GetContour(size_t index)
     {
-        colorPicker = ptr;
-    };
+        if (index < contours.size())
+            return contours[index].get();
+        else
+            return nullptr;
+    }
+    void AddAnimation(std::unique_ptr<Animation> A)
+    {
+        animations.push_back(std::move(A));
+    }
+
+    void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
     wxColor RandomColor();
+    void SetAnimPanel(AnimPanel* a) { animPanel = a; }
 
     // If true, when axes step values change, grid step values
     // change accordingly
     bool linkGridToAxes                  = true;
     bool randomizeColor                  = true;
+    bool animating                       = false;
     wxColor color                        = wxColor(0, 0, 200);
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
+
+    std::vector<std::unique_ptr<Animation>> animations;
+
+    wxStopWatch animTimer;
 
   private:
     int CircleCount                = 0;
@@ -87,6 +101,7 @@ class InputPlane : public ComplexPlane
     std::vector<OutputPlane*> outputs;
 
     wxColourPickerCtrl* colorPicker = nullptr;
+    AnimPanel* animPanel            = nullptr;
 
     int contourType = ID_Circle;
 

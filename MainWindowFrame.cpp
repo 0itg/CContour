@@ -15,8 +15,11 @@
 
 #include <fstream>
 
+#include "Animation.h"
+#include "Commands.h"
 #include "ContourCircle.h"
 #include "ContourLine.h"
+#include "ContourParametric.h"
 #include "ContourPolygon.h"
 #include "ContourRect.h"
 #include "Event_IDs.h"
@@ -33,9 +36,11 @@ EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
 EVT_MENU(ID_NumCtrlPanel, MainWindowFrame::OnShowNumCtrlWin)
 EVT_MENU(ID_VarEditPanel, MainWindowFrame::OnShowVarWin)
+EVT_MENU(ID_AnimPanel, MainWindowFrame::OnShowAnimWin)
 EVT_TOOL(ID_Select, MainWindowFrame::OnButtonSelectionTool)
 EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
+EVT_TOOL(ID_Parametric, MainWindowFrame::OnButtonParametricCurve)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
 EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainWindowFrame::OnColorPicked)
 EVT_TOOL_RANGE(ID_Show_Axes,ID_Show_Grid, MainWindowFrame::OnShowAxes_ShowGrid)
@@ -44,6 +49,8 @@ EVT_TEXT_ENTER(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
 EVT_SPINCTRL(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
 EVT_TEXT_ENTER(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
 EVT_TEXT_ENTER(ID_Function_Entry, MainWindowFrame::OnFunctionEntry)
+EVT_TOOL(ID_Play, MainWindowFrame::OnPlayButton)
+EVT_TOOL(ID_Pause, MainWindowFrame::OnPauseButton)
 EVT_MENU(wxID_OPEN, MainWindowFrame::OnOpen)
 EVT_MENU(wxID_SAVE, MainWindowFrame::OnSave)
 EVT_MENU(wxID_SAVEAS, MainWindowFrame::OnSaveAs)
@@ -71,8 +78,10 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     menuWindow = new wxMenu;
     menuWindow->AppendCheckItem(ID_NumCtrlPanel, "&Numerical Controls");
     menuWindow->AppendCheckItem(ID_VarEditPanel, "&Variables");
+    menuWindow->AppendCheckItem(ID_AnimPanel, "&Animation Controls");
     menuWindow->Check(ID_NumCtrlPanel, true);
     menuWindow->Check(ID_VarEditPanel, true);
+    menuWindow->Check(ID_AnimPanel, true);
 
     auto menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT);
@@ -120,6 +129,15 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolbar->ToggleTool(ID_Circle, true);
     toolbar->AddSeparator();
 
+    // Creates a contour from a parametric curve.
+
+    toolbar->AddTool(
+        ID_Parametric, "Parametric Curve",
+        wxBitmap(wxT("icons/parametric-curve.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_NORMAL, "Opens a Parametric Curve dialog");
+    toolbar->AddSeparator();
+    toolbar->AddSeparator();
+
     // Toggle axes and grid lines.
 
     toolbar->AddTool(ID_Show_Axes, "Show/Hide Axes",
@@ -145,6 +163,19 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     auto colorCtrl =
         new wxColourPickerCtrl(toolbar, ID_Color_Picker, wxColor(0, 0, 200));
     toolbar->AddControl(colorCtrl);
+
+    toolbar->AddSeparator();
+
+    // Pause and play buttons for animations
+
+    toolbar->AddTool(ID_Play, "Play Animations",
+                     wxBitmap(wxT("icons/play.png"), wxBITMAP_TYPE_PNG),
+                     wxNullBitmap, wxITEM_RADIO, "Play Animations");
+    toolbar->AddTool(ID_Pause, "Pause Animations",
+                     wxBitmap(wxT("icons/pause.png"), wxBITMAP_TYPE_PNG),
+                     wxNullBitmap, wxITEM_RADIO, "Pause Animations");
+
+    toolbar->ToggleTool(ID_Pause, true);
 
     toolbar->AddStretchableSpace();
     toolbar->SetDoubleBuffered(true); // Prevents annoying flickering
@@ -218,34 +249,46 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     output->SetVarPanel(varEditPanel);
     varEditPanel->PopulateVarTextCtrls(output->f);
 
+    animPanel = new AnimPanel(this, ID_AnimPanel, wxDefaultPosition,
+                              wxSize(this->GetClientSize().x, 100), input);
+    //animPanel->PopulateAnimCtrls();
+    input->SetAnimPanel(animPanel);
+
     cPlaneSizer->Add(input, PlaneFlags);
     cPlaneSizer->Add(output, PlaneFlags);
     Cplanes->SetSizer(cPlaneSizer);
 
     aui.AddPane(Cplanes, wxAuiPaneInfo()
+                             .PaneBorder(false)
                              .Center()
                              .BestSize(1200, 700)
                              .MinSize(350, 200)
                              .CloseButton(false));
     aui.AddPane(numCtrlPanel, wxAuiPaneInfo()
+                                  .Caption("Numerical Controls")
                                   .Left()
                                   .BestSize(150, 700)
                                   .MinSize(20, 20)
                                   .TopDockable(false)
                                   .BottomDockable(false));
     aui.AddPane(varEditPanel, wxAuiPaneInfo()
+                                  .Caption("Function variables")
                                   .Right()
                                   .BestSize(150, 700)
                                   .MinSize(20, 20)
                                   .TopDockable(false)
                                   .BottomDockable(false));
+    aui.AddPane(animPanel, wxAuiPaneInfo()
+                               .Caption("Animations")
+                               .Bottom()
+                               .BestSize(700, 100)
+                               .MinSize(20, 20)
+                               .RightDockable(false)
+                               .LeftDockable(false));
     aui.Update();
 }
 
-inline void MainWindowFrame::OnExit(wxCommandEvent& event)
-{
-    Close(true);
-}
+inline void MainWindowFrame::OnExit(wxCommandEvent& event) { Close(true); }
 
 inline void MainWindowFrame::OnAbout(wxCommandEvent& event)
 {
@@ -277,6 +320,55 @@ inline void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event)
 inline void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event)
 {
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
+}
+
+void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
+{
+    wxDialog ParametricCreate(this, wxID_ANY, "Create a Parametric Curve");
+    wxBoxSizer sizer(wxVERTICAL);
+    wxSizerFlags flags(1);
+    flags.Expand().Border(wxALL, 3);
+
+    wxStaticText enterName(&ParametricCreate, wxID_ANY, "Curve name");
+    sizer.Add(&enterName, flags);
+    wxTextCtrl nameCtrl(&ParametricCreate, wxID_ANY, "Parametric Curve");
+    sizer.Add(&nameCtrl, flags);
+
+    wxStaticText enterFunc(&ParametricCreate, wxID_ANY, "Function f(t)");
+    sizer.Add(&enterFunc, flags);
+    wxTextCtrl funcCtrl(&ParametricCreate, wxID_ANY, "4*t*exp(4pi*i*t)");
+    sizer.Add(&funcCtrl, flags);
+
+    wxStaticText enterTStart(&ParametricCreate, wxID_ANY, "t Start");
+    sizer.Add(&enterTStart, flags);
+    wxSpinCtrlDouble tStartCtrl(&ParametricCreate, wxID_ANY, "0",
+                                wxDefaultPosition, wxDefaultSize,
+                                wxSP_ARROW_KEYS, -1e10, 1e10, 0, 0.1);
+    sizer.Add(&tStartCtrl, flags);
+
+    wxStaticText enterTEnd(&ParametricCreate, wxID_ANY, "t End");
+    sizer.Add(&enterTEnd, flags);
+    wxSpinCtrlDouble tEndCtrl(&ParametricCreate, wxID_ANY, "1.0",
+                              wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS,
+                              -1e10, 1e10, 1, 0.1);
+    sizer.Add(&tEndCtrl, flags);
+    sizer.Add(ParametricCreate.CreateButtonSizer(wxOK | wxCANCEL),
+              wxSizerFlags(1).Border(wxALL, 3).CenterHorizontal());
+    ParametricCreate.SetSizer(&sizer);
+    ParametricCreate.Fit();
+
+    if (ParametricCreate.ShowModal() == wxID_OK)
+    {
+        input->AddContour(std::make_unique<ContourParametric>(
+            funcCtrl.GetValue(), input->GetRes(), input->color,
+            nameCtrl.GetValue(), tStartCtrl.GetValue(), tEndCtrl.GetValue()));
+        if (input->randomizeColor) input->color = input->RandomColor();
+        input->Refresh();
+        input->Update();
+        animPanel->UpdateComboBoxes();
+    }
+    // Necessary to stop wxWidgets from deleting stack items twice.
+    ParametricCreate.SetSizer(NULL, false);
 }
 
 inline void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event)
@@ -322,6 +414,12 @@ inline void MainWindowFrame::OnShowVarWin(wxCommandEvent& event)
     aui.Update();
 }
 
+void MainWindowFrame::OnShowAnimWin(wxCommandEvent& event)
+{
+    aui.GetPane(animPanel).Show(event.IsChecked());
+    aui.Update();
+}
+
 inline void MainWindowFrame::OnAuiPaneClose(wxAuiManagerEvent& event)
 {
     menuWindow->Check(event.pane->window->GetId(), false);
@@ -361,6 +459,28 @@ void MainWindowFrame::OnSaveAs(wxCommandEvent& event)
         saveFileName = save.GetFilename();
         saveFilePath = save.GetPath();
         Save(saveFilePath);
+    }
+}
+
+void MainWindowFrame::OnPlayButton(wxCommandEvent& event)
+{
+    input->animating = true;
+    input->animTimer.Start(1000);
+    Bind(wxEVT_IDLE, &MainWindowFrame::AnimOnIdle, this);
+}
+
+void MainWindowFrame::OnPauseButton(wxCommandEvent& event)
+{
+    input->animating = false;
+    input->animTimer.Pause();
+}
+
+void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
+{
+    if (input->animating)
+    {
+        input->Update();
+        input->Refresh();
     }
 }
 

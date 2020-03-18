@@ -31,7 +31,7 @@ bool ContourViewer::OnInit()
     //_CrtSetBreakAlloc(9553);
     //_CrtSetBreakAlloc(9552);
     MainWindowFrame* frame = new MainWindowFrame(
-        "Complex Contour Visualizer", wxDefaultPosition, wxSize(1300, 650));
+        "Complex Contour Visualizer", wxDefaultPosition, wxSize(1300, 750));
     frame->Show(true);
     return true;
 }

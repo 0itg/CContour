@@ -28,16 +28,10 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-InputPlane::InputPlane(wxWindow* parent, const std::string& n)
-    : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
-{
-}
-
 void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 {
     // Workaround for wxWidgets handling double clicks poorly in save dialog
-    if (!mouseLeftDown)
-        return;
+    if (!mouseLeftDown) return;
     mouseLeftDown = false;
     SetFocus();
 
@@ -93,13 +87,13 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             }
             contours.push_back(CreateContour(pt));
 
-            if (snap)
-                contours.back()->SetCtrlPoint(0, c);
+            if (snap) contours.back()->SetCtrlPoint(0, c);
 
             contours.back()->Subdivide(res);
             state              = contours.size() - 1;
             highlightedContour = state;
             toolPanel->PopulateContourTextCtrls(contours[state].get());
+            animPanel->UpdateComboBoxes();
 
             for (auto out : outputs)
             {
@@ -112,7 +106,8 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
         else
         {
             state = highlightedContour;
-            toolPanel->PopulateContourTextCtrls(contours[highlightedContour].get());
+            toolPanel->PopulateContourTextCtrls(
+                contours[highlightedContour].get());
         }
     }
     else
@@ -125,10 +120,9 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
 {
     // Workaround for wxWidgets handling double clicks poorly in save dialog
-    if (!mouseLeftDown)
-        return;
+    if (!mouseLeftDown) return;
     mouseLeftDown = false;
-   SetFocus();
+    SetFocus();
 
     if (highlightedContour > -1)
     {
@@ -142,8 +136,7 @@ void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
 void InputPlane::OnMouseLeftUpSelectionTool(wxMouseEvent& mouse)
 {
     // Workaround for wxWidgets handling double clicks poorly in save dialog
-    if (!mouseLeftDown)
-        return;
+    if (!mouseLeftDown) return;
     mouseLeftDown = false;
     SetFocus();
 
@@ -197,6 +190,7 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
             RemoveContour(state);
             nextState = STATE_IDLE;
             toolPanel->PopulateAxisTextCtrls();
+            animPanel->UpdateComboBoxes();
         }
         state = nextState;
         Refresh();
@@ -239,18 +233,31 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         CaptureMouseIfAble();
         if (highlightedCtrlPoint < 0)
         {
-            contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos);
+            if (contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos))
+            {
+                contours[state]->Subdivide(res);
+                toolPanel->Refresh();
+                toolPanel->Update();
+                Refresh();
+                Update();
+            }
+            else
+            {
+                highlightedContour   = -1;
+                highlightedCtrlPoint = -1;
+                state                = STATE_IDLE;
+                ReleaseMouseIfAble();
+            }
         }
         else
         {
-            contours[state]->moveCtrlPoint(mousePos, highlightedCtrlPoint);
+            contours[state]->SetCtrlPoint(highlightedCtrlPoint, mousePos);
+            contours[state]->Subdivide(res);
+            toolPanel->Refresh();
+            toolPanel->Update();
+            Refresh();
+            Update();
         }
-        contours[state]->Subdivide(res);
-        contours[state]->markedForRedraw = true;
-        toolPanel->Refresh();
-        toolPanel->Update();
-        Refresh();
-        Update();
     }
     // When the mouse moves, recheck for highlighted contours
     // and control points (and automatically highlight the contour).
@@ -295,6 +302,7 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
             highlightedContour = -1;
             Refresh();
             Update();
+            animPanel->UpdateComboBoxes();
         }
         break;
     }
@@ -311,8 +319,11 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
     dc.SetPen(pen);
     dc.SetBrush(brush);
 
-    if (showGrid)
-        grid.Draw(&dc, this);
+    if (animating)
+        for (auto& A : animations)
+            A->FrameAt(animTimer.Time());
+
+    if (showGrid) grid.Draw(&dc, this);
     pen.SetWidth(2);
 
     for (auto& C : contours)
@@ -340,8 +351,7 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
         dc.SetPen(pen);
         contours[highlightedContour]->Draw(&dc, this);
     }
-    if (showAxes)
-        axes.Draw(&dc);
+    if (showAxes) axes.Draw(&dc);
 
     for (auto out : outputs)
     {
@@ -378,14 +388,10 @@ void InputPlane::RecalcAll()
     for (auto& C : contours)
     {
         C->Subdivide(res);
-        C->markedForRedraw = true;
     }
 }
 
-void InputPlane::SetContourType(int id)
-{
-    contourType = id;
-}
+void InputPlane::SetContourType(int id) { contourType = id; }
 
 void InputPlane::RemoveContour(int index)
 {
@@ -407,40 +413,51 @@ std::unique_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)
     if (randomizeColor)
     {
         color = RandomColor();
-        if (colorPicker != nullptr)
-            colorPicker->SetColour(color);
+        if (colorPicker != nullptr) colorPicker->SetColour(color);
     }
 
     switch (contourType)
     {
     case ID_Circle:
         CircleCount++;
-        return std::make_unique<ContourCircle>(ScreenToComplex(mousePos), 0, colorToDraw,
+        return std::make_unique<ContourCircle>(
+            ScreenToComplex(mousePos), 0, colorToDraw,
             "Circle " + std::to_string(CircleCount));
         break;
     case ID_Rect:
         RectCount++;
         highlightedCtrlPoint = 1;
-        return std::make_unique<ContourRect>(ScreenToComplex(mousePos), colorToDraw,
+        return std::make_unique<ContourRect>(
+            ScreenToComplex(mousePos), colorToDraw,
             "Rectangle " + std::to_string(RectCount));
         break;
     case ID_Polygon:
         PolygonCount++;
         highlightedCtrlPoint = 1;
-        return std::make_unique<ContourPolygon>(ScreenToComplex(mousePos), colorToDraw,
+        return std::make_unique<ContourPolygon>(
+            ScreenToComplex(mousePos), colorToDraw,
             "Polygon " + std::to_string(PolygonCount));
         break;
     case ID_Line:
         LineCount++;
         highlightedCtrlPoint = 1;
-        return std::make_unique<ContourLine>(ScreenToComplex(mousePos), colorToDraw,
+        return std::make_unique<ContourLine>(
+            ScreenToComplex(mousePos), colorToDraw,
             "Line " + std::to_string(LineCount));
         break;
     }
     // Default in case we get a bad ID somehow
     CircleCount++;
-    return std::make_unique<ContourCircle>(ScreenToComplex(mousePos), 0, colorToDraw,
+    return std::make_unique<ContourCircle>(
+        ScreenToComplex(mousePos), 0, colorToDraw,
         "Circle " + std::to_string(CircleCount));
+}
+
+void InputPlane::AddContour(std::unique_ptr<Contour> C)
+{
+    contours.push_back(std::move(C));
+    for (auto out : outputs)
+        out->contours.push_back(nullptr);
 }
 
 wxColor InputPlane::RandomColor()

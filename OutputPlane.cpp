@@ -39,8 +39,7 @@ OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, const std::string& n)
 
 void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 {
-    if (panning)
-        state = STATE_IDLE;
+    if (panning) state = STATE_IDLE;
 }
 
 void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
@@ -81,13 +80,9 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
     dc.SetBrush(brush);
 
     // Only recalculate the mapping if the viewport changed.
-    if (movedViewPort)
-    {
-        tGrid.MapGrid(in->grid, f);
-    }
+    if (movedViewPort) { tGrid.MapGrid(in->grid, f); }
 
-    if (showGrid)
-        tGrid.Draw(&dc, this);
+    if (showGrid) tGrid.Draw(&dc, this);
 
     auto& inputContours = in->contours;
     for (int i = 0; i < inputContours.size(); i++)
@@ -115,8 +110,7 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
         contours[highlightedContour]->Draw(&dc, this);
     }
 
-    if (showAxes)
-        axes.Draw(&dc);
+    if (showAxes) axes.Draw(&dc);
     movedViewPort = false;
 }
 
@@ -127,7 +121,7 @@ void OutputPlane::OnGridResCtrl(wxSpinEvent& event)
 
 void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 {
-    tGrid.res    = resCtrl->GetValue();
+    tGrid.res     = resCtrl->GetValue();
     movedViewPort = true;
     Refresh();
     Update();
@@ -135,10 +129,39 @@ void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 
 void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
 {
+    EnterFunction(funcInput->GetLineText(0));
+}
+
+// Override necessary to make sure animations play smoothly while
+// interacting with the input plane;
+void OutputPlane::Pan(wxPoint mousePos)
+{
+    ComplexPlane::Pan(mousePos);
+    if (in->animating)
+    {
+        in->Update();
+        in->Refresh();
+    }
+}
+
+// Override necessary to make sure animations play smoothly while
+// interacting with the input plane;
+void OutputPlane::Zoom(wxPoint mousePos, int zoomSteps)
+{
+    ComplexPlane::Zoom(mousePos, zoomSteps);
+    if (in->animating)
+    {
+        in->Update();
+        in->Refresh();
+    }
+}
+
+void OutputPlane::EnterFunction(std::string s)
+{
     ParsedFunc g = f;
     try
     {
-        f = parser.Parse(funcInput->GetLineText(0));
+        f = parser.Parse(s);
         f.eval();
     }
     catch (std::invalid_argument& func)
@@ -167,7 +190,4 @@ void OutputPlane::MarkAllForRedraw()
     }
 }
 
-int OutputPlane::GetRes()
-{
-    return tGrid.res;
-}
+int OutputPlane::GetRes() { return tGrid.res; }

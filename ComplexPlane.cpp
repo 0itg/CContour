@@ -202,18 +202,12 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
     const int MaxMark = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
     const int MinMark = GetClientSize().x / (axes.TARGET_TICK_COUNT * 2);
 
-    if (LengthXToScreen(axes.reStep) < MinMark)
-    {
-        axes.reStep *= 2;
-    }
+    if (LengthXToScreen(axes.reStep) < MinMark) { axes.reStep *= 2; }
     else if (LengthXToScreen(axes.reStep) > MaxMark)
     {
         axes.reStep /= 2;
     }
-    if (LengthYToScreen(axes.imStep) < MinMark)
-    {
-        axes.imStep *= 2;
-    }
+    if (LengthYToScreen(axes.imStep) < MinMark) { axes.imStep *= 2; }
     else if (LengthYToScreen(axes.imStep) > MaxMark)
     {
         axes.imStep /= 2;
@@ -229,6 +223,18 @@ void ComplexPlane::ClearContours()
     highlightedContour   = -1;
     highlightedCtrlPoint = -1;
     state                = -1;
+}
+
+wxArrayString ComplexPlane::GetContourNames()
+{
+    wxArrayString names;
+
+    for (auto& C : contours)
+    {
+        names.Add(C->GetName());
+    }
+
+    return names;
 }
 
 void Axes::Draw(wxDC* dc)
@@ -271,9 +277,7 @@ void Axes::Draw(wxDC* dc)
                          mark.y - TICK_WIDTH / 2);
         }
         if (center.y <= textTopEdge + LABEL_PADDING)
-        {
-            mark.y = textTopEdge + LABEL_PADDING;
-        }
+        { mark.y = textTopEdge + LABEL_PADDING; }
         else if (center.y > textBottomEdge - LABEL_PADDING)
         {
             mark.y = textBottomEdge - LABEL_PADDING;
@@ -313,9 +317,7 @@ void Axes::Draw(wxDC* dc)
                          wxPoint(mark.x - TICK_WIDTH / 2, mark.y));
         }
         if (center.x <= textLeftEdge + LABEL_PADDING)
-        {
-            mark.x = textLeftEdge + LABEL_PADDING;
-        }
+        { mark.x = textLeftEdge + LABEL_PADDING; }
         else if (center.x > textRightEdge - LABEL_PADDING)
         {
             mark.x = textRightEdge - LABEL_PADDING;

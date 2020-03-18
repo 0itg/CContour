@@ -98,6 +98,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/experimental:external /external:anglebrackets %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,10 +134,14 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/experimental:external /external:I&lt;C:\Users\User\source\repos\vcpkg&gt; %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/experimental:external /external:I&lt;C:\Users\User\source\repos\vcpkg&gt;</AdditionalOptions>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MinimalRebuild>
+      </MinimalRebuild>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -146,10 +152,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Animation.cpp" />
     <ClCompile Include="CContour.cpp" />
+    <ClCompile Include="Commands.cpp" />
     <ClCompile Include="ContourCircle.cpp" />
     <ClCompile Include="Contour.cpp" />
     <ClCompile Include="ContourLine.cpp" />
+    <ClCompile Include="ContourParametric.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="ContourPolygon.cpp" />
     <ClCompile Include="ContourRect.cpp" />
@@ -161,9 +170,12 @@
     <ClCompile Include="ToolPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="Commands.h" />
     <ClInclude Include="ContourCircle.h" />
     <ClInclude Include="Contour.h" />
     <ClInclude Include="ContourLine.h" />
+    <ClInclude Include="ContourParametric.h" />
     <ClInclude Include="Event_IDs.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ContourPolygon.h" />
@@ -182,6 +194,7 @@
     <Image Include="icons\axis.png">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Image>
+    <Image Include="icons\close.png" />
     <Image Include="icons\color-randomizer.png">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Image>
@@ -206,6 +219,9 @@
     <Image Include="icons\paint-brush.png">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Image>
+    <Image Include="icons\parametric-curve.png" />
+    <Image Include="icons\pause.png" />
+    <Image Include="icons\play.png" />
     <Image Include="icons\tool-pointer.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

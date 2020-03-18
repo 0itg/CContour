@@ -10,21 +10,15 @@ class ContourRect : public ContourPolygon
     friend class boost::serialization::access;
 
   public:
-    ContourRect() noexcept {}
+    ContourRect() noexcept { closed = true; }
     ContourRect(cplx c, wxColor col = wxColor(255, 255, 255),
                 std::string n = "Rectangle") noexcept;
-    ContourRect* Clone() noexcept
-    {
-        return new ContourRect(*this);
-    };
+    ContourRect* Clone() noexcept { return new ContourRect(*this); };
 
     void Draw(wxDC* dc, ComplexPlane* canvas);
     void RemovePoint(int index);
-    void moveCtrlPoint(cplx mousePos, int ptIndex = -1);
-    bool IsDone()
-    {
-        return true;
-    }
+    void SetCtrlPoint(int ptIndex, cplx mousePos);
+    bool IsDone() { return true; }
     void Finalize(){};
 
   private:

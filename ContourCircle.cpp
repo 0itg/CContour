@@ -11,8 +11,9 @@ ContourCircle::ContourCircle(cplx c, double r, wxColor col,
     : radius(r)
 {
     points.push_back(c);
-    color = col;
-    name  = n;
+    center = c;
+    color  = col;
+    name   = n;
 }
 
 void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
@@ -24,14 +25,10 @@ void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
     DrawCtrlPoint(dc, p);
 }
 
-void ContourCircle::moveCtrlPoint(cplx mousePos, int ptIndex)
-{
-    points[0] = mousePos;
-}
-
-void ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
+bool ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
 {
     radius = abs(points[0] - mousePos);
+    return true;
 }
 
 bool ContourCircle::IsPointOnContour(cplx pt, ComplexPlane* canvas,
@@ -64,6 +61,7 @@ void ContourCircle::Subdivide(int res)
         double t = (double)i / res;
         subDiv.push_back(Interpolate(t));
     }
+    markedForRedraw = true;
 }
 
 std::tuple<int, int, int> ContourCircle::PopulateSupplementalMenu(ToolPanel* TP)

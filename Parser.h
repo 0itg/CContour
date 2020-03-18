@@ -14,8 +14,8 @@
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 
 template <typename T> class Symbol;
 template <typename T> class ParsedFunc;
@@ -54,9 +54,8 @@ template <typename T> class Parser
 
   private:
     ParsedFunc<T> f;
-    std::map<std::string, std::unique_ptr<Symbol<T>>,
-        cmp_length_then_alpha> tokenLibrary;
-
+    std::map<std::string, std::unique_ptr<Symbol<T>>, cmp_length_then_alpha>
+        tokenLibrary;
 
     // Save/Load via Boost.Serialization
     template <class Archive>
@@ -88,15 +87,9 @@ template <typename T> class ParsedFunc
 
   public:
     ParsedFunc(){};
-    ParsedFunc(const ParsedFunc&& in) noexcept
-    {
-        *this = std::move(in);
-    }
+    ParsedFunc(const ParsedFunc&& in) noexcept { *this = std::move(in); }
 
-    ParsedFunc(const ParsedFunc& in) noexcept
-    {
-        *this = in;
-    }
+    ParsedFunc(const ParsedFunc& in) noexcept { *this = in; }
 
     ParsedFunc& operator=(ParsedFunc&& in) noexcept
     {
@@ -141,21 +134,20 @@ template <typename T> class ParsedFunc
         return (*itr)->eval().GetVal();
     };
 
-    void setVariable(const std::string& name, const T& val);
+    void SetIV(std::string token) { IV_token = token; }
+    std::string GetIV() const { return IV_token; }
+    void SetVariable(const std::string& name, const T& val);
 
     typename std::vector<Symbol<T>*>::iterator itr;
 
-    auto GetMinItr()
-    {
-        return symbolStack.begin();
-    }
+    auto GetMinItr() { return symbolStack.begin(); }
     T operator()(T val);
     void PushToken(Symbol<T>* token)
     {
         Symbol<T>* S;
         if (tokens.find(token->GetToken()) == tokens.end())
         {
-            S = token->Clone();
+            S                         = token->Clone();
             tokens[token->GetToken()] = std::unique_ptr<Symbol<T>>(S);
             S->SetParent(this);
         }
@@ -163,22 +155,13 @@ template <typename T> class ParsedFunc
             S = tokens[token->GetToken()].get();
         symbolStack.push_back(S);
     }
-    void PopToken()
-    {
-        symbolStack.pop_back();
-    }
-    std::string str()
-    {
-        return inputText;
-    }
+    void PopToken() { symbolStack.pop_back(); }
+    std::string str() { return inputText; }
     void ReplaceVariable(std::string varOld, std::string var);
     auto GetVars();
     auto GetVarMap() const;
     void RestoreVarsFromMap(std::map<std::string, T>);
-    std::string GetInputText() const
-    {
-        return inputText;
-    }
+    std::string GetInputText() const { return inputText; }
 
   private:
     // Custom comparator puts longest tokenLibrary first. When tokenizing the
@@ -188,12 +171,10 @@ template <typename T> class ParsedFunc
         tokens;
     std::vector<Symbol<T>*> symbolStack;
     std::string inputText = "";
+    std::string IV_token  = "z";
 };
 
-template <typename T> inline Parser<T>::Parser()
-{
-    Initialize();
-}
+template <typename T> inline Parser<T>::Parser() { Initialize(); }
 
 template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
 {
@@ -253,7 +234,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
         // If first char is a number, read in the whole number.
         // If anything remains, It is an unrecognized token,
         // so call it a variable and set it to zero.
-        if (isdigit(s[0]))
+        if (isdigit(s[0]) || s[0] == '.')
         {
             ss >> t;
             // Add "\\" to name to prevent issues tokenizing in the future
@@ -292,9 +273,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
             {
                 if (tokenLibrary[tokenVec[i - 1]]->GetPrecedence() == -1 ||
                     tokenLibrary[tokenVec[i - 1]]->IsDyad())
-                {
-                    tokenVec[i] = "~";
-                }
+                { tokenVec[i] = "~"; }
             }
             else if (i == 0)
             {
@@ -320,9 +299,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
             if (i < tokenVec.size() - 1)
             {
                 if (tokenVec[i + 1][0] == '\\')
-                {
-                    tokenVec.insert(tokenVec.begin() + i + 1 + inserted, "*");
-                }
+                { tokenVec.insert(tokenVec.begin() + i + 1 + inserted, "*"); }
             }
         }
 
@@ -449,8 +426,7 @@ template <typename T> ParsedFunc<T> Parser<T>::Parse(std::string input)
     while (opStack.size() > 0)
     {
         f.PushToken(opStack.back());
-        if (f.symbolStack.back()->GetPrecedence() == sym_lparen)
-            f.PopToken();
+        if (f.symbolStack.back()->GetPrecedence() == sym_lparen) f.PopToken();
         opStack.pop_back();
     }
     return f;
@@ -468,15 +444,14 @@ struct cmp_length_then_alpha
 };
 
 template <typename T>
-inline void ParsedFunc<T>::setVariable(const std::string& name, const T& val)
+inline void ParsedFunc<T>::SetVariable(const std::string& name, const T& val)
 {
-    if (tokens.find(name) != tokens.end())
-        tokens[name]->SetVal(val);
+    if (tokens.find(name) != tokens.end()) tokens[name]->SetVal(val);
 }
 
 template <typename T> inline T ParsedFunc<T>::operator()(T val)
 {
-    setVariable("z", val);
+    SetVariable(IV_token, val);
     return eval();
 }
 
@@ -487,15 +462,10 @@ inline void ParsedFunc<T>::ReplaceVariable(std::string varOld,
     if (tokens.find(varOld) != tokens.end())
     {
         if (tokens.find(varNew) == tokens.end())
-        {
-            tokens[varNew] = new SymbolVar<T>(varNew);
-        }
+        { tokens[varNew] = new SymbolVar<T>(varNew); }
         for (auto& sym : symbolStack)
         {
-            if (sym->GetToken() == varOld)
-            {
-                sym = tokens[varOld];
-            }
+            if (sym->GetToken() == varOld) { sym = tokens[varOld]; }
         }
     }
 }
@@ -516,10 +486,7 @@ template <typename T> inline auto ParsedFunc<T>::GetVarMap() const
     std::map<std::string, T> varMap;
     for (auto S : symbolStack)
     {
-        if (S->IsVar())
-        {
-            varMap[S->GetToken()] = S->GetVal();
-        }
+        if (S->IsVar()) { varMap[S->GetToken()] = S->GetVal(); }
     }
     return varMap;
 }
@@ -529,10 +496,7 @@ inline void ParsedFunc<T>::RestoreVarsFromMap(std::map<std::string, T> varMap)
 {
     for (auto S : symbolStack)
     {
-        if (S->IsVar())
-        {
-            S->SetVal(varMap[S->GetToken()]);
-        }
+        if (S->IsVar()) { S->SetVal(varMap[S->GetToken()]); }
     }
 }
 

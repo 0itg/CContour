@@ -5,15 +5,18 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/aui/aui.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
 #include <wx/display.h>
-//#include <wx/spinctrl.h>
-#include <wx/aui/aui.h>
+#include <wx/spinctrl.h>
 #include <wx/vscroll.h>
 
 #include <complex>
+#include <functional>
+
+#include "Animation.h"
 
 typedef std::complex<double> cplx;
 
@@ -29,41 +32,30 @@ template <class T> class ParsedFunc;
 // wxControl-derived class could be stored there) and "controls" (must derive
 // from LinkedCtrl. Outside classes may handle the population of controls, or a
 // derived class may be used to provide that function.
-class ToolPanel : public wxVScrolledWindow
+class ToolPanel : public wxHVScrolledWindow
 {
   public:
     ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
-    ~ToolPanel();
+    virtual ~ToolPanel();
     virtual void OnTextEntry(wxCommandEvent& event);
     virtual void OnSpinButtonUp(wxSpinEvent& event);
     virtual void OnSpinButtonDown(wxSpinEvent& event);
     void OnPaintEvent(wxPaintEvent& event);
+    void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
     void ClearPanel();
 
-    void AddDecoration(wxControl* D)
-    {
-        decorations.push_back(D);
-    }
-    void AddLinkedCtrl(LinkedCtrl* L)
-    {
-        controls.push_back(L);
-    }
-    auto GetDecoration(size_t i)
-    {
-        return decorations[i];
-    }
-    auto GetLinkedCtrl(size_t i)
-    {
-        return controls[i];
-    }
+    void AddDecoration(wxWindow* D) { wxCtrls.push_back(D); }
+    void AddLinkedCtrl(LinkedCtrl* L) { linkedCtrls.push_back(L); }
+    auto GetDecoration(size_t i) { return wxCtrls[i]; }
+    auto GetLinkedCtrl(size_t i) { return linkedCtrls[i]; }
 
-    virtual wxCoord OnGetRowHeight(size_t row) const
-    {
-        return ROW_HEIGHT;
-    }
+    virtual wxCoord OnGetRowHeight(size_t row) const { return ROW_HEIGHT; }
+    virtual wxCoord OnGetColumnWidth(size_t row) const { return ROW_HEIGHT; }
 
     virtual bool NeedsUpdate()   = 0;
     virtual void RefreshLinked() = 0;
+
+    virtual void RePopulate() { lastPopulateFn(); }
 
     static constexpr int ROW_HEIGHT = 24;
     static constexpr int SPACING    = 2 * ROW_HEIGHT;
@@ -74,8 +66,9 @@ class ToolPanel : public wxVScrolledWindow
     wxPanel* intermediate;
     // wxDECLARE_EVENT_TABLE();
   protected:
-    std::vector<wxControl*> decorations;
-    std::vector<LinkedCtrl*> controls;
+    std::vector<wxWindow*> wxCtrls;
+    std::vector<LinkedCtrl*> linkedCtrls;
+    std::function<void(void)> lastPopulateFn = 0;
 };
 
 // Panel which dynamically shows either Axis controls or Contour controls,
@@ -95,14 +88,8 @@ class NumCtrlPanel : public ToolPanel
     bool NeedsUpdate();
     void RefreshLinked();
 
-    void SetInputPlane(InputPlane* in)
-    {
-        input = in;
-    }
-    void SetOutputPlane(OutputPlane* out)
-    {
-        outputs.push_back(out);
-    }
+    void SetInputPlane(InputPlane* in) { input = in; }
+    void SetOutputPlane(OutputPlane* out) { outputs.push_back(out); }
 
     wxDECLARE_EVENT_TABLE();
 
@@ -122,23 +109,42 @@ class VariableEditPanel : public ToolPanel
         : ToolPanel(parent, ID, pos, size), output(out)
     {
     }
+
     void PopulateVarTextCtrls(ParsedFunc<cplx>& F);
 
     void OnPaintEvent(wxPaintEvent& event);
 
-    bool NeedsUpdate()
-    {
-        return true;
-    }
+    bool NeedsUpdate() { return true; }
     void RefreshLinked();
 
-    void SetOutputPlane(OutputPlane* out)
-    {
-        output = out;
-    }
+    void SetOutputPlane(OutputPlane* out) { output = out; }
 
     wxDECLARE_EVENT_TABLE();
 
   private:
     OutputPlane* output;
+};
+
+class AnimPanel : public ToolPanel
+{
+  public:
+      AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
+          InputPlane* in = nullptr);
+    void SetInputPlane(InputPlane* in) { input = in; }
+
+    bool NeedsUpdate() { return true; }
+    void RefreshLinked(){};
+
+    void AddAnimCtrl();
+    void OnAddAnimCtrl(wxCommandEvent& event) { AddAnimCtrl(); }
+    void OnRemoveAnim(wxCommandEvent& event);
+    //void PopulateAnimCtrls();
+    void UpdateComboBoxes();
+    void FinishLayout();
+
+    wxDECLARE_EVENT_TABLE();
+
+  private:
+    InputPlane* input;
+    wxButton* newAnimButton;
 };
