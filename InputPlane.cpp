@@ -8,6 +8,7 @@
 #include "ToolPanel.h"
 
 #include <wx/dcgraph.h>
+#include <algorithm>
 
 BOOST_CLASS_EXPORT_GUID(InputPlane, "InputPlane")
 
@@ -405,6 +406,12 @@ void InputPlane::RemoveContour(int index)
     }
     highlightedContour   = -1;
     highlightedCtrlPoint = -1;
+
+    for (auto& A : animations)
+    {
+        if (A->subjSel == index || A->pathSel == index)
+            A->ClearCommands();
+    }
 }
 
 std::unique_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)

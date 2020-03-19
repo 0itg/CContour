@@ -502,4 +502,5 @@ void MainWindowFrame::Load(std::string& path)
     output->RefreshFuncText();
     input->RefreshShowAxes_ShowGrid();
     varEditPanel->PopulateVarTextCtrls(output->f);
+    animPanel->PopulateAnimCtrls();
 }

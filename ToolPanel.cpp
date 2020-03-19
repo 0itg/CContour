@@ -34,7 +34,7 @@ wxBEGIN_EVENT_TABLE(AnimPanel, wxHVScrolledWindow)
 EVT_COMBOBOX(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
-EVT_BUTTON(ID_New_Anim, AnimPanel::OnAddAnimCtrl)
+EVT_BUTTON(ID_New_Anim, AnimPanel::OnButtonNewAnim)
 EVT_CHECKBOX(wxID_ANY, AnimPanel::OnTextEntry)
 EVT_BUTTON(wxID_ANY, AnimPanel::OnRemoveAnim)
 wxEND_EVENT_TABLE();
@@ -268,7 +268,6 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
     sizer->Add(wxCtrls.back(), sizerFlags);
 
     std::vector<Symbol<cplx>*> vars = F.GetVars();
-    //SetRowCount(2 * vars.size());
 
     for (auto v : vars)
     {
@@ -314,12 +313,18 @@ AnimPanel::AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
     sizer->AddGrowableCol(0, 1);
 }
 
-void AnimPanel::AddAnimCtrl()
+void AnimPanel::AddAnimation()
 {
-    Freeze();
     input->animations.push_back(std::make_unique<Animation>());
+    AddAnimCtrl();
+}
+
+void AnimPanel::AddAnimCtrl(int index)
+{
+    if (index < 0) index = input->animations.size() - 1;
+    Freeze();
     auto newAnim =
-        new AnimCtrl(intermediate, input, input->animations.back().get());
+        new AnimCtrl(intermediate, input, input->animations[index].get());
     auto sizer = intermediate->GetSizer();
     wxSizerFlags sizerFlags(1);
     sizerFlags.Border(wxLEFT | wxRIGHT, 3).Expand();
@@ -350,28 +355,31 @@ void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
     Thaw();
 }
 
-//void AnimPanel::PopulateAnimCtrls()
-//{
-//    Freeze();
-//    ClearPanel();
-//    // if (input->animations.empty())
-//    //    input->animations.push_back(std::make_unique<Animation>());
-//    auto sizer = new wxBoxSizer(wxVERTICAL);
-//    intermediate->SetSizer(sizer);
-//
-//    newAnimButton = new wxButton(intermediate, ID_New_Anim, "New Animation");
-//    AddwxCtrl(newAnimButton);
-//    sizer->Add(newAnimButton);
-//
-//    AddAnimCtrl();
-//
-//    Thaw();
-//}
+void AnimPanel::PopulateAnimCtrls()
+{
+    Freeze();
+    ClearPanel();
+    auto sizer = new wxFlexGridSizer(1, 0, 0);
+    sizer->SetFlexibleDirection(wxHORIZONTAL);
+
+    newAnimButton = new wxButton(intermediate, ID_New_Anim, "New Animation");
+    AddwxCtrl(newAnimButton);
+    sizer->Add(newAnimButton);
+    intermediate->SetSizer(sizer);
+
+    for (int i = 0; i < input->animations.size(); i++)
+    {
+        AddAnimCtrl(i);
+        linkedCtrls.back()->ReadLinked();
+    }
+
+    Thaw();
+}
 
 void AnimPanel::UpdateComboBoxes()
 {
     for (auto C : linkedCtrls)
-        C->ReadLinked();
+        C->UpdateCtrl();
 }
 
 void AnimPanel::FinishLayout()

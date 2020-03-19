@@ -1,5 +1,6 @@
 #include "Animation.h"
 #include "Commands.h"
+#include "Contour.h"
 
 void Animation::FrameAt(int t)
 {
@@ -24,4 +25,12 @@ void Animation::Reset()
 {
     // for (auto& C : commands)
     //    C->reset();
+}
+
+void Animation::SetPathContour(Contour* C)
+{
+    path = C;
+    f = [&](double t) {
+        return path->Interpolate(reverse * t + offset);
+    };
 }

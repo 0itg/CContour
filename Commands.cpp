@@ -3,6 +3,18 @@
 #include "InputPlane.h"
 #include "OutputPlane.h"
 
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandOutputPlaneFuncEntry)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesReset)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesSet)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandInputPlaneCreateContour)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSubdivide)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourRemovePoint)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourAddPoint)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourMovePoint)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourPlaceAt)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourTranslate)
+
+
 void CommandContourTranslate::exec() { subject->Translate(newPos, oldPos); }
 
 void CommandContourPlaceAt::exec()

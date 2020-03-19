@@ -2,11 +2,20 @@
 #include <complex>
 #include <functional>
 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/complex.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+
 #include "Commands.h"
 
 typedef std::complex<double> cplx;
 
 class Command;
+class Contour;
 
 // Executes Commands parameterized by a complex function f(t). There is no
 // particular restriction on what the commands may do, but the animation system
@@ -16,9 +25,9 @@ class Command;
 
 class Animation
 {
+    friend class boost::serialization::access;
   public:
     Animation() : f([](cplx c) { return c; }) {}
-    Animation(std::function<cplx(double)> func) : f(func) {}
     void FrameAt(int t);
     void Reset();
     void AddCommand(std::unique_ptr<Command> C)
@@ -27,17 +36,60 @@ class Animation
     }
     void ClearCommands() { commands.clear(); }
     void SetFunction(std::function<cplx(double)> func) { f = func; }
+    void SetPathContour(Contour* C);
     bool IsEmpty() { return commands.empty(); }
 
     // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then
     // repeat. else, it will go from t=0 to t=1, then repeat.
     bool bounce     = false;
+    int reverse    = 1;
     int duration_ms = 1000;
+    // Stored internally as an offset from 0 to 1;
+    double offset;
 
+    // Stored menu selections for restoring the menus on load.
+    int subjSel;
+    int pathSel;
+    int comSel;
+    int handle;
   private:
+    Contour* path;
     std::vector<std::unique_ptr<Command>> commands;
 
-    // Function must be parameterized by a variable called 't', assumed to
-    // range between 0 and 1 for now;
+    // Function must be parameterized by a variable 't', assumed to
+    // range between 0 and 1.
+    // std::function doesn't play well with serialization. A function can be
+    // reconstructed from Contour* path, so we'll just do that for now.
+    // That means any other type of function will be overwritten on save.
     std::function<cplx(double)> f;
+
+    //template <class Archive>
+    //void save(Archive& ar, const unsigned int version) const
+    //{
+    //}
+
+    //template <class Archive>
+    //void load(Archive& ar, const unsigned int version)
+    //{
+
+    //}
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar & path;
+        ar& bounce;
+        ar& reverse;
+        ar& duration_ms;
+        ar& offset;
+        ar& subjSel;
+        ar& pathSel;
+        ar& comSel;
+        ar& handle;
+
+        SetPathContour(path);
+
+        ar& commands;
+        //boost::serialization::split_member(ar, *this, version);
+    }
 };
