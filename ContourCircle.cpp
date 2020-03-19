@@ -68,12 +68,12 @@ std::tuple<int, int, int> ContourCircle::PopulateSupplementalMenu(ToolPanel* TP)
 {
     auto RadiusText =
         new wxStaticText(TP->intermediate, wxID_ANY, wxString("Radius: "),
-                         wxDefaultPosition, TP->TEXTBOX_SIZE);
+                         wxDefaultPosition, wxDefaultSize);
     auto RadiusCtrl = new LinkedDoubleTextCtrl(
         TP->intermediate, wxID_ANY, wxString(std::to_string(radius)),
-        wxDefaultPosition, TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, &radius);
+        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, &radius);
     auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
-    TP->AddDecoration(RadiusText);
+    TP->AddwxCtrl(RadiusText);
     TP->AddLinkedCtrl(RadiusCtrl);
     auto sizer = TP->intermediate->GetSizer();
     sizer->Add(RadiusText, sizerFlags);

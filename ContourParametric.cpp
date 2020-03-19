@@ -41,17 +41,19 @@ cplx ContourParametric::Interpolate(double t)
 
 void ContourParametric::PopulateMenu(ToolPanel* TP)
 {
-    auto sizer      = new wxBoxSizer(wxVERTICAL);
+    auto panel = TP->intermediate;
+    auto sizer      = new wxFlexGridSizer(1, 0, 0);
+    sizer->SetFlexibleDirection(wxHORIZONTAL);
     auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
-    TP->intermediate->SetSizer(sizer);
-    wxFont normalFont = TP->intermediate->GetFont();
+    panel->SetSizer(sizer);
+    wxFont normalFont = panel->GetFont();
 
-    TP->intermediate->SetFont(normalFont.Bold());
-    TP->AddDecoration(new wxStaticText(TP->intermediate, wxID_ANY,
+    panel->SetFont(normalFont.Bold());
+    TP->AddwxCtrl(new wxStaticText(panel, wxID_ANY,
                                        wxString(GetName() + ":"),
                                        wxDefaultPosition, wxDefaultSize));
-    TP->intermediate->SetFont(normalFont);
-    sizer->Add(TP->GetDecoration(0), sizerFlags);
+    panel->SetFont(normalFont);
+    sizer->Add(TP->GetwxCtrl(0), sizerFlags);
 
     auto fnEdit =
         new LinkedFuncCtrl(TP, wxID_ANY, f.GetInputText(), wxDefaultPosition,
@@ -60,26 +62,26 @@ void ContourParametric::PopulateMenu(ToolPanel* TP)
     sizer->Add(fnEdit->GetCtrlPtr(), sizerFlags);
 
     auto tStartLabel =
-        new wxStaticText(TP->intermediate, wxID_ANY, wxString("t start"),
+        new wxStaticText(panel, wxID_ANY, wxString("t start"),
                          wxDefaultPosition, wxDefaultSize);
-    TP->AddDecoration(tStartLabel);
+    TP->AddwxCtrl(tStartLabel);
     sizer->Add(tStartLabel, sizerFlags);
 
     auto tStartTextBox = new LinkedDoubleTextCtrl(
-        TP->intermediate, wxID_ANY, wxString(std::to_string(tStart)),
-        wxDefaultPosition, TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, &tStart);
+        panel, wxID_ANY, wxString(std::to_string(tStart)),
+        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, &tStart);
     TP->AddLinkedCtrl(tStartTextBox);
     sizer->Add(tStartTextBox->GetCtrlPtr(), sizerFlags);
 
     auto tEndLabel =
-        new wxStaticText(TP->intermediate, wxID_ANY, wxString("t start"),
+        new wxStaticText(panel, wxID_ANY, wxString("t start"),
                          wxDefaultPosition, wxDefaultSize);
-    TP->AddDecoration(tEndLabel);
+    TP->AddwxCtrl(tEndLabel);
     sizer->Add(tEndLabel, sizerFlags);
 
     auto tEndTextBox = new LinkedDoubleTextCtrl(
-        TP->intermediate, wxID_ANY, wxString(std::to_string(tEnd)),
-        wxDefaultPosition, TP->TEXTBOX_SIZE, wxTE_PROCESS_ENTER, &tEnd);
+        panel, wxID_ANY, wxString(std::to_string(tEnd)),
+        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, &tEnd);
     TP->AddLinkedCtrl(tEndTextBox);
     sizer->Add(tEndTextBox->GetCtrlPtr(), sizerFlags);
 
@@ -97,7 +99,7 @@ void ContourParametric::PopulateMenu(ToolPanel* TP)
         auto vName = new wxStaticText(TP->intermediate, wxID_ANY,
                                       wxString(v->GetToken()),
                                       wxDefaultPosition, wxDefaultSize);
-        TP->AddDecoration(vName);
+        TP->AddwxCtrl(vName);
         auto vTextBox = new LinkedVarTextCtrl(TP->intermediate, wxID_ANY, c,
                                               wxDefaultPosition, wxDefaultSize,
                                               wxTE_PROCESS_ENTER, v);
@@ -106,15 +108,7 @@ void ContourParametric::PopulateMenu(ToolPanel* TP)
         sizer->Add(vTextBox->GetCtrlPtr(), sizerFlags);
     }
 
-    TP->SetRowCount(rowCount);
-
-    auto vExtent = wxSize(-1, rowCount * TP->ROW_HEIGHT);
-
-    auto panel = TP->intermediate;
+    sizer->AddGrowableCol(0, 1);
+    panel->SetVirtualSize(sizer->GetSize());
     panel->Layout();
-    panel->SetMinClientSize(wxSize(TP->GetClientSize().x, vExtent.y));
-    panel->SetMaxClientSize(vExtent);
-    panel->SetVirtualSize(vExtent);
-
-    panel->Fit();
 }
