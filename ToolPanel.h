@@ -130,10 +130,13 @@ class AnimPanel : public ToolPanel
     bool NeedsUpdate() { return true; }
     void RefreshLinked(){};
 
-    void AddAnimCtrl();
-    void OnAddAnimCtrl(wxCommandEvent& event) { AddAnimCtrl(); }
+    // Adds a new animation to input and creates an animCtrl for this panel;
+    void AddAnimation();
+    // Creates a new animCtrl, using the last item in input's animations vector.
+    void AddAnimCtrl(int index = -1);
+    void OnButtonNewAnim(wxCommandEvent& event) { AddAnimation(); }
     void OnRemoveAnim(wxCommandEvent& event);
-    //void PopulateAnimCtrls();
+    void PopulateAnimCtrls();
     void UpdateComboBoxes();
     void FinishLayout();
 

@@ -38,6 +38,7 @@ class LinkedCtrl
     virtual wxWindowID GetId()     = 0;
     virtual bool Destroy()         = 0;
     virtual wxWindow* GetCtrlPtr() = 0;
+    virtual void UpdateCtrl()      = 0;
 };
 
 // Base class for LinkedCtrls which contain a wxTextCtrl.
@@ -54,6 +55,7 @@ class LinkedTextCtrl : public LinkedCtrl
         return res;
     }
     virtual wxTextCtrl* GetCtrlPtr() { return textCtrl; }
+    virtual void UpdateCtrl() {}
     wxTextCtrl* textCtrl;
 };
 
@@ -63,6 +65,7 @@ class LinkedSpinCtrlDouble : public LinkedCtrl
   public:
     virtual void WriteLinked() = 0;
     virtual void ReadLinked()  = 0;
+    virtual void UpdateCtrl() {}
     virtual wxWindowID GetId() { return textCtrl->GetId(); }
     virtual bool Destroy()
     {
@@ -88,6 +91,7 @@ class LinkedCplxSpinCtrl : public LinkedCtrl
     virtual wxWindowID GetIdImSpin() { return imSpin->GetId(); }
     virtual wxPanel* GetCtrlPtr() { return panel; }
     virtual void Add(cplx c) = 0;
+    virtual void UpdateCtrl() {}
     virtual bool Destroy()
     {
         bool res = panel->Destroy();
@@ -194,7 +198,7 @@ class AnimCtrl : public LinkedCtrl
         return res;
     }
     virtual wxWindow* GetCtrlPtr() { return panel; };
-    virtual void UpdateComboBoxes();
+    virtual void UpdateCtrl();
 
   private:
     void PopulateHandleMenu();

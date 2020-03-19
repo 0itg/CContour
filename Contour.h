@@ -114,6 +114,7 @@ class Contour
         ar& name;
         ar& points;
         ar& color;
+        CalcCenter();
     }
 };
 

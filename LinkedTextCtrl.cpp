@@ -151,9 +151,6 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
     auto subjectLabel = new wxStaticText(panel, panelID, "Subject: ");
     subjectMenu       = new wxComboBox(panel, panelID, "", wxDefaultPosition,
                                  wxDefaultSize, contourChoices, wxCB_READONLY);
-
-    PopulateHandleMenu();
-
     auto commandLabel   = new wxStaticText(panel, panelID, "Command: ");
     commandMenu         = new wxComboBox(panel, panelID, "", wxDefaultPosition,
                                  wxDefaultSize, commandChoices, wxCB_READONLY);
@@ -176,7 +173,7 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
     bounceCtrl  = new wxCheckBox(panel, panelID, "Bounce: ", wxDefaultPosition,
                                 wxDefaultSize, wxALIGN_RIGHT);
     removeButton = new wxButton(panel, panelID, "Remove");
-    // removeButton = wxBitmapButton::NewCloseButton(panel, panelID);
+    //removeButton = wxBitmapButton::NewCloseButton(panel, panelID);
 
     sizer = new wxBoxSizer(wxHORIZONTAL);
     wxSizerFlags flag1(1);
@@ -207,11 +204,11 @@ void AnimCtrl::WriteLinked()
 {
     anim->ClearCommands();
     int subj = subjectMenu->GetSelection();
-    int com  = pathMenu->GetSelection();
+    int path  = pathMenu->GetSelection();
+    int com = commandMenu->GetSelection();
 
     int handle = handleMenu->GetSelection();
     PopulateHandleMenu();
-    handleMenu->Set(handleChoices);
     handleMenu->SetSelection(handle);
 
     reverse = reverseCtrl->IsChecked() ? -1 : 1;
@@ -219,20 +216,26 @@ void AnimCtrl::WriteLinked()
     durationCtrl->WriteLinked();
     durOffsetCtrl->WriteLinked();
 
-    if (subj > -1 && com > -1 && handle > -1)
+    if (subj > -1 && com > -1 && path > -1 && handle > -1)
     {
-        handle--;
+        dur = dur ? dur : 1;
         anim->duration_ms = 1000 * dur;
+        anim->reverse = reverse;
+        anim->offset = offset / dur;
+        anim->bounce = bounceCtrl->GetValue();
+        anim->subjSel = subj;
+        anim->comSel = com;
+        anim->pathSel = path;
+        anim->handle = handle;
 
         auto C = input->GetContour(subj);
-        anim->SetFunction([=](double t) {
-            auto ptr = input->GetContour(com);
-            return ptr->Interpolate(reverse * t + offset);
-        });
+        auto pathContour = input->GetContour(path);
+        anim->SetPathContour(pathContour);
 
         switch (auto command = commandMenu->GetSelection())
         {
         case COMMAND_PLACE_AT:
+            handle--; // Center is first on list and has index -1.
             anim->AddCommand(
                 std::make_unique<CommandContourPlaceAt>(C, 0, handle));
             break;
@@ -243,13 +246,28 @@ void AnimCtrl::WriteLinked()
         }
         anim->AddCommand(
             std::make_unique<CommandContourSubdivide>(C, input->GetRes()));
-        anim->bounce = bounceCtrl->GetValue();
     }
 }
 
-void AnimCtrl::ReadLinked() { UpdateComboBoxes(); }
+void AnimCtrl::ReadLinked()
+{
+    UpdateCtrl();
+    reverse = anim->reverse;
+    reverseCtrl->SetValue(reverse == -1);
+    bounceCtrl->SetValue(anim->bounce);
+    dur = anim->duration_ms / 1000.0;
+    offset = anim->offset * dur;
+    durationCtrl->ReadLinked();
+    durOffsetCtrl->ReadLinked();
 
-void AnimCtrl::UpdateComboBoxes()
+    subjectMenu->SetSelection(anim->subjSel);
+    pathMenu->SetSelection(anim->pathSel);
+    commandMenu->SetSelection(anim->comSel);
+    PopulateHandleMenu();
+    handleMenu->SetSelection(anim->handle);
+}
+
+void AnimCtrl::UpdateCtrl()
 {
     contourChoices = input->GetContourNames();
     auto sel1      = subjectMenu->GetSelection();
@@ -280,4 +298,5 @@ void AnimCtrl::PopulateHandleMenu()
         {
             handleChoices.Add("Ctrl Point " + std::to_string(i));
         }
+    handleMenu->Set(handleChoices);
 }
