@@ -32,7 +32,7 @@ template <class T> class ParsedFunc;
 // wxControl-derived class could be stored there) and "controls" (must derive
 // from LinkedCtrl. Outside classes may handle the population of controls, or a
 // derived class may be used to provide that function.
-class ToolPanel : public wxHVScrolledWindow
+class ToolPanel : public wxScrolledWindow
 {
   public:
     ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
@@ -44,9 +44,9 @@ class ToolPanel : public wxHVScrolledWindow
     void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
     void ClearPanel();
 
-    void AddDecoration(wxWindow* D) { wxCtrls.push_back(D); }
+    void AddwxCtrl(wxWindow* D) { wxCtrls.push_back(D); }
     void AddLinkedCtrl(LinkedCtrl* L) { linkedCtrls.push_back(L); }
-    auto GetDecoration(size_t i) { return wxCtrls[i]; }
+    auto GetwxCtrl(size_t i) { return wxCtrls[i]; }
     auto GetLinkedCtrl(size_t i) { return linkedCtrls[i]; }
 
     virtual wxCoord OnGetRowHeight(size_t row) const { return ROW_HEIGHT; }
@@ -58,13 +58,8 @@ class ToolPanel : public wxHVScrolledWindow
     virtual void RePopulate() { lastPopulateFn(); }
 
     static constexpr int ROW_HEIGHT = 24;
-    static constexpr int SPACING    = 2 * ROW_HEIGHT;
-    const wxSize TEXTBOX_SIZE =
-        wxSize(this->GetTextExtent("0.00000000 + 0.00000000i").x + 20,
-               wxDefaultSize.y);
 
     wxPanel* intermediate;
-    // wxDECLARE_EVENT_TABLE();
   protected:
     std::vector<wxWindow*> wxCtrls;
     std::vector<LinkedCtrl*> linkedCtrls;

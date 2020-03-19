@@ -179,25 +179,26 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
     // removeButton = wxBitmapButton::NewCloseButton(panel, panelID);
 
     sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxSizerFlags flags(1);
-    flags.Border(wxALL, 3).Proportion(1);
-    wxSizerFlags labelFlags(1);
-    labelFlags.Border(wxALL, 3).Proportion(0);
-    sizer->Add(subjectLabel, labelFlags);
-    sizer->Add(subjectMenu, flags);
-    sizer->Add(commandLabel, labelFlags);
-    sizer->Add(commandMenu, flags);
-    sizer->Add(pathLabel, labelFlags);
-    sizer->Add(pathMenu, flags);
-    sizer->Add(handleLabel, labelFlags);
-    sizer->Add(handleMenu, flags);
-    sizer->Add(durationLabel, labelFlags);
-    sizer->Add(durationCtrl->GetCtrlPtr(), flags);
-    sizer->Add(durOffsetLabel, labelFlags);
-    sizer->Add(durOffsetCtrl->GetCtrlPtr(), flags);
-    sizer->Add(reverseCtrl, flags);
-    sizer->Add(bounceCtrl, flags);
-    sizer->Add(removeButton, flags);
+    wxSizerFlags flag1(1);
+    flag1.Border(wxALL, 3).Proportion(1);
+    wxSizerFlags flag0(1);
+    flag0.Border(wxALL, 3).Proportion(0);
+
+    sizer->Add(subjectLabel, flag0);
+    sizer->Add(subjectMenu, flag1);
+    sizer->Add(commandLabel, flag0);
+    sizer->Add(commandMenu, flag1);
+    sizer->Add(pathLabel, flag0);
+    sizer->Add(pathMenu, flag1);
+    sizer->Add(handleLabel, flag0);
+    sizer->Add(handleMenu, flag1);
+    sizer->Add(durationLabel, flag0);
+    sizer->Add(durationCtrl->GetCtrlPtr(), flag0);
+    sizer->Add(durOffsetLabel, flag0);
+    sizer->Add(durOffsetCtrl->GetCtrlPtr(), flag0);
+    sizer->Add(reverseCtrl, flag0);
+    sizer->Add(bounceCtrl, flag0);
+    sizer->Add(removeButton, flag0);
     panel->SetSizer(sizer);
     panel->Fit();
 }

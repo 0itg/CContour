@@ -41,11 +41,11 @@ wxEND_EVENT_TABLE();
 // clang-format on
 
 ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
-    : wxHVScrolledWindow(parent, ID, pos, size)
+    : wxScrolledWindow(parent, ID, pos, size)
 {
-    SetRowCount(20);
     wxBoxSizer* siz = new wxBoxSizer(wxVERTICAL);
     intermediate    = new wxPanel(this);
+    SetScrollRate(30, 30);
     siz->Add(intermediate, wxSizerFlags(1).Expand());
     SetSizer(siz);
     // wxFont font = intermediate->GetFont();
@@ -130,10 +130,10 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
     Freeze();
 
     ClearPanel();
-    SetRowCount(20);
     std::string buttonText[] = {
         "Real Min:", "Real Max:", "Imag Min:", "Imag Max:"};
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    auto sizer = new wxFlexGridSizer(1, 0, 0);
+    sizer->SetFlexibleDirection(wxHORIZONTAL);
     wxSizerFlags sizerFlags(1);
     sizerFlags.Expand().Border(wxLEFT | wxRIGHT, 3);
     wxFont normalFont = intermediate->GetFont();
@@ -150,12 +150,12 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
         for (int i = 0; i < 4; i++)
         {
             double c = input->axes.c[i];
-            AddDecoration(new wxStaticText(intermediate, wxID_ANY,
+            AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
                                            wxString(buttonText[i]),
                                            wxDefaultPosition, wxDefaultSize));
             AddLinkedCtrl(new LinkedDoubleTextCtrl(
                 intermediate, wxID_ANY, wxString(std::to_string(c)),
-                wxDefaultPosition, TEXTBOX_SIZE, wxTE_PROCESS_ENTER,
+                wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
                 input->axes.c + i));
             sizer->Add(wxCtrls.back(), sizerFlags);
             sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
@@ -177,28 +177,19 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
                 intermediate->SetFont(normalFont);
             }
             double c = outputs[i / 4]->axes.c[i % 4];
-            AddDecoration(new wxStaticText(intermediate, wxID_ANY,
+            AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
                                            wxString(buttonText[i % 4]),
                                            wxDefaultPosition, wxDefaultSize));
             AddLinkedCtrl(new LinkedDoubleTextCtrl(
                 intermediate, wxID_ANY, wxString(std::to_string(c)),
-                wxDefaultPosition, TEXTBOX_SIZE, wxTE_PROCESS_ENTER,
+                wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
                 outputs[i / 4]->axes.c + (i % 4)));
             sizer->Add(wxCtrls.back(), sizerFlags);
             sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
         }
     }
+    sizer->AddGrowableCol(0, 1);
     intermediate->SetSizer(sizer);
-    // intermediate->SetMinClientSize(wxSize(-1, (4 * SPACING + ROW_HEIGHT) * (1
-    // + outputs.size())));
-    intermediate->SetMaxClientSize(wxSize(GetClientSize().x, -1));
-    intermediate->Layout();
-    intermediate->FitInside();
-    intermediate->SetMaxClientSize(wxSize(
-        -1, ROW_HEIGHT + (4 * SPACING + ROW_HEIGHT) * (1 + outputs.size())));
-    SetVirtualSize(wxSize(-1, ROW_HEIGHT + (4 * SPACING + ROW_HEIGHT) *
-                                               (1 + outputs.size())));
-
     Layout();
     Thaw();
 }
@@ -208,7 +199,6 @@ void NumCtrlPanel::PopulateContourTextCtrls(Contour* C)
     lastPopulateFn = [=] { PopulateContourTextCtrls(C); };
     Freeze();
     ClearPanel();
-    SetRowCount(2 * C->GetPointCount() + 1);
     C->PopulateMenu(this);
 
     Layout();
@@ -263,13 +253,14 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
 {
     Freeze();
     ClearPanel();
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    auto sizer = new wxFlexGridSizer(1, 0, 0);
+    sizer->SetFlexibleDirection(wxHORIZONTAL);
     wxSizerFlags sizerFlags(1);
     sizerFlags.Expand().Border(wxLEFT | wxRIGHT, 3);
     wxFont normalFont = intermediate->GetFont();
 
     intermediate->SetFont(normalFont.Bold());
-    AddDecoration(new wxStaticText(intermediate, wxID_ANY,
+    AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
                                    wxString("Parameters :"), wxDefaultPosition,
                                    wxDefaultSize));
     intermediate->SetFont(normalFont);
@@ -277,7 +268,7 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
     sizer->Add(wxCtrls.back(), sizerFlags);
 
     std::vector<Symbol<cplx>*> vars = F.GetVars();
-    SetRowCount(2 * vars.size());
+    //SetRowCount(2 * vars.size());
 
     for (auto v : vars)
     {
@@ -285,7 +276,7 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
         cplx val      = v->eval().GetVal();
         std::string c = std::to_string(val.real()) + " + " +
                         std::to_string(val.imag()) + "i";
-        AddDecoration(new wxStaticText(intermediate, wxID_ANY,
+        AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
                                        wxString(v->GetToken()),
                                        wxDefaultPosition, wxDefaultSize));
         AddLinkedCtrl(new LinkedVarTextCtrl(intermediate, wxID_ANY, c,
@@ -294,15 +285,9 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
         sizer->Add(wxCtrls.back(), sizerFlags);
         sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
     }
-    intermediate->SetMinClientSize(
-        wxSize(GetClientSize().x, SPACING * (vars.size()) - ROW_HEIGHT));
-    intermediate->SetMaxClientSize(
-        wxSize(-1, SPACING * (vars.size()) - ROW_HEIGHT));
-    SetVirtualSize(wxSize(-1, SPACING * (vars.size())));
     intermediate->SetSizer(sizer);
-    intermediate->FitInside();
-    intermediate->Layout();
-
+    intermediate->SetVirtualSize(sizer->GetSize());
+    sizer->AddGrowableCol(0, 1);
     Layout();
     Thaw();
 }
@@ -319,12 +304,14 @@ AnimPanel::AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
     InputPlane* in)
     : ToolPanel(parent, ID, pos, size), input(in)
 {
-    auto sizer = new wxBoxSizer(wxVERTICAL);
-    intermediate->SetSizer(sizer);
+    auto sizer = new wxFlexGridSizer(1, 0, 0);
+    sizer->SetFlexibleDirection(wxHORIZONTAL);
 
     newAnimButton = new wxButton(intermediate, ID_New_Anim, "New Animation");
-    AddDecoration(newAnimButton);
+    AddwxCtrl(newAnimButton);
     sizer->Add(newAnimButton);
+    intermediate->SetSizer(sizer);
+    sizer->AddGrowableCol(0, 1);
 }
 
 void AnimPanel::AddAnimCtrl()
@@ -335,7 +322,7 @@ void AnimPanel::AddAnimCtrl()
         new AnimCtrl(intermediate, input, input->animations.back().get());
     auto sizer = intermediate->GetSizer();
     wxSizerFlags sizerFlags(1);
-    sizerFlags.Border(wxLEFT | wxRIGHT, 3);
+    sizerFlags.Border(wxLEFT | wxRIGHT, 3).Expand();
     sizer->Insert(sizer->GetItemCount() - 1, newAnim->GetCtrlPtr(), sizerFlags);
     AddLinkedCtrl(newAnim);
     FinishLayout();
@@ -354,7 +341,6 @@ void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
             linkedCtrls.erase(linkedCtrls.begin() + index);
             input->animations[index].reset();
             input->animations.erase(input->animations.begin() + index);
-            Fit();
             Layout();
             break;
         }
@@ -374,7 +360,7 @@ void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
 //    intermediate->SetSizer(sizer);
 //
 //    newAnimButton = new wxButton(intermediate, ID_New_Anim, "New Animation");
-//    AddDecoration(newAnimButton);
+//    AddwxCtrl(newAnimButton);
 //    sizer->Add(newAnimButton);
 //
 //    AddAnimCtrl();
@@ -390,22 +376,7 @@ void AnimPanel::UpdateComboBoxes()
 
 void AnimPanel::FinishLayout()
 {
-    intermediate->SetMinClientSize(wxSize(
-        1100, ((wxCtrls.size() + linkedCtrls.size()) * (ROW_HEIGHT + 6))));
-    intermediate->SetMaxClientSize(wxSize(
-        1100, ((wxCtrls.size() + linkedCtrls.size()) * (ROW_HEIGHT + 6))));
-    SetVirtualSize(1000, -1);
-
-    auto scroll = GetVisibleBegin();
-    ScrollToRowColumn(0, 0);
-
-    auto RowCt = (wxCtrls.size() + linkedCtrls.size());
-    SetRowCount(RowCt + RowCt / 4 + 1);
-
+    SetVirtualSize(GetSizer()->GetSize());
     FitInside();
-    intermediate->FitInside();
-    intermediate->Layout();
-    SetColumnCount(40);
     Layout();
-    ScrollToRowColumn(scroll);
 }

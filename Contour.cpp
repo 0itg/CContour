@@ -47,17 +47,21 @@ void Contour::SetCtrlPoint(int index, cplx c)
 
 void Contour::PopulateMenu(ToolPanel* TP)
 {
-    auto sizer      = new wxBoxSizer(wxVERTICAL);
+    auto panel = TP->intermediate;
+
+    auto sizer      = new wxFlexGridSizer(1, 0, 0);
+    sizer->SetFlexibleDirection(wxHORIZONTAL);
+
     auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
     TP->intermediate->SetSizer(sizer);
     wxFont normalFont = TP->intermediate->GetFont();
 
-    TP->intermediate->SetFont(normalFont.Bold());
-    TP->AddDecoration(new wxStaticText(TP->intermediate, wxID_ANY,
+    panel->SetFont(normalFont.Bold());
+    TP->AddwxCtrl(new wxStaticText(panel, wxID_ANY,
                                        wxString(GetName() + ":"),
                                        wxDefaultPosition, wxDefaultSize));
-    TP->intermediate->SetFont(normalFont);
-    sizer->Add(TP->GetDecoration(0), sizerFlags);
+    panel->SetFont(normalFont);
+    sizer->Add(TP->GetwxCtrl(0), sizerFlags);
 
     std::tuple<int, int, int> sup = PopulateSupplementalMenu(TP);
 
@@ -66,27 +70,19 @@ void Contour::PopulateMenu(ToolPanel* TP)
     {
         std::string c = std::to_string(GetCtrlPoint(i).real()) + " + " +
                         std::to_string(GetCtrlPoint(i).imag()) + "i";
-        TP->AddDecoration(
-            new wxStaticText(TP->intermediate, wxID_ANY,
+        TP->AddwxCtrl(
+            new wxStaticText(panel, wxID_ANY,
                              wxString("Ctrl Point " + std::to_string(i)),
-                             wxDefaultPosition, TP->TEXTBOX_SIZE));
+                             wxDefaultPosition, wxDefaultSize));
         TP->AddLinkedCtrl(new LinkedCtrlPointTextCtrl(
-            TP->intermediate, wxID_ANY, c, wxDefaultPosition, TP->TEXTBOX_SIZE,
+            panel, wxID_ANY, c, wxDefaultPosition, wxDefaultSize,
             wxTE_PROCESS_ENTER, this, (size_t)i));
-        sizer->Add(TP->GetDecoration(i + 1 + std::get<0>(sup)), sizerFlags);
+        sizer->Add(TP->GetwxCtrl(i + 1 + std::get<0>(sup)), sizerFlags);
         sizer->Add(TP->GetLinkedCtrl(i + std::get<1>(sup))->GetCtrlPtr(),
                    sizerFlags);
     }
-
-    auto vExtent = wxSize(-1, 48 * ptCount + std::get<2>(sup) + TP->ROW_HEIGHT);
-
-    auto panel = TP->intermediate;
-    panel->Layout();
-    panel->SetMinClientSize(wxSize(TP->GetClientSize().x, vExtent.y));
-    panel->SetMaxClientSize(vExtent);
-    panel->SetVirtualSize(vExtent);
-
-    panel->Fit();
+    sizer->AddGrowableCol(0, 1);
+    TP->FitInside();
 }
 
 ContourPolygon* Contour::Map(ParsedFunc<cplx>& f)

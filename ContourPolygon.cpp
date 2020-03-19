@@ -110,6 +110,9 @@ void ContourPolygon::CalcSideLengths()
 
 cplx ContourPolygon::Interpolate(double t)
 {
+    t = fmod(t, 1.0);
+    if (t < 0) t++;
+
     int sideIndex          = 0;
     double lengthTraversed = 0;
     CalcSideLengths();

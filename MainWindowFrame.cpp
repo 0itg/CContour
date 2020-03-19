@@ -251,7 +251,6 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
     animPanel = new AnimPanel(this, ID_AnimPanel, wxDefaultPosition,
                               wxSize(this->GetClientSize().x, 100), input);
-    //animPanel->PopulateAnimCtrls();
     input->SetAnimPanel(animPanel);
 
     cPlaneSizer->Add(input, PlaneFlags);
