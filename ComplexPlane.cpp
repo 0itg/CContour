@@ -61,6 +61,8 @@ void ComplexPlane::OnMouseWheel(wxMouseEvent& mouse)
 {
     int rot = mouse.GetWheelRotation() / mouse.GetWheelDelta();
     Zoom(mouse.GetPosition(), rot);
+    Update();
+    Refresh();
 }
 
 void ComplexPlane::OnMouseLeftDown(wxMouseEvent& mouse)
@@ -102,8 +104,8 @@ void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
     case ID_Show_Grid:
         showGrid = !showGrid;
     }
-    Refresh();
     Update();
+    Refresh();
 }
 
 void ComplexPlane::RefreshShowAxes_ShowGrid()
@@ -112,7 +114,7 @@ void ComplexPlane::RefreshShowAxes_ShowGrid()
     toolbar->ToggleTool(ID_Show_Grid, showGrid);
 }
 
-void ComplexPlane::Highlight(wxPoint mousePos)
+bool ComplexPlane::Highlight(wxPoint mousePos)
 {
     bool notOnAnyContour = true;
     int lastHC           = highlightedContour;
@@ -142,13 +144,8 @@ void ComplexPlane::Highlight(wxPoint mousePos)
         highlightedContour   = -1;
         highlightedCtrlPoint = -1;
     }
-    // Only update the screen if different things are highlighted.
-    // Theoretically more efficient.
-    if (highlightedContour != lastHC || highlightedCtrlPoint != lastHCP)
-    {
-        Refresh();
-        Update();
-    }
+    // true signals that the highlighted contour has changed.
+    return (highlightedContour != lastHC || highlightedCtrlPoint != lastHCP);
 }
 
 void ComplexPlane::Pan(wxPoint mousePos)
@@ -159,8 +156,8 @@ void ComplexPlane::Pan(wxPoint mousePos)
     axes.imagMax += displacement.imag();
     axes.imagMin += displacement.imag();
     movedViewPort = true;
-    Refresh();
-    Update();
+    toolPanel->Update();
+    toolPanel->Refresh();
 }
 
 // void ComplexPlane::InversePan(wxPoint mousePos)
@@ -213,8 +210,8 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
         axes.imStep /= 2;
     }
     movedViewPort = true;
-    Refresh();
-    Update();
+    toolPanel->Update();
+    toolPanel->Refresh();
 }
 
 void ComplexPlane::ClearContours()

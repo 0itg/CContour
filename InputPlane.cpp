@@ -62,8 +62,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             toolPanel->PopulateContourTextCtrls(contours[state].get());
             highlightedCtrlPoint++;
         }
-        Refresh();
-        Update();
+        Redraw();
     }
     else if (state == STATE_IDLE)
     {
@@ -130,8 +129,7 @@ void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
         contours[highlightedContour]->color           = color;
         contours[highlightedContour]->markedForRedraw = true;
     }
-    Refresh();
-    Update();
+    Redraw();
 }
 
 void InputPlane::OnMouseLeftUpSelectionTool(wxMouseEvent& mouse)
@@ -194,8 +192,7 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
             animPanel->UpdateComboBoxes();
         }
         state = nextState;
-        Refresh();
-        Update();
+        Redraw();
     }
     ComplexPlane::OnMouseRightUp(mouse);
 }
@@ -209,7 +206,11 @@ void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
         grid.vStep = axes.imStep;
     }
     for (auto out : outputs)
+    {
         out->movedViewPort = true;
+    }
+    grid.CalcVisibleGrid();
+    Redraw();
 }
 
 void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
@@ -237,10 +238,9 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
             if (contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos))
             {
                 contours[state]->Subdivide(res);
-                toolPanel->Refresh();
                 toolPanel->Update();
-                Refresh();
-                Update();
+                toolPanel->Refresh();
+                Redraw();
             }
             else
             {
@@ -254,33 +254,33 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         {
             contours[state]->SetCtrlPoint(highlightedCtrlPoint, mousePos);
             contours[state]->Subdivide(res);
-            toolPanel->Refresh();
             toolPanel->Update();
-            Refresh();
-            Update();
+            toolPanel->Refresh();
+            Redraw();
         }
     }
     // When the mouse moves, recheck for highlighted contours
-    // and control points (and automatically highlight the contour).
+    // and control points.
     else if (state == STATE_IDLE)
     {
-        Highlight(mouse.GetPosition());
+        if (Highlight(mouse.GetPosition())) Redraw();
+
         for (auto out : outputs)
         {
             out->highlightedContour = highlightedContour;
-            Refresh();
-            Update();
         }
     }
     if (panning)
     {
         Pan(mouse.GetPosition());
+        grid.CalcVisibleGrid();
         for (auto out : outputs)
         {
             out->movedViewPort = true;
         }
-        toolPanel->Refresh();
+        Redraw();
         toolPanel->Update();
+        toolPanel->Refresh();
     }
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
@@ -293,16 +293,15 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
     case WXK_ESCAPE:
     case WXK_DELETE:
         toolPanel->PopulateAxisTextCtrls();
-        toolPanel->Refresh();
         toolPanel->Update();
+        toolPanel->Refresh();
         ReleaseMouseIfAble(); // Captured by OnMouseRightDown
         if (highlightedContour > -1)
         {
             RemoveContour(highlightedContour);
             state              = STATE_IDLE;
             highlightedContour = -1;
-            Refresh();
-            Update();
+            Redraw();
             animPanel->UpdateComboBoxes();
         }
         break;
@@ -353,12 +352,6 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
         contours[highlightedContour]->Draw(&dc, this);
     }
     if (showAxes) axes.Draw(&dc);
-
-    for (auto out : outputs)
-    {
-        out->Refresh();
-        out->Update();
-    }
 }
 
 void InputPlane::OnColorPicked(wxColourPickerEvent& colorPicked)
@@ -380,8 +373,7 @@ void InputPlane::OnContourResCtrl(wxCommandEvent& event)
 {
     res = resCtrl->GetValue();
     RecalcAll();
-    Update();
-    Refresh();
+    Redraw();
 }
 
 void InputPlane::RecalcAll()
@@ -389,6 +381,17 @@ void InputPlane::RecalcAll()
     for (auto& C : contours)
     {
         C->Subdivide(res);
+    }
+}
+
+void InputPlane::Redraw()
+{
+    Update();
+    Refresh();
+    for (auto out : outputs)
+    {
+        out->Update();
+        out->Refresh();
     }
 }
 
@@ -484,4 +487,9 @@ wxColor InputPlane::RandomColor()
            dist(C, BGcolor) < COLOR_SIMILARITY_THRESHOLD)
         C = wxColor(rand() % 255, rand() % 255, rand() % 255);
     return C;
+}
+
+void InputPlane::AddOutputPlane(OutputPlane* out)
+{
+    outputs.push_back(out);
 }

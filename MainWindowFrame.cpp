@@ -267,23 +267,26 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                                   .Caption("Numerical Controls")
                                   .Left()
                                   .BestSize(150, 700)
-                                  .MinSize(20, 20)
+                                  .MinSize(50, 50)
                                   .TopDockable(false)
-                                  .BottomDockable(false));
+                                  .BottomDockable(false)
+                                  .FloatingSize(180, 500));
     aui.AddPane(varEditPanel, wxAuiPaneInfo()
                                   .Caption("Function variables")
                                   .Right()
                                   .BestSize(150, 700)
-                                  .MinSize(20, 20)
+                                  .MinSize(50, 50)
                                   .TopDockable(false)
-                                  .BottomDockable(false));
+                                  .BottomDockable(false)
+                                  .FloatingSize(180, 500));
     aui.AddPane(animPanel, wxAuiPaneInfo()
                                .Caption("Animations")
                                .Bottom()
                                .BestSize(700, 100)
-                               .MinSize(20, 20)
+                               .MinSize(50, 50)
                                .RightDockable(false)
-                               .LeftDockable(false));
+                               .LeftDockable(false)
+                               .FloatingSize(1200,200));
     aui.Update();
 }
 
@@ -478,8 +481,7 @@ void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
 {
     if (input->animating)
     {
-        input->Update();
-        input->Refresh();
+        input->Redraw();
     }
 }
 

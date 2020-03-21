@@ -34,7 +34,7 @@ OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, const std::string& n)
     : ComplexPlane(parent, n), in(In), tGrid(this)
 {
     f = parser.Parse("z*z");
-    In->outputs.push_back(this);
+    In->AddOutputPlane(this);
 };
 
 void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
@@ -54,8 +54,10 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
     if (panning)
     {
         Pan(mouse.GetPosition());
-        toolPanel->Refresh();
+        Update();
+        Refresh();
         toolPanel->Update();
+        toolPanel->Refresh();
     }
     lastMousePos = ScreenToComplex(mouse.GetPosition());
     Highlight(mouse.GetPosition());
@@ -63,8 +65,8 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
     in->highlightedContour = highlightedContour;
     if (temp != highlightedContour)
     {
-        in->Refresh();
         in->Update();
+        in->Refresh();
     }
 }
 
@@ -123,8 +125,8 @@ void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 {
     tGrid.res     = resCtrl->GetValue();
     movedViewPort = true;
-    Refresh();
     Update();
+    Refresh();
 }
 
 void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
@@ -172,11 +174,11 @@ void OutputPlane::EnterFunction(std::string s)
     }
     movedViewPort = true;
     varPanel->PopulateVarTextCtrls(f);
-    varPanel->Refresh();
     varPanel->Update();
+    varPanel->Refresh();
     MarkAllForRedraw();
-    Refresh();
     Update();
+    Refresh();
 }
 
 void OutputPlane::MarkAllForRedraw()

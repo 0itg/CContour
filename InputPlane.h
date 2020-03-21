@@ -20,6 +20,10 @@ class AnimPanel;
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
 // complex numbers and mapped to the ouput panel under some complex function.
+//
+// This class has sort of evolved into the central class of the application,
+// because most of what the user does is directly or indirectly manipulate the
+// input contours.
 
 class InputPlane : public ComplexPlane
 {
@@ -31,6 +35,7 @@ class InputPlane : public ComplexPlane
     InputPlane(wxWindow* parent, const std::string& n = "Input")
         : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
     {
+        grid.CalcVisibleGrid();
     }
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
@@ -53,6 +58,9 @@ class InputPlane : public ComplexPlane
     int GetRes() const { return res; }
     void RecalcAll();
 
+    // Calls refresh/update for this panel and output panel(s)
+    void Redraw();
+
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
     void RemoveContour(int index);
@@ -60,14 +68,8 @@ class InputPlane : public ComplexPlane
     std::unique_ptr<Contour> CreateContour(wxPoint mousePos);
     
     void AddContour(std::unique_ptr<Contour> C);
-    
-    Contour* GetContour(size_t index)
-    {
-        if (index < contours.size())
-            return contours[index].get();
-        else
-            return nullptr;
-    }
+
+    void CalcVisibleGrid() { grid.CalcVisibleGrid(); }
 
     void AddAnimation(std::unique_ptr<Animation> A)
     {
@@ -76,6 +78,7 @@ class InputPlane : public ComplexPlane
 
     void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
     wxColor RandomColor();
+    void AddOutputPlane(OutputPlane* out);
     void SetAnimPanel(AnimPanel* a) { animPanel = a; }
 
     // If true, when axes step values change, grid step values

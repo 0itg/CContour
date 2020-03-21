@@ -36,7 +36,7 @@ int Contour::OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision)
     return -1;
 }
 
-cplx Contour::GetCtrlPoint(int index) { return points[index]; }
+cplx Contour::GetCtrlPoint(int index) { return index > -1 ? points[index] : center; }
 
 void Contour::SetCtrlPoint(int index, cplx c)
 {

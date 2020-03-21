@@ -77,6 +77,8 @@ class NumCtrlPanel : public ToolPanel
     {
         SetOutputPlane(out);
     }
+    void OnTextEntry(wxCommandEvent& event);
+
     void PopulateAxisTextCtrls();
     void PopulateContourTextCtrls(Contour* C);
 

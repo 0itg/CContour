@@ -124,8 +124,8 @@ class ComplexPlane : public wxPanel
 
     // Flags the contour/control point under this point as highlighted,
     // which marks it for special treatment in the user input and paint
-    // routines
-    void Highlight(wxPoint mousePos);
+    // routines. True return value means the highlights changed.
+    bool Highlight(wxPoint mousePos);
     void Pan(wxPoint mousePos);
     // void InversePan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);
@@ -133,7 +133,20 @@ class ComplexPlane : public wxPanel
     void SetResCtrl(wxSpinCtrl* r) { resCtrl = r; }
     void ClearContours();
 
+    int GetHighlightedContour() { return highlightedContour; }
+    void SetHighlightedContour(int h) { highlightedContour = h; }
+
     wxArrayString GetContourNames();
+
+    size_t GetContourCount() { return contours.size(); }
+
+    Contour* GetContour(size_t index)
+    {
+        if (index < contours.size())
+            return contours[index].get();
+        else
+            return nullptr;
+    }
 
     Axes axes;
     bool movedViewPort = true;

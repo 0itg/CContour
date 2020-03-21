@@ -95,8 +95,8 @@ LinkedCplxSpinCtrl::LinkedCplxSpinCtrl(wxWindow* par, wxStandardID ID,
     panel    = new wxPanel(par, ID, defaultPos, defSize);
     textCtrl = new wxTextCtrl(panel, ID, str, defaultPos, defSize, style);
     auto h   = textCtrl->GetSize().y;
-    reSpin   = new wxSpinButton(panel, -1, defaultPos, wxSize(h / 2, h), style);
-    imSpin   = new wxSpinButton(panel, -1, defaultPos, wxSize(h / 2, h), style);
+    reSpin   = new wxSpinButton(panel, -1, defaultPos, wxSize(3 * h / 5, h), style);
+    imSpin   = new wxSpinButton(panel, -1, defaultPos, wxSize(3 * h / 5, h), style);
 
     constexpr int min = std::numeric_limits<int>::min();
     constexpr int max = std::numeric_limits<int>::max();
@@ -142,6 +142,7 @@ void LinkedFuncCtrl::ReadLinked()
 AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
     : anim(a), input(in)
 {
+    wxImage::AddHandler(new wxPNGHandler);
     panel          = new wxPanel(parent);
     contourChoices = input->GetContourNames();
     commandChoices.Add("Translate");
@@ -173,7 +174,7 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
     bounceCtrl  = new wxCheckBox(panel, panelID, "Bounce: ", wxDefaultPosition,
                                 wxDefaultSize, wxALIGN_RIGHT);
     removeButton = new wxButton(panel, panelID, "Remove");
-    //removeButton = wxBitmapButton::NewCloseButton(panel, panelID);
+    //removeButton->SetBitmap(wxBitmap("icons/close.png", wxBITMAP_TYPE_PNG));
 
     sizer = new wxBoxSizer(wxHORIZONTAL);
     wxSizerFlags flag1(1);

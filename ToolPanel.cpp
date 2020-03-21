@@ -15,7 +15,7 @@
 //wxEND_EVENT_TABLE();
 
 wxBEGIN_EVENT_TABLE(NumCtrlPanel, wxVScrolledWindow)
-EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
+EVT_TEXT_ENTER(wxID_ANY, NumCtrlPanel::OnTextEntry)
 EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
 EVT_PAINT(ToolPanel::OnPaintEvent)
 EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
@@ -48,9 +48,6 @@ ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
     SetScrollRate(30, 30);
     siz->Add(intermediate, wxSizerFlags(1).Expand());
     SetSizer(siz);
-    // wxFont font = intermediate->GetFont();
-    // font.SetFamily(wxFONTFAMILY_MODERN);
-    // intermediate->SetFont(font);
 }
 
 ToolPanel::~ToolPanel()
@@ -122,6 +119,13 @@ void ToolPanel::OnPaintEvent(wxPaintEvent& event)
             ctrl->ReadLinked();
         }
     }
+}
+
+void NumCtrlPanel::OnTextEntry(wxCommandEvent& event)
+{
+    ToolPanel::OnTextEntry(event);
+    input->CalcVisibleGrid();
+    for (auto out : outputs) out->movedViewPort = true;
 }
 
 void NumCtrlPanel::PopulateAxisTextCtrls()
