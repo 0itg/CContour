@@ -26,7 +26,7 @@ CommandContourPlaceAt::CommandContourPlaceAt(Contour* s, cplx n, int pt)
 
 void CommandContourPlaceAt::exec()
 {
-    subject->Translate(newPos, subject->GetCenter());
+    subject->Translate(newPos, subject->GetCtrlPoint(point));
 }
 
 void CommandContourPlaceAt::undo()

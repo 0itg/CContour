@@ -41,7 +41,7 @@ class ToolPanel : public wxScrolledWindow
     virtual void OnSpinButtonUp(wxSpinEvent& event);
     virtual void OnSpinButtonDown(wxSpinEvent& event);
     void OnPaintEvent(wxPaintEvent& event);
-    void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
+    virtual void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
     void ClearPanel();
 
     void AddwxCtrl(wxWindow* D) { wxCtrls.push_back(D); }
@@ -138,6 +138,8 @@ class AnimPanel : public ToolPanel
     void AddAnimCtrl(int index = -1);
     void OnButtonNewAnim(wxCommandEvent& event) { AddAnimation(); }
     void OnRemoveAnim(wxCommandEvent& event);
+    //void OnTextEntry(wxCommandEvent& event);
+    //void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
     void PopulateAnimCtrls();
     void UpdateComboBoxes();
     void FinishLayout();

@@ -120,6 +120,7 @@ class LinkedDoubleTextCtrl : public LinkedSpinCtrlDouble
     }
     void WriteLinked();
     void ReadLinked() { textCtrl->SetValue(*src); }
+    double GetVal() { return *src; }
 
   private:
     double* src;

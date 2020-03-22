@@ -33,9 +33,9 @@ wxEND_EVENT_TABLE();
 wxBEGIN_EVENT_TABLE(AnimPanel, wxHVScrolledWindow)
 EVT_COMBOBOX(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
-EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
+EVT_SPINCTRLDOUBLE(wxID_ANY, AnimPanel::OnSpinCtrlTextEntry)
 EVT_BUTTON(ID_New_Anim, AnimPanel::OnButtonNewAnim)
-EVT_CHECKBOX(wxID_ANY, AnimPanel::OnTextEntry)
+EVT_CHECKBOX(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_BUTTON(wxID_ANY, AnimPanel::OnRemoveAnim)
 wxEND_EVENT_TABLE();
 // clang-format on

@@ -231,22 +231,25 @@ void AnimCtrl::WriteLinked()
 
         auto C = input->GetContour(subj);
         auto pathContour = input->GetContour(path);
-        anim->SetPathContour(pathContour);
-
-        switch (auto command = commandMenu->GetSelection())
+        if (C != pathContour)
         {
-        case COMMAND_PLACE_AT:
-            handle--; // Center is first on list and has index -1.
+            anim->SetPathContour(pathContour);
+
+            switch (auto command = commandMenu->GetSelection())
+            {
+            case COMMAND_PLACE_AT:
+                handle--; // Center is first on list and has index -1.
+                anim->AddCommand(
+                    std::make_unique<CommandContourPlaceAt>(C, 0, handle));
+                break;
+            case COMMAND_SET_PT:
+                anim->AddCommand(
+                    std::make_unique<CommandContourMovePoint>(C, 0, handle));
+                break;
+            }
             anim->AddCommand(
-                std::make_unique<CommandContourPlaceAt>(C, 0, handle));
-            break;
-        case COMMAND_SET_PT:
-            anim->AddCommand(
-                std::make_unique<CommandContourMovePoint>(C, 0, handle));
-            break;
+                std::make_unique<CommandContourSubdivide>(C, input->GetRes()));
         }
-        anim->AddCommand(
-            std::make_unique<CommandContourSubdivide>(C, input->GetRes()));
     }
 }
 
@@ -283,7 +286,8 @@ void AnimCtrl::UpdateCtrl()
 
     subjectMenu->SetSelection(sel1);
     pathMenu->SetSelection(sel2);
-    handleMenu->SetSelection(sel3);
+    if (handleChoices.size() > sel3) handleMenu->SetSelection(sel3);
+    else handleMenu->SetSelection(0);
     durationCtrl->GetCtrlPtr()->SetValue(sel4);
     bounceCtrl->SetValue(sel5);
 }
