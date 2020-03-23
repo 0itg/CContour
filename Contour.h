@@ -17,12 +17,16 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 
+#include "ComplexPlane.h"
+#include "Commands.h"
+
 struct Axes;
 class ToolPanel;
 class InputPlane;
 class ContourPolygon;
 class ComplexPlane;
 class ToolPanel;
+class Command;
 template <class T> class ParsedFunc;
 
 // All contours include a set of points, may be open or closed,
@@ -46,7 +50,9 @@ class Contour
 
     // Action to be taken when selecting the contour between control
     // points. Typically it will just call the Translate function.
-    virtual bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) = 0;
+    // Return value tells what type of action was taken.
+    virtual int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) = 0;
+    virtual Command* CreateActionCommand(cplx c) = 0;
 
     virtual void Translate(cplx z1, cplx z2);
 

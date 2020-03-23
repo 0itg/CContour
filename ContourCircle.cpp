@@ -25,10 +25,15 @@ void ContourCircle::Draw(wxDC* dc, ComplexPlane* canvas)
     DrawCtrlPoint(dc, p);
 }
 
-bool ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
+int ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
 {
     radius = abs(points[0] - mousePos);
-    return true;
+    return ACTION_EDIT_RADIUS;
+}
+
+CommandContourEditRadius* ContourCircle::CreateActionCommand(cplx c)
+{
+	return new CommandContourEditRadius(this, radius);
 }
 
 bool ContourCircle::IsPointOnContour(cplx pt, ComplexPlane* canvas,

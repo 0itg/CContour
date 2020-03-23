@@ -20,11 +20,12 @@ class ContourLine : public Contour
 
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);
     virtual void AddPoint(cplx mousePos){};
-    virtual bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
+    virtual int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
     {
         Translate(mousePos, lastPointClicked);
-        return true;
+        return ACTION_TRANSLATE;
     };
+    virtual CommandContourTranslate* CreateActionCommand(cplx c);
     virtual bool IsDone() { return true; };
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                   int pixPrecision = 3);

@@ -240,15 +240,15 @@ void AnimCtrl::WriteLinked()
             case COMMAND_PLACE_AT:
                 handle--; // Center is first on list and has index -1.
                 anim->AddCommand(
-                    std::make_unique<CommandContourPlaceAt>(C, 0, handle));
+                    std::make_unique<CommandContourPlaceAt>(C.get(), 0, handle));
                 break;
             case COMMAND_SET_PT:
                 anim->AddCommand(
-                    std::make_unique<CommandContourMovePoint>(C, 0, handle));
+                    std::make_unique<CommandContourMovePoint>(C.get(), 0, handle));
                 break;
             }
             anim->AddCommand(
-                std::make_unique<CommandContourSubdivide>(C, input->GetRes()));
+                std::make_unique<CommandContourSubdivide>(C.get(), input->GetRes()));
         }
     }
 }

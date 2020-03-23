@@ -24,6 +24,7 @@ class Contour;
 class InputPlane;
 class OutputPlane;
 class LinkedCtrl;
+class CommandHistory;
 template <class T> class Symbol;
 template <class T> class ParsedFunc;
 
@@ -56,6 +57,7 @@ class ToolPanel : public wxScrolledWindow
     virtual void RefreshLinked() = 0;
 
     virtual void RePopulate() { lastPopulateFn(); }
+    void SetCommandHistory(CommandHistory* h) { history = h; }
 
     static constexpr int ROW_HEIGHT = 24;
 
@@ -64,6 +66,7 @@ class ToolPanel : public wxScrolledWindow
     std::vector<wxWindow*> wxCtrls;
     std::vector<LinkedCtrl*> linkedCtrls;
     std::function<void(void)> lastPopulateFn = 0;
+    CommandHistory* history;
 };
 
 // Panel which dynamically shows either Axis controls or Contour controls,

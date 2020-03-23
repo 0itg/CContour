@@ -54,6 +54,8 @@ EVT_TOOL(ID_Pause, MainWindowFrame::OnPauseButton)
 EVT_MENU(wxID_OPEN, MainWindowFrame::OnOpen)
 EVT_MENU(wxID_SAVE, MainWindowFrame::OnSave)
 EVT_MENU(wxID_SAVEAS, MainWindowFrame::OnSaveAs)
+EVT_MENU(wxID_UNDO, MainWindowFrame::OnUndo)
+EVT_MENU(wxID_REDO, MainWindowFrame::OnRedo)
 EVT_AUI_PANE_CLOSE(MainWindowFrame::OnAuiPaneClose)
 wxEND_EVENT_TABLE();
 // clang-format on
@@ -67,13 +69,19 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
     SetMinSize(wxSize(400, 250));
     auto menuFile = new wxMenu;
-    /* menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-         "Help string shown in status bar for this menu item");*/
-    // menuFile->AppendSeparator();
     menuFile->Append(wxID_OPEN);
     menuFile->Append(wxID_SAVE);
     menuFile->Append(wxID_SAVEAS);
     menuFile->Append(wxID_EXIT);
+
+    menuEdit = new wxMenu;
+
+    menuEdit->Append(wxID_UNDO);
+    menuEdit->Append(wxID_REDO);
+    menuEdit->FindItem(wxID_UNDO)->Enable(false);
+    menuEdit->FindItem(wxID_REDO)->Enable(false);
+
+    history.SetMenu(menuEdit);
 
     menuWindow = new wxMenu;
     menuWindow->AppendCheckItem(ID_NumCtrlPanel, "&Numerical Controls");
@@ -88,6 +96,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     auto menuBar = new wxMenuBar;
 
     menuBar->Append(menuFile, "&File");
+    menuBar->Append(menuEdit, "&Edit");
     menuBar->Append(menuWindow, "&Window");
     menuBar->Append(menuHelp, "&Help");
     SetMenuBar(menuBar);
@@ -224,11 +233,13 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     input->SetColorPicker(colorCtrl);
     input->SetResCtrl(cResCtrl);
     input->SetStatusBar(statBar);
+    input->SetCommandHistory(&history);
     input->SetFocus();
 
     output->SetToolbar(toolbar);
     output->SetFuncInput(funcEntry);
     output->SetResCtrl(gResCtrl);
+    output->SetCommandHistory(&history);
     output->SetStatusBar(statBar);
 
     output->Refresh(); // Forces it to show mapped inputs.
@@ -240,6 +251,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
         new NumCtrlPanel(this, ID_NumCtrlPanel, wxDefaultPosition,
                          wxSize(100, this->GetClientSize().y), input, output);
     numCtrlPanel->PopulateAxisTextCtrls();
+    numCtrlPanel->SetCommandHistory(&history);
     input->SetToolPanel(numCtrlPanel);
     output->SetToolPanel(numCtrlPanel);
 
@@ -248,9 +260,11 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                               wxSize(100, this->GetClientSize().y), output);
     output->SetVarPanel(varEditPanel);
     varEditPanel->PopulateVarTextCtrls(output->f);
+    varEditPanel->SetCommandHistory(&history);
 
     animPanel = new AnimPanel(this, ID_AnimPanel, wxDefaultPosition,
                               wxSize(this->GetClientSize().x, 100), input);
+    animPanel->SetCommandHistory(&history);
     input->SetAnimPanel(animPanel);
 
     cPlaneSizer->Add(input, PlaneFlags);
@@ -361,12 +375,17 @@ void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
 
     if (ParametricCreate.ShowModal() == wxID_OK)
     {
-        input->AddContour(std::make_unique<ContourParametric>(
+        auto C = std::make_shared<ContourParametric>(
             funcCtrl.GetValue(), input->GetRes(), input->color,
-            nameCtrl.GetValue(), tStartCtrl.GetValue(), tEndCtrl.GetValue()));
+            nameCtrl.GetValue(), tStartCtrl.GetValue(), tEndCtrl.GetValue());
+        input->AddContour(C);
+        history.RecordCommand(std::make_unique<CommandAddContour>(
+            input, C));
         if (input->randomizeColor) input->color = input->RandomColor();
-        input->Refresh();
         input->Update();
+        input->Refresh();
+        output->Update();
+        output->Refresh();
         animPanel->UpdateComboBoxes();
     }
     // Necessary to stop wxWidgets from deleting stack items twice.
@@ -477,6 +496,18 @@ void MainWindowFrame::OnPauseButton(wxCommandEvent& event)
     input->animTimer.Pause();
 }
 
+void MainWindowFrame::OnUndo(wxCommandEvent& event)
+{
+    history.undo();
+    RefreshAll();
+}
+
+void MainWindowFrame::OnRedo(wxCommandEvent& event)
+{
+    history.redo();
+    RefreshAll();
+}
+
 void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
 {
     if (input->animating)
@@ -505,4 +536,18 @@ void MainWindowFrame::Load(std::string& path)
     input->RefreshShowAxes_ShowGrid();
     varEditPanel->PopulateVarTextCtrls(output->f);
     animPanel->PopulateAnimCtrls();
+}
+
+void MainWindowFrame::RefreshAll()
+{
+    input->Update();
+    input->Refresh();
+    output->Update();
+    output->Refresh();
+    numCtrlPanel->Update();
+    numCtrlPanel->Refresh();
+    varEditPanel->Update();
+    varEditPanel->Refresh();
+    animPanel->Update();
+    animPanel->Refresh();
 }

@@ -21,6 +21,7 @@
 #include <boost/serialization/complex.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 
 typedef std::complex<double> cplx;
@@ -31,11 +32,21 @@ enum enum_states
     STATE_IDLE = -1,
 };
 
+enum actions
+{
+    ACTION_IDLE = 0,
+    ACTION_CREATE,
+    ACTION_TRANSLATE,
+    ACTION_EDIT_POINT,
+    ACTION_EDIT_RADIUS
+};
+
 class Contour;
 class OutputPlane;
 class ComplexPlane;
 class Grid;
 class NumCtrlPanel;
+class CommandHistory;
 
 struct Axes
 {
@@ -101,6 +112,7 @@ class ComplexPlane : public wxPanel
     void OnMouseCapLost(wxMouseCaptureLostEvent& mouse);
     void OnMouseLeaving(wxMouseEvent& mouse);
     void OnShowAxes_ShowGrid(wxCommandEvent& event);
+    void ShowAxisControls();
 
     void RefreshShowAxes_ShowGrid();
 
@@ -140,26 +152,28 @@ class ComplexPlane : public wxPanel
 
     size_t GetContourCount() { return contours.size(); }
 
-    Contour* GetContour(size_t index)
+    std::shared_ptr<Contour> GetContour(size_t index)
     {
         if (index < contours.size())
-            return contours[index].get();
+            return contours[index];
         else
             return nullptr;
     }
+
+    void SetCommandHistory(CommandHistory* h) { history = h; }
 
     Axes axes;
     bool movedViewPort = true;
 
   protected:
     std::string name;
-    std::vector<std::unique_ptr<Contour>> contours;
+    std::vector<std::shared_ptr<Contour>> contours;
     int highlightedContour   = -1;
     int state                = -1;
     int highlightedCtrlPoint = -1;
     const double zoomFactor  = 1.1;
     cplx lastMousePos;
-    cplx lastMidClick;
+    cplx lastClickPos;
 
     bool mouseLeftDown = false;
     bool panning       = false;
@@ -169,6 +183,7 @@ class ComplexPlane : public wxPanel
     wxStatusBar* statBar;
     wxToolBar* toolbar;
     NumCtrlPanel* toolPanel;
+    CommandHistory* history;
 
   private:
     template <class Archive>

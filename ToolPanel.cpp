@@ -319,7 +319,7 @@ AnimPanel::AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
 
 void AnimPanel::AddAnimation()
 {
-    input->animations.push_back(std::make_unique<Animation>());
+    input->animations.push_back(std::make_shared<Animation>());
     AddAnimCtrl();
 }
 

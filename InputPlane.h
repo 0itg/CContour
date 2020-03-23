@@ -65,15 +65,15 @@ class InputPlane : public ComplexPlane
     void SetContourType(int id);
     void RemoveContour(int index);
     
-    std::unique_ptr<Contour> CreateContour(wxPoint mousePos);
+    std::shared_ptr<Contour> CreateContour(wxPoint mousePos);
     
-    void AddContour(std::unique_ptr<Contour> C);
+    void AddContour(std::shared_ptr<Contour> C);
 
     void CalcVisibleGrid() { grid.CalcVisibleGrid(); }
 
-    void AddAnimation(std::unique_ptr<Animation> A)
+    void AddAnimation(std::shared_ptr<Animation> A)
     {
-        animations.push_back(std::move(A));
+        animations.push_back(A);
     }
 
     void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
@@ -90,7 +90,7 @@ class InputPlane : public ComplexPlane
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
-    std::vector<std::unique_ptr<Animation>> animations;
+    std::vector<std::shared_ptr<Animation>> animations;
 
     wxStopWatch animTimer;
 

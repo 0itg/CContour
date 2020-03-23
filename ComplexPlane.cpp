@@ -4,6 +4,7 @@
 #include "ContourRect.h"
 #include "Grid.h"
 #include "OutputPlane.h"
+#include "ToolPanel.h"
 
 #include "Event_IDs.h"
 
@@ -106,6 +107,11 @@ void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
     }
     Update();
     Refresh();
+}
+
+void ComplexPlane::ShowAxisControls()
+{
+    if (toolPanel) toolPanel->PopulateAxisTextCtrls();
 }
 
 void ComplexPlane::RefreshShowAxes_ShowGrid()

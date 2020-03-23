@@ -29,6 +29,7 @@ typedef std::complex<double> cplx;
 // For updating the animation parameter, but maybe useful for user editing.
 
 class Contour;
+class ContourCircle;
 class InputPlane;
 class OutputPlane;
 struct Axes;
@@ -54,8 +55,31 @@ private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version) {}
 };
-
 BOOST_SERIALIZATION_ASSUME_ABSTRACT(Command)
+
+// Simple undo/redo system. 
+class CommandHistory
+{
+public:
+    void undo();
+    void redo();
+    void SetMenu(wxMenu* m) { menu = m; }
+    void RecordCommand(std::unique_ptr<Command> C);
+    void UpdateLastCommand(cplx c);
+    void PopCommand() { history.pop_back(); index--; }
+private:
+    std::vector<std::unique_ptr<Command>> history;
+    size_t index;
+    wxMenu* menu; // For enabling/disabling undo/redo buttons
+};
+
+class CommandNull : public Command
+{
+    friend class boost::serialization::access;
+public:
+    void exec() {}
+    void undo() {}
+};
 
 class CommandContourTranslate : public Command
 {
@@ -121,6 +145,7 @@ class CommandContourMovePoint : public Command
   public:
       CommandContourMovePoint() = default;
       CommandContourMovePoint(Contour* s, cplx n, int i);
+      CommandContourMovePoint(Contour* s, cplx n, int i, cplx old);
 
     void exec();
     void undo();
@@ -191,6 +216,29 @@ class CommandContourRemovePoint : public Command
     }
 };
 
+class CommandContourEditRadius : public Command
+{
+    friend class boost::serialization::access;
+public:
+    CommandContourEditRadius() = default;
+    CommandContourEditRadius(ContourCircle* s, double rad);
+    void exec();
+    void undo();
+    void SetPositionParam(cplx c);
+private:
+    ContourCircle* subject;
+    double radius;
+    double oldRad;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<Command>(*this);
+        ar& radius;
+        ar& oldRad;
+        ar& subject;
+    }
+};
 
 // May eliminate this command, as it's not something the user does.
 // Currently used in the animation system, though.
@@ -218,26 +266,71 @@ class CommandContourSubdivide : public Command
     }
 };
 
-class CommandInputPlaneCreateContour : public Command
+//class CommandInputPlaneCreateContour : public Command
+//{
+//    friend class boost::serialization::access;
+//  public:
+//      CommandInputPlaneCreateContour() = default;
+//      CommandInputPlaneCreateContour(InputPlane* s, wxPoint p);
+//
+//    void exec();
+//    void undo();
+//
+//  private:
+//    wxPoint mPos;
+//    int index;
+//    InputPlane* subject;
+//    template <class Archive>
+//    void serialize(Archive& ar, const unsigned int version)
+//    {
+//        ar& mPos;
+//        ar& index;
+//        ar& subject;
+//    }
+//};
+
+class CommandAddContour : public Command
 {
     friend class boost::serialization::access;
-  public:
-      CommandInputPlaneCreateContour() = default;
-      CommandInputPlaneCreateContour(InputPlane* s, wxPoint p);
+public:
+    CommandAddContour() = default;
+    CommandAddContour(InputPlane* s, std::shared_ptr<Contour> c)
+        : subject(s), C(c) {}
 
     void exec();
     void undo();
 
-  private:
-    wxPoint mPos;
-    int index;
+private:
     InputPlane* subject;
+    std::shared_ptr<Contour> C;
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
-        ar& mPos;
-        ar& index;
         ar& subject;
+        ar& C;
+    }
+};
+
+class CommandRemoveContour : public Command
+{
+    friend class boost::serialization::access;
+public:
+    CommandRemoveContour() = default;
+    CommandRemoveContour(InputPlane* s, size_t i);
+
+    void exec();
+    void undo();
+
+private:
+    InputPlane* subject;
+    size_t index;
+    std::shared_ptr<Contour> C;
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& subject;
+        ar& C;
+        ar& index;
     }
 };
 
@@ -325,8 +418,10 @@ namespace boost {
 BOOST_CLASS_EXPORT_KEY(CommandOutputPlaneFuncEntry)
 BOOST_CLASS_EXPORT_KEY(CommandAxesReset)
 BOOST_CLASS_EXPORT_KEY(CommandAxesSet)
-BOOST_CLASS_EXPORT_KEY(CommandInputPlaneCreateContour)
+//BOOST_CLASS_EXPORT_KEY(CommandInputPlaneCreateContour)
+BOOST_CLASS_EXPORT_KEY(CommandAddContour)
 BOOST_CLASS_EXPORT_KEY(CommandContourSubdivide)
+BOOST_CLASS_EXPORT_KEY(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_KEY(CommandContourRemovePoint)
 BOOST_CLASS_EXPORT_KEY(CommandContourAddPoint)
 BOOST_CLASS_EXPORT_KEY(CommandContourMovePoint)

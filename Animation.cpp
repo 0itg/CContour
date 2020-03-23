@@ -27,7 +27,7 @@ void Animation::Reset()
     //    C->reset();
 }
 
-void Animation::SetPathContour(Contour* C)
+void Animation::SetPathContour(std::shared_ptr<Contour> C)
 {
     path = C;
     f = [&](double t) {

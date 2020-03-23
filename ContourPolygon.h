@@ -22,7 +22,8 @@ class ContourPolygon : public Contour
     };
 
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);
-    virtual bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
+    virtual int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
+    virtual CommandContourTranslate* CreateActionCommand(cplx c);
     virtual bool IsDone();
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                   int pixPrecision = 3);

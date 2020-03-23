@@ -34,6 +34,11 @@ void ContourLine::Draw(wxDC* dc, ComplexPlane* canvas)
                  canvas->ComplexToScreen(points[1]));
 }
 
+CommandContourTranslate* ContourLine::CreateActionCommand(cplx c)
+{
+    return new CommandContourTranslate(this, c, c);
+}
+
 bool ContourLine::IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                    int pixPrecision)
 {

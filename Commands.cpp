@@ -1,13 +1,15 @@
 #include "Commands.h"
 #include "Contour.h"
+#include "ContourCircle.h"
 #include "InputPlane.h"
 #include "OutputPlane.h"
-
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandOutputPlaneFuncEntry)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesReset)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesSet)
-BOOST_CLASS_EXPORT_IMPLEMENT(CommandInputPlaneCreateContour)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandAddContour)
+//BOOST_CLASS_EXPORT_IMPLEMENT(CommandInputPlaneCreateContour)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSubdivide)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourRemovePoint)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourAddPoint)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourMovePoint)
@@ -38,6 +40,12 @@ CommandContourMovePoint::CommandContourMovePoint(Contour* s, cplx n, int i)
     : newPos(n), index(i), subject(s)
 {
     oldPos = s->GetCtrlPoint(i);
+}
+
+CommandContourMovePoint::CommandContourMovePoint(Contour* s, cplx n, int i, cplx old)
+    : newPos(n), index(i), subject(s)
+{
+    oldPos = old;
 }
 
 void CommandContourMovePoint::exec() { subject->SetCtrlPoint(index, newPos); }
@@ -72,21 +80,21 @@ void CommandContourRemovePoint::undo()
 
 void CommandContourSubdivide::exec() { subject->Subdivide(res); }
 
-CommandInputPlaneCreateContour::CommandInputPlaneCreateContour(InputPlane* s, wxPoint p)
-    : mPos(p), subject(s)
-{
-    index = s->GetContourCount();
-}
-
-void CommandInputPlaneCreateContour::exec()
-{
-    subject->AddContour(std::move(subject->CreateContour(mPos)));
-}
-
-void CommandInputPlaneCreateContour::undo()
-{
-    subject->RemoveContour(index);
-}
+//CommandInputPlaneCreateContour::CommandInputPlaneCreateContour(InputPlane* s, wxPoint p)
+//    : mPos(p), subject(s)
+//{
+//    index = s->GetContourCount();
+//}
+//
+//void CommandInputPlaneCreateContour::exec()
+//{
+//    subject->AddContour(std::move(subject->CreateContour(mPos)));
+//}
+//
+//void CommandInputPlaneCreateContour::undo()
+//{
+//    subject->RemoveContour(index);
+//}
 
 CommandAxesSet::CommandAxesSet(Axes* a, double rMin, double rMax, double iMin, double iMax)
     : subject(a)
@@ -150,4 +158,91 @@ void CommandOutputPlaneFuncEntry::undo()
 {
     subject->EnterFunction(oldfunc);
     subject->f.RestoreVarsFromMap(oldVars);
+}
+
+void CommandHistory::undo()
+{
+    history[--index]->undo();
+    if (menu)
+    {
+        if (!index) menu->FindItem(wxID_UNDO)->Enable(false);
+        menu->FindItem(wxID_REDO)->Enable(true);
+    }
+}
+
+void CommandHistory::redo()
+{
+    history[index++]->exec();
+    if (menu)
+    {
+        if (index == history.size()) menu->FindItem(wxID_REDO)->Enable(false);
+        menu->FindItem(wxID_UNDO)->Enable(true);
+    }
+}
+
+void CommandHistory::RecordCommand(std::unique_ptr<Command> C)
+{
+    // Wipe out stored commands past the current one 
+    history.resize(index++);
+    history.push_back(std::move(C));
+    if (menu)
+    {
+        menu->FindItem(wxID_UNDO)->Enable(true);
+        menu->FindItem(wxID_REDO)->Enable(false);
+    }
+}
+
+void CommandHistory::UpdateLastCommand(cplx c)
+{
+    history.back()->SetPositionParam(c);
+}
+
+void CommandAddContour::exec()
+{
+   subject->AddContour(C);
+   C->markedForRedraw = true;
+}
+
+void CommandAddContour::undo()
+{
+    int i = subject->GetContourCount() - 1;
+    subject->RemoveContour(i);
+}
+
+CommandContourEditRadius::CommandContourEditRadius(
+    ContourCircle* s, double rad) : subject(s), radius(rad)
+{
+    oldRad = s->GetRadius();
+}
+
+void CommandContourEditRadius::exec()
+{
+    subject->SetRadius(radius);
+}
+
+void CommandContourEditRadius::undo()
+{
+    subject->SetRadius(oldRad);
+}
+
+void CommandContourEditRadius::SetPositionParam(cplx c)
+{
+    radius = abs(c - subject->GetCenter());
+}
+
+CommandRemoveContour::CommandRemoveContour(InputPlane* s, size_t i)
+    : subject(s), index(i), C(s->GetContour(i))
+{
+}
+
+void CommandRemoveContour::exec()
+{
+    subject->RemoveContour(index);
+    subject->ShowAxisControls();
+}
+
+void CommandRemoveContour::undo()
+{
+    subject->AddContour(C);
+    C->markedForRedraw = true;
 }

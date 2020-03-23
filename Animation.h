@@ -36,7 +36,7 @@ class Animation
     }
     void ClearCommands() { commands.clear(); }
     void SetFunction(std::function<cplx(double)> func) { f = func; }
-    void SetPathContour(Contour* C);
+    void SetPathContour(std::shared_ptr<Contour> C);
     bool IsEmpty() { return commands.empty(); }
 
     // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then
@@ -53,7 +53,7 @@ class Animation
     int comSel;
     int handle;
   private:
-    Contour* path;
+    std::shared_ptr<Contour> path;
     std::vector<std::unique_ptr<Command>> commands;
 
     // Function must be parameterized by a variable 't', assumed to

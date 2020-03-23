@@ -39,6 +39,11 @@ cplx ContourParametric::Interpolate(double t)
     return f(t * tEnd + (1 - t) * tStart);
 }
 
+//CommandContourTranslate* ContourParametric::CreateActionCommand(cplx c)
+//{
+//    return new CommandContourTranslate(this, c, c);
+//}
+
 void ContourParametric::PopulateMenu(ToolPanel* TP)
 {
     auto panel = TP->intermediate;

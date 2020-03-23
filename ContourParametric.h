@@ -34,10 +34,11 @@ class ContourParametric : public ContourPolygon
     }
 
     // Mouse-driven editing is disabled.
-    bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
+    int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
     {
-        return false;
+        return ACTION_IDLE;
     }
+    //virtual CommandContourTranslate* CreateActionCommand(cplx c);
 
     virtual void PopulateMenu(ToolPanel* TP);
 
