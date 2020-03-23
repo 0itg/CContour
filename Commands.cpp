@@ -197,6 +197,17 @@ void CommandHistory::UpdateLastCommand(cplx c)
     history.back()->SetPositionParam(c);
 }
 
+void CommandHistory::PopCommand()
+{
+    history.pop_back();
+    index--;
+    if (menu)
+    {
+        if (!index) menu->FindItem(wxID_UNDO)->Enable(false);
+        menu->FindItem(wxID_REDO)->Enable(true);
+    }
+}
+
 void CommandAddContour::exec()
 {
    subject->AddContour(C);
@@ -243,6 +254,23 @@ void CommandRemoveContour::exec()
 
 void CommandRemoveContour::undo()
 {
-    subject->AddContour(C);
+    subject->InsertContour(C, index);
     C->markedForRedraw = true;
+}
+
+CommandContourColorSet::CommandContourColorSet(Contour* s, wxColor col) : subject(s), color(col)
+{
+    oldColor = s->color;
+}
+
+void CommandContourColorSet::exec()
+{
+    subject->color = color;
+    subject->markedForRedraw = true;
+}
+
+void CommandContourColorSet::undo()
+{
+    subject->color = oldColor;
+    subject->markedForRedraw = true;
 }

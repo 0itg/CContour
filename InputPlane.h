@@ -68,6 +68,7 @@ class InputPlane : public ComplexPlane
     std::shared_ptr<Contour> CreateContour(wxPoint mousePos);
     
     void AddContour(std::shared_ptr<Contour> C);
+    void InsertContour(std::shared_ptr<Contour> C, size_t i);
 
     void CalcVisibleGrid() { grid.CalcVisibleGrid(); }
 

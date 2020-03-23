@@ -144,6 +144,8 @@ void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
 
     if (highlightedContour > -1)
     {
+        history->RecordCommand(std::make_unique<CommandContourColorSet>(
+            contours[highlightedContour].get(), color));
         contours[highlightedContour]->color           = color;
         contours[highlightedContour]->markedForRedraw = true;
     }
@@ -318,11 +320,14 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
         {
             if (contours[highlightedContour]->IsDone())
             {
-                if (state > STATE_IDLE) history->PopCommand();
+                if (state > STATE_IDLE) history->UpdateLastCommand(lastMousePos);
                 history->RecordCommand(std::make_unique<CommandRemoveContour>(
                     this, highlightedContour));
             }
-            else history->PopCommand();
+            else
+            {
+                history->PopCommand();
+            }
             RemoveContour(highlightedContour);
             state              = STATE_IDLE;
             highlightedContour = -1;
@@ -493,6 +498,13 @@ void InputPlane::AddContour(std::shared_ptr<Contour> C)
     contours.push_back(C);
     for (auto out : outputs)
         out->contours.push_back(nullptr);
+}
+
+void InputPlane::InsertContour(std::shared_ptr<Contour> C, size_t i)
+{
+    contours.insert(contours.begin() + i, C);
+    for (auto out : outputs)
+        out->contours.insert(out->contours.begin() + i, nullptr);
 }
 
 wxColor InputPlane::RandomColor()

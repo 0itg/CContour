@@ -66,7 +66,7 @@ public:
     void SetMenu(wxMenu* m) { menu = m; }
     void RecordCommand(std::unique_ptr<Command> C);
     void UpdateLastCommand(cplx c);
-    void PopCommand() { history.pop_back(); index--; }
+    void PopCommand();
 private:
     std::vector<std::unique_ptr<Command>> history;
     size_t index;
@@ -331,6 +331,30 @@ private:
         ar& subject;
         ar& C;
         ar& index;
+    }
+};
+
+class CommandContourColorSet : public Command
+{
+    friend class boost::serialization::access;
+public:
+    CommandContourColorSet() = default;
+    CommandContourColorSet(Contour* s, wxColor col);
+
+    void exec();
+    void undo();
+
+private:
+    Contour* subject;
+    wxColor color;
+    wxColor oldColor;
+
+    template <class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar& color;
+        ar& oldColor;
+        ar& subject;
     }
 };
 
