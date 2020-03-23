@@ -42,7 +42,10 @@ class ToolPanel : public wxScrolledWindow
     virtual void OnSpinButtonUp(wxSpinEvent& event);
     virtual void OnSpinButtonDown(wxSpinEvent& event);
     void OnPaintEvent(wxPaintEvent& event);
-    virtual void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
+    virtual void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event)
+    {
+        OnTextEntry(event);
+    }
     void ClearPanel();
 
     void AddwxCtrl(wxWindow* D) { wxCtrls.push_back(D); }
@@ -58,11 +61,17 @@ class ToolPanel : public wxScrolledWindow
 
     virtual void RePopulate() { lastPopulateFn(); }
     void SetCommandHistory(CommandHistory* h) { history = h; }
+    CommandHistory* GetHistoryPtr() { return history; }
+
+    void SetInputPlane(InputPlane* in) { input = in; }
+    InputPlane* GetInputPlane() { return input; }
 
     static constexpr int ROW_HEIGHT = 24;
 
     wxPanel* intermediate;
+
   protected:
+    InputPlane* input;
     std::vector<wxWindow*> wxCtrls;
     std::vector<LinkedCtrl*> linkedCtrls;
     std::function<void(void)> lastPopulateFn = 0;
@@ -76,8 +85,9 @@ class NumCtrlPanel : public ToolPanel
   public:
     NumCtrlPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
                  InputPlane* in = nullptr, OutputPlane* out = nullptr)
-        : ToolPanel(parent, ID, pos, size), input(in)
+        : ToolPanel(parent, ID, pos, size)
     {
+        input = in;
         SetOutputPlane(out);
     }
     void OnTextEntry(wxCommandEvent& event);
@@ -88,13 +98,11 @@ class NumCtrlPanel : public ToolPanel
     bool NeedsUpdate();
     void RefreshLinked();
 
-    void SetInputPlane(InputPlane* in) { input = in; }
     void SetOutputPlane(OutputPlane* out) { outputs.push_back(out); }
 
     wxDECLARE_EVENT_TABLE();
 
   private:
-    InputPlane* input;
     std::vector<OutputPlane*> outputs;
 };
 
@@ -128,8 +136,8 @@ class VariableEditPanel : public ToolPanel
 class AnimPanel : public ToolPanel
 {
   public:
-      AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
-          InputPlane* in = nullptr);
+    AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
+              InputPlane* in = nullptr);
     void SetInputPlane(InputPlane* in) { input = in; }
 
     bool NeedsUpdate() { return true; }
@@ -141,8 +149,9 @@ class AnimPanel : public ToolPanel
     void AddAnimCtrl(int index = -1);
     void OnButtonNewAnim(wxCommandEvent& event) { AddAnimation(); }
     void OnRemoveAnim(wxCommandEvent& event);
-    //void OnTextEntry(wxCommandEvent& event);
-    //void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
+    // void OnTextEntry(wxCommandEvent& event);
+    // void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event);
+    // }
     void PopulateAnimCtrls();
     void UpdateComboBoxes();
     void FinishLayout();
@@ -150,6 +159,5 @@ class AnimPanel : public ToolPanel
     wxDECLARE_EVENT_TABLE();
 
   private:
-    InputPlane* input;
     wxButton* newAnimButton;
 };

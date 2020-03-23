@@ -7,8 +7,8 @@
 #include "OutputPlane.h"
 #include "ToolPanel.h"
 
-#include <wx/dcgraph.h>
 #include <algorithm>
+#include <wx/dcgraph.h>
 
 BOOST_CLASS_EXPORT_GUID(InputPlane, "InputPlane")
 
@@ -89,8 +89,8 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
                     highlightedCtrlPoint);
             }
             contours.push_back(CreateContour(pt));
-            history->RecordCommand(std::make_unique<CommandAddContour>(
-                this, contours.back()));
+            history->RecordCommand(
+                std::make_unique<CommandAddContour>(this, contours.back()));
 
             if (snap) contours.back()->SetCtrlPoint(0, c);
 
@@ -113,9 +113,10 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             auto mPos = ScreenToComplex(mouse.GetPosition());
             if (highlightedCtrlPoint > -1)
             {
-                history->RecordCommand(std::make_unique<CommandContourMovePoint>(
-                    contours[highlightedContour].get(), mPos,
-                    highlightedCtrlPoint));
+                history->RecordCommand(
+                    std::make_unique<CommandContourMovePoint>(
+                        contours[highlightedContour].get(), mPos,
+                        highlightedCtrlPoint));
             }
             else
             {
@@ -127,7 +128,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
                 contours[highlightedContour].get());
         }
     }
-    //else
+    // else
     //{
     //    state = STATE_IDLE;
     //    toolPanel->PopulateAxisTextCtrls();
@@ -320,7 +321,8 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
         {
             if (contours[highlightedContour]->IsDone())
             {
-                if (state > STATE_IDLE) history->UpdateLastCommand(lastMousePos);
+                if (state > STATE_IDLE)
+                    history->UpdateLastCommand(lastMousePos);
                 history->RecordCommand(std::make_unique<CommandRemoveContour>(
                     this, highlightedContour));
             }
@@ -440,7 +442,7 @@ void InputPlane::RemoveContour(int index)
     highlightedContour   = -1;
     highlightedCtrlPoint = -1;
 
-    //for (auto& A : animations)
+    // for (auto& A : animations)
     //{
     //    if (A->subjSel == index || A->pathSel == index)
     //        A->ClearCommands();
@@ -526,7 +528,4 @@ wxColor InputPlane::RandomColor()
     return C;
 }
 
-void InputPlane::AddOutputPlane(OutputPlane* out)
-{
-    outputs.push_back(out);
-}
+void InputPlane::AddOutputPlane(OutputPlane* out) { outputs.push_back(out); }

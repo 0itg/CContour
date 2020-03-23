@@ -65,7 +65,7 @@ void TransformedGrid::MapGrid(const Grid& grid, ParsedFunc<cplx>& f)
         double t;
         for (double i = 0; i <= res; i++)
         {
-            t = i / res;
+            t        = i / res;
             cplx p_i = f(p1 * t + p2 * (1 - t));
 
             // In the case of division by zero, move along the gridline
@@ -74,8 +74,7 @@ void TransformedGrid::MapGrid(const Grid& grid, ParsedFunc<cplx>& f)
             while (isnan(p_i.real()) || isnan(p_i.imag()))
             {
                 double t_avoid_pole = 1.0 / res / 100;
-                p_i = 
-                    f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole));
+                p_i = f(p1 * (t + t_avoid_pole) + p2 * (1 - t - t_avoid_pole));
             }
 
             lines.back()->AddPoint(p_i);

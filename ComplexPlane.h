@@ -19,9 +19,9 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/complex.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/unique_ptr.hpp>
-#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 
 typedef std::complex<double> cplx;
@@ -143,7 +143,9 @@ class ComplexPlane : public wxPanel
     void Zoom(wxPoint mousePos, int zoomSteps);
 
     void SetResCtrl(wxSpinCtrl* r) { resCtrl = r; }
+    int GetRes() { return resCtrl->GetValue(); }
     void ClearContours();
+    virtual void UpdateGrid() {}
 
     int GetHighlightedContour() { return highlightedContour; }
     void SetHighlightedContour(int h) { highlightedContour = h; }
@@ -161,6 +163,7 @@ class ComplexPlane : public wxPanel
     }
 
     void SetCommandHistory(CommandHistory* h) { history = h; }
+    CommandHistory* GetHistoryPtr() { return history; }
 
     Axes axes;
     bool movedViewPort = true;

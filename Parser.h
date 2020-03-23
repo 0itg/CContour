@@ -83,6 +83,7 @@ template <typename T> class Parser
 
 template <typename T> class ParsedFunc
 {
+    friend class boost::serialization::access;
     friend class Parser<T>;
 
   public:
@@ -172,6 +173,32 @@ template <typename T> class ParsedFunc
     std::vector<Symbol<T>*> symbolStack;
     std::string inputText = "";
     std::string IV_token  = "z";
+
+    template <class Archive>
+    void save(Archive& ar, const unsigned int version) const
+    {
+        ar << inputText;
+        ar << GetVarMap();
+        ar << IV_token;
+    }
+    template <class Archive> void load(Archive& ar, const unsigned int version)
+    {
+        Parser<T> parser;
+        std::string savedFunc;
+        ar >> savedFunc;
+        std::map<std::string, cplx> varMap;
+        ar >> varMap;
+        *this = parser.Parse(savedFunc);
+        RestoreVarsFromMap(varMap);
+        std::string IV;
+        ar >> IV;
+        SetIV(IV);
+    }
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::split_member(ar, *this, version);
+    }
 };
 
 template <typename T> inline Parser<T>::Parser() { Initialize(); }

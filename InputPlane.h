@@ -64,18 +64,15 @@ class InputPlane : public ComplexPlane
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
     void RemoveContour(int index);
-    
+
     std::shared_ptr<Contour> CreateContour(wxPoint mousePos);
-    
+
     void AddContour(std::shared_ptr<Contour> C);
     void InsertContour(std::shared_ptr<Contour> C, size_t i);
 
-    void CalcVisibleGrid() { grid.CalcVisibleGrid(); }
+    void UpdateGrid() { grid.CalcVisibleGrid(); }
 
-    void AddAnimation(std::shared_ptr<Animation> A)
-    {
-        animations.push_back(A);
-    }
+    void AddAnimation(std::shared_ptr<Animation> A) { animations.push_back(A); }
 
     void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
     wxColor RandomColor();
@@ -116,12 +113,12 @@ class InputPlane : public ComplexPlane
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
-        ar & boost::serialization::base_object<ComplexPlane>(*this);
-        ar & linkGridToAxes;
-        ar & res;
+        ar& boost::serialization::base_object<ComplexPlane>(*this);
+        ar& linkGridToAxes;
+        ar& res;
         resCtrl->SetValue(res);
-        ar & grid;
-        ar & animations;
+        ar& grid;
+        ar& animations;
     }
     wxDECLARE_EVENT_TABLE();
 };

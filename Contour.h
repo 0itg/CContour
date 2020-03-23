@@ -17,8 +17,8 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "ComplexPlane.h"
 #include "Commands.h"
+#include "ComplexPlane.h"
 
 struct Axes;
 class ToolPanel;
@@ -52,7 +52,7 @@ class Contour
     // points. Typically it will just call the Translate function.
     // Return value tells what type of action was taken.
     virtual int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked) = 0;
-    virtual Command* CreateActionCommand(cplx c) = 0;
+    virtual Command* CreateActionCommand(cplx c)                        = 0;
 
     virtual void Translate(cplx z1, cplx z2);
 

@@ -2,6 +2,7 @@
 #include "Animation.h"
 #include "Commands.h"
 #include "Contour.h"
+#include "ContourParametric.h"
 #include "InputPlane.h"
 #include "Parser.h"
 #include "ToolPanel.h"
@@ -14,6 +15,9 @@ void LinkedCtrlPointTextCtrl::WriteLinked()
     try
     {
         cplx val = parser.Parse(textCtrl->GetValue()).eval();
+
+        RecordCommand(val);
+
         src->SetCtrlPoint(i, val);
     }
     catch (std::invalid_argument& func)
@@ -35,6 +39,12 @@ void LinkedCtrlPointTextCtrl::Add(cplx c)
     src->SetCtrlPoint(i, src->GetCtrlPoint(i) + c);
 }
 
+void LinkedCtrlPointTextCtrl::RecordCommand(cplx c)
+{
+    history->RecordCommand(
+        std::make_unique<CommandContourMovePoint>(src, c, i));
+}
+
 void LinkedDoubleTextCtrl::WriteLinked()
 {
     Parser<double> parser;
@@ -42,7 +52,10 @@ void LinkedDoubleTextCtrl::WriteLinked()
     {
         // Our own parser is more powerful than the default input handling.
         double val = parser.Parse(textCtrl->GetText()->GetValue()).eval();
-        *src       = val;
+
+        RecordCommand(val);
+        *src = val;
+        UpdateCommand(val);
     }
     catch (std::invalid_argument& func)
     {
@@ -95,8 +108,10 @@ LinkedCplxSpinCtrl::LinkedCplxSpinCtrl(wxWindow* par, wxStandardID ID,
     panel    = new wxPanel(par, ID, defaultPos, defSize);
     textCtrl = new wxTextCtrl(panel, ID, str, defaultPos, defSize, style);
     auto h   = textCtrl->GetSize().y;
-    reSpin   = new wxSpinButton(panel, -1, defaultPos, wxSize(3 * h / 5, h), style);
-    imSpin   = new wxSpinButton(panel, -1, defaultPos, wxSize(3 * h / 5, h), style);
+    reSpin =
+        new wxSpinButton(panel, -1, defaultPos, wxSize(3 * h / 5, h), style);
+    imSpin =
+        new wxSpinButton(panel, -1, defaultPos, wxSize(3 * h / 5, h), style);
 
     constexpr int min = std::numeric_limits<int>::min();
     constexpr int max = std::numeric_limits<int>::max();
@@ -109,21 +124,25 @@ LinkedCplxSpinCtrl::LinkedCplxSpinCtrl(wxWindow* par, wxStandardID ID,
     panel->SetSizer(sizer);
 }
 
-LinkedFuncCtrl::LinkedFuncCtrl(ToolPanel* par, wxStandardID ID, wxString str,
-                               wxPoint defaultPos, wxSize defSize, int style,
-                               ParsedFunc<cplx>* f)
-    : src(f), TP(par)
+LinkedParametricFuncCtrl::LinkedParametricFuncCtrl(
+    ToolPanel* par, wxStandardID ID, wxString str, wxPoint defaultPos,
+    wxSize defSize, int style, ContourParametric* cp)
+    : src(cp->GetFunctionPtr()), TP(par), C(cp)
 {
     textCtrl =
         new wxTextCtrl(par->intermediate, ID, str, defaultPos, defSize, style);
 }
 
-void LinkedFuncCtrl::WriteLinked()
+void LinkedParametricFuncCtrl::WriteLinked()
 {
     Parser<cplx> parser;
     try
     {
-        *src = parser.Parse(textCtrl->GetValue());
+        auto f = parser.Parse(textCtrl->GetValue());
+        TP->GetHistoryPtr()->RecordCommand(
+            std::make_unique<CommandParametricFuncEntry>(C, f,
+                                                         TP->GetInputPlane()));
+        *src = f;
         TP->RePopulate();
     }
     catch (std::invalid_argument& func)
@@ -134,7 +153,7 @@ void LinkedFuncCtrl::WriteLinked()
     }
 }
 
-void LinkedFuncCtrl::ReadLinked()
+void LinkedParametricFuncCtrl::ReadLinked()
 {
     textCtrl->ChangeValue(src->GetInputText());
 }
@@ -148,9 +167,9 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
     commandChoices.Add("Translate");
     commandChoices.Add("Move Ctrl Point");
 
-    auto panelID      = panel->GetId();
-    auto subjectLabel = new wxStaticText(panel, panelID, "Subject: ");
-    subjectMenu       = new wxComboBox(panel, panelID, "", wxDefaultPosition,
+    auto panelID        = panel->GetId();
+    auto subjectLabel   = new wxStaticText(panel, panelID, "Subject: ");
+    subjectMenu         = new wxComboBox(panel, panelID, "", wxDefaultPosition,
                                  wxDefaultSize, contourChoices, wxCB_READONLY);
     auto commandLabel   = new wxStaticText(panel, panelID, "Command: ");
     commandMenu         = new wxComboBox(panel, panelID, "", wxDefaultPosition,
@@ -174,7 +193,7 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
     bounceCtrl  = new wxCheckBox(panel, panelID, "Bounce: ", wxDefaultPosition,
                                 wxDefaultSize, wxALIGN_RIGHT);
     removeButton = new wxButton(panel, panelID, "Remove");
-    //removeButton->SetBitmap(wxBitmap("icons/close.png", wxBITMAP_TYPE_PNG));
+    // removeButton->SetBitmap(wxBitmap("icons/close.png", wxBITMAP_TYPE_PNG));
 
     sizer = new wxBoxSizer(wxHORIZONTAL);
     wxSizerFlags flag1(1);
@@ -205,8 +224,8 @@ void AnimCtrl::WriteLinked()
 {
     anim->ClearCommands();
     int subj = subjectMenu->GetSelection();
-    int path  = pathMenu->GetSelection();
-    int com = commandMenu->GetSelection();
+    int path = pathMenu->GetSelection();
+    int com  = commandMenu->GetSelection();
 
     int handle = handleMenu->GetSelection();
     PopulateHandleMenu();
@@ -219,17 +238,17 @@ void AnimCtrl::WriteLinked()
 
     if (subj > -1 && com > -1 && path > -1 && handle > -1)
     {
-        dur = dur ? dur : 1;
+        dur               = dur ? dur : 1;
         anim->duration_ms = 1000 * dur;
-        anim->reverse = reverse;
-        anim->offset = offset / dur;
-        anim->bounce = bounceCtrl->GetValue();
-        anim->subjSel = subj;
-        anim->comSel = com;
-        anim->pathSel = path;
-        anim->handle = handle;
+        anim->reverse     = reverse;
+        anim->offset      = offset / dur;
+        anim->bounce      = bounceCtrl->GetValue();
+        anim->subjSel     = subj;
+        anim->comSel      = com;
+        anim->pathSel     = path;
+        anim->handle      = handle;
 
-        auto C = input->GetContour(subj);
+        auto C           = input->GetContour(subj);
         auto pathContour = input->GetContour(path);
         if (C != pathContour)
         {
@@ -239,16 +258,16 @@ void AnimCtrl::WriteLinked()
             {
             case COMMAND_PLACE_AT:
                 handle--; // Center is first on list and has index -1.
-                anim->AddCommand(
-                    std::make_unique<CommandContourPlaceAt>(C.get(), 0, handle));
+                anim->AddCommand(std::make_unique<CommandContourPlaceAt>(
+                    C.get(), 0, handle));
                 break;
             case COMMAND_SET_PT:
-                anim->AddCommand(
-                    std::make_unique<CommandContourMovePoint>(C.get(), 0, handle));
+                anim->AddCommand(std::make_unique<CommandContourMovePoint>(
+                    C.get(), 0, handle));
                 break;
             }
-            anim->AddCommand(
-                std::make_unique<CommandContourSubdivide>(C.get(), input->GetRes()));
+            anim->AddCommand(std::make_unique<CommandContourSubdivide>(
+                C.get(), input->GetRes()));
         }
     }
 }
@@ -259,7 +278,7 @@ void AnimCtrl::ReadLinked()
     reverse = anim->reverse;
     reverseCtrl->SetValue(reverse == -1);
     bounceCtrl->SetValue(anim->bounce);
-    dur = anim->duration_ms / 1000.0;
+    dur    = anim->duration_ms / 1000.0;
     offset = anim->offset * dur;
     durationCtrl->ReadLinked();
     durOffsetCtrl->ReadLinked();
@@ -286,8 +305,10 @@ void AnimCtrl::UpdateCtrl()
 
     subjectMenu->SetSelection(sel1);
     pathMenu->SetSelection(sel2);
-    if (handleChoices.size() > sel3) handleMenu->SetSelection(sel3);
-    else handleMenu->SetSelection(0);
+    if (handleChoices.size() > sel3)
+        handleMenu->SetSelection(sel3);
+    else
+        handleMenu->SetSelection(0);
     durationCtrl->GetCtrlPtr()->SetValue(sel4);
     bounceCtrl->SetValue(sel5);
 }
@@ -304,4 +325,21 @@ void AnimCtrl::PopulateHandleMenu()
             handleChoices.Add("Ctrl Point " + std::to_string(i));
         }
     handleMenu->Set(handleChoices);
+}
+
+void LinkedAxisCtrl::RecordCommand(cplx c)
+{
+    plane->GetHistoryPtr()->RecordCommand(
+        std::make_unique<CommandAxesSet>(plane));
+}
+
+void LinkedAxisCtrl::UpdateCommand(cplx c)
+{
+    plane->GetHistoryPtr()->UpdateLastCommand(c);
+}
+
+void LinkedRadiusCtrl::RecordCommand(cplx c)
+{
+    history->RecordCommand(
+        std::make_unique<CommandContourEditRadius>(C, c.real()));
 }

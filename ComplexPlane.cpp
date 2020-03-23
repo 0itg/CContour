@@ -75,11 +75,13 @@ void ComplexPlane::OnMouseRightUp(wxMouseEvent& mouse)
 {
     ReleaseMouseIfAble();
     panning = false;
+    history->UpdateLastCommand(ScreenToComplex(mouse.GetPosition()));
 }
 
 void ComplexPlane::OnMouseRightDown(wxMouseEvent& mouse)
 {
     CaptureMouseIfAble();
+    history->RecordCommand(std::make_unique<CommandAxesSet>(this));
     panning = true;
 }
 
@@ -87,6 +89,7 @@ void ComplexPlane::OnMouseCapLost(wxMouseCaptureLostEvent& mouse)
 {
     ReleaseMouseIfAble();
     panning = false;
+    history->UpdateLastCommand(lastMousePos);
 }
 
 void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse)

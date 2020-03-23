@@ -19,9 +19,13 @@
 typedef std::complex<double> cplx;
 
 class Contour;
+class ContourCircle;
+class ContourParametric;
+class ComplexPlane;
 class InputPlane;
 class ToolPanel;
 class Animation;
+class CommandHistory;
 template <class T> class Symbol;
 template <class T> class Parser;
 template <class T> class ParsedFunc;
@@ -103,6 +107,9 @@ class LinkedCplxSpinCtrl : public LinkedCtrl
     wxTextCtrl* textCtrl;
     wxSpinButton* reSpin;
     wxSpinButton* imSpin;
+
+  protected:
+    virtual void RecordCommand(cplx c) {}
 };
 
 // Links to a single double.
@@ -118,11 +125,15 @@ class LinkedDoubleTextCtrl : public LinkedSpinCtrlDouble
         textCtrl = new wxSpinCtrlDouble(par, ID, str, defaultPos, defSize,
                                         style, min, max, init, step);
     }
-    void WriteLinked();
-    void ReadLinked() { textCtrl->SetValue(*src); }
-    double GetVal() { return *src; }
+    virtual void WriteLinked();
+    virtual void ReadLinked() { textCtrl->SetValue(*src); }
+    virtual double GetVal() { return *src; }
 
-  private:
+  protected:
+    // Override in order to record a command in the history
+    virtual void RecordCommand(cplx c) {}
+    // Override if the command needs to be modified after entry.
+    virtual void UpdateCommand(cplx c){};
     double* src;
 };
 
@@ -133,8 +144,8 @@ class LinkedCtrlPointTextCtrl : public LinkedCplxSpinCtrl
   public:
     LinkedCtrlPointTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
                             wxPoint defaultPos, wxSize defSize, int style,
-                            Contour* C, size_t index)
-        : src(C), i(index),
+                            Contour* C, size_t index, CommandHistory* ch)
+        : src(C), i(index), history(ch),
           LinkedCplxSpinCtrl(par, ID, str, defaultPos, defSize, style)
     {
     }
@@ -143,8 +154,10 @@ class LinkedCtrlPointTextCtrl : public LinkedCplxSpinCtrl
     virtual void Add(cplx c);
 
   private:
+    virtual void RecordCommand(cplx c);
     Contour* src;
     size_t i;
+    CommandHistory* history;
 };
 
 // Links to a ParsedFunc variable. Takes a pointer to the symbol representing
@@ -165,18 +178,62 @@ class LinkedVarTextCtrl : public LinkedCplxSpinCtrl
     Symbol<cplx>* src;
 };
 
-class LinkedFuncCtrl : public LinkedTextCtrl
+class LinkedParametricFuncCtrl : public LinkedTextCtrl
 {
   public:
-    LinkedFuncCtrl(ToolPanel* par, wxStandardID ID, wxString str,
-                   wxPoint defaultPos, wxSize defSize, int style,
-                   ParsedFunc<cplx>* f);
+    LinkedParametricFuncCtrl(ToolPanel* par, wxStandardID ID, wxString str,
+                             wxPoint defaultPos, wxSize defSize, int style,
+                             ContourParametric* cp);
     void WriteLinked();
     void ReadLinked();
 
   private:
     ToolPanel* TP;
+    ContourParametric* C;
     ParsedFunc<cplx>* src;
+};
+
+// Specialized LinkedDoubleTextCtrl which records CommandAxesSet on entry
+class LinkedAxisCtrl : public LinkedDoubleTextCtrl
+{
+  public:
+    LinkedAxisCtrl(wxWindow* par, wxWindowID ID, wxString str,
+                   wxPoint defaultPos, wxSize defSize, int style,
+                   ComplexPlane* P, double* p, double step = 0.1,
+                   double init = 0, double min = -1e10, double max = 1e10)
+        : LinkedDoubleTextCtrl(par, ID, str, defaultPos, defSize, style, p,
+                               step, init, min, max),
+          plane(P)
+    {
+    }
+    // void WriteLinked();
+
+  private:
+    virtual void RecordCommand(cplx c);
+    virtual void UpdateCommand(cplx c);
+    ComplexPlane* plane;
+};
+
+// Specialized LinkedDoubleTextCtrl which records
+// CommandContourEditRadius on entry
+class LinkedRadiusCtrl : public LinkedDoubleTextCtrl
+{
+  public:
+    LinkedRadiusCtrl(wxWindow* par, wxWindowID ID, wxString str,
+                     wxPoint defaultPos, wxSize defSize, int style,
+                     ContourCircle* P, CommandHistory* ch, double* p,
+                     double step = 0.1, double init = 0, double min = -1e10,
+                     double max = 1e10)
+        : LinkedDoubleTextCtrl(par, ID, str, defaultPos, defSize, style, p,
+                               step, init, min, max),
+          C(P), history(ch)
+    {
+    }
+
+  private:
+    virtual void RecordCommand(cplx c);
+    ContourCircle* C;
+    CommandHistory* history;
 };
 
 class AnimCtrl : public LinkedCtrl

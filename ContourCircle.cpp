@@ -33,7 +33,7 @@ int ContourCircle::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
 
 CommandContourEditRadius* ContourCircle::CreateActionCommand(cplx c)
 {
-	return new CommandContourEditRadius(this, radius);
+    return new CommandContourEditRadius(this, radius);
 }
 
 bool ContourCircle::IsPointOnContour(cplx pt, ComplexPlane* canvas,
@@ -74,9 +74,10 @@ std::tuple<int, int, int> ContourCircle::PopulateSupplementalMenu(ToolPanel* TP)
     auto RadiusText =
         new wxStaticText(TP->intermediate, wxID_ANY, wxString("Radius: "),
                          wxDefaultPosition, wxDefaultSize);
-    auto RadiusCtrl = new LinkedDoubleTextCtrl(
+    auto RadiusCtrl = new LinkedRadiusCtrl(
         TP->intermediate, wxID_ANY, wxString(std::to_string(radius)),
-        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, &radius);
+        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, this,
+        TP->GetHistoryPtr(), &radius);
     auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
     TP->AddwxCtrl(RadiusText);
     TP->AddLinkedCtrl(RadiusCtrl);

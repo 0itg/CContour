@@ -16,7 +16,7 @@
 
 wxBEGIN_EVENT_TABLE(NumCtrlPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, NumCtrlPanel::OnTextEntry)
-EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
+//EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
 EVT_PAINT(ToolPanel::OnPaintEvent)
 EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
 EVT_SPIN_DOWN(wxID_ANY, ToolPanel::OnSpinButtonDown)
@@ -24,7 +24,7 @@ wxEND_EVENT_TABLE();
 
 wxBEGIN_EVENT_TABLE(VariableEditPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
-EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
+//EVT_SPINCTRLDOUBLE(wxID_ANY, ToolPanel::OnSpinCtrlTextEntry)
 EVT_PAINT(VariableEditPanel::OnPaintEvent)
 EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
 EVT_SPIN_DOWN(wxID_ANY, ToolPanel::OnSpinButtonDown)
@@ -33,7 +33,7 @@ wxEND_EVENT_TABLE();
 wxBEGIN_EVENT_TABLE(AnimPanel, wxHVScrolledWindow)
 EVT_COMBOBOX(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_TEXT_ENTER(wxID_ANY, ToolPanel::OnTextEntry)
-EVT_SPINCTRLDOUBLE(wxID_ANY, AnimPanel::OnSpinCtrlTextEntry)
+//EVT_SPINCTRLDOUBLE(wxID_ANY, AnimPanel::OnSpinCtrlTextEntry)
 EVT_BUTTON(ID_New_Anim, AnimPanel::OnButtonNewAnim)
 EVT_CHECKBOX(wxID_ANY, ToolPanel::OnTextEntry)
 EVT_BUTTON(wxID_ANY, AnimPanel::OnRemoveAnim)
@@ -124,8 +124,9 @@ void ToolPanel::OnPaintEvent(wxPaintEvent& event)
 void NumCtrlPanel::OnTextEntry(wxCommandEvent& event)
 {
     ToolPanel::OnTextEntry(event);
-    input->CalcVisibleGrid();
-    for (auto out : outputs) out->movedViewPort = true;
+    input->UpdateGrid();
+    for (auto out : outputs)
+        out->movedViewPort = true;
 }
 
 void NumCtrlPanel::PopulateAxisTextCtrls()
@@ -155,11 +156,11 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
         {
             double c = input->axes.c[i];
             AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
-                                           wxString(buttonText[i]),
-                                           wxDefaultPosition, wxDefaultSize));
-            AddLinkedCtrl(new LinkedDoubleTextCtrl(
+                                       wxString(buttonText[i]),
+                                       wxDefaultPosition, wxDefaultSize));
+            AddLinkedCtrl(new LinkedAxisCtrl(
                 intermediate, wxID_ANY, wxString(std::to_string(c)),
-                wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
+                wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, input,
                 input->axes.c + i));
             sizer->Add(wxCtrls.back(), sizerFlags);
             sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
@@ -182,12 +183,12 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
             }
             double c = outputs[i / 4]->axes.c[i % 4];
             AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
-                                           wxString(buttonText[i % 4]),
-                                           wxDefaultPosition, wxDefaultSize));
-            AddLinkedCtrl(new LinkedDoubleTextCtrl(
+                                       wxString(buttonText[i % 4]),
+                                       wxDefaultPosition, wxDefaultSize));
+            AddLinkedCtrl(new LinkedAxisCtrl(
                 intermediate, wxID_ANY, wxString(std::to_string(c)),
                 wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER,
-                outputs[i / 4]->axes.c + (i % 4)));
+                outputs[i / 4], outputs[i / 4]->axes.c + (i % 4)));
             sizer->Add(wxCtrls.back(), sizerFlags);
             sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
         }
@@ -264,9 +265,8 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
     wxFont normalFont = intermediate->GetFont();
 
     intermediate->SetFont(normalFont.Bold());
-    AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
-                                   wxString("Parameters :"), wxDefaultPosition,
-                                   wxDefaultSize));
+    AddwxCtrl(new wxStaticText(intermediate, wxID_ANY, wxString("Parameters :"),
+                               wxDefaultPosition, wxDefaultSize));
     intermediate->SetFont(normalFont);
 
     sizer->Add(wxCtrls.back(), sizerFlags);
@@ -280,8 +280,8 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
         std::string c = std::to_string(val.real()) + " + " +
                         std::to_string(val.imag()) + "i";
         AddwxCtrl(new wxStaticText(intermediate, wxID_ANY,
-                                       wxString(v->GetToken()),
-                                       wxDefaultPosition, wxDefaultSize));
+                                   wxString(v->GetToken()), wxDefaultPosition,
+                                   wxDefaultSize));
         AddLinkedCtrl(new LinkedVarTextCtrl(intermediate, wxID_ANY, c,
                                             wxDefaultPosition, wxDefaultSize,
                                             wxTE_PROCESS_ENTER, v));
@@ -304,9 +304,10 @@ void VariableEditPanel::OnPaintEvent(wxPaintEvent& event)
 }
 
 AnimPanel::AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
-    InputPlane* in)
-    : ToolPanel(parent, ID, pos, size), input(in)
+                     InputPlane* in)
+    : ToolPanel(parent, ID, pos, size)
 {
+    input      = in;
     auto sizer = new wxFlexGridSizer(1, 0, 0);
     sizer->SetFlexibleDirection(wxHORIZONTAL);
 

@@ -1,7 +1,7 @@
 #pragma once
+#include "Commands.h"
 #include <wx/aui/aui.h>
 #include <wx/clrpicker.h>
-#include "Commands.h"
 
 class InputPlane;
 class OutputPlane;

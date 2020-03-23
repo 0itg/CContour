@@ -24,6 +24,7 @@ class ContourParametric : public ContourPolygon
     void Subdivide(int res);
     cplx Interpolate(double t);
     void SetFunction(std::string func) { f = parser.Parse(func); }
+    auto GetFunctionPtr() { return &f; }
     void Finalize() { CalcCenter(); }
     bool IsDone() { return true; }
 
@@ -38,7 +39,7 @@ class ContourParametric : public ContourPolygon
     {
         return ACTION_IDLE;
     }
-    //virtual CommandContourTranslate* CreateActionCommand(cplx c);
+    // virtual CommandContourTranslate* CreateActionCommand(cplx c);
 
     virtual void PopulateMenu(ToolPanel* TP);
 
@@ -47,37 +48,16 @@ class ContourParametric : public ContourPolygon
     double tEnd   = 1;
     Parser<cplx> parser;
     ParsedFunc<cplx> f;
-    template <class Archive>
-    void save(Archive& ar, const unsigned int version) const
-    {
-        ar << parser;
-        ar << tStart;
-        ar << tEnd;
-        ar << this->f.GetInputText();
-        ar << this->f.GetVarMap();
-        ar << this->f.GetIV();
-    }
-    template <class Archive> void load(Archive& ar, const unsigned int version)
-    {
-        ar >> parser;
-        ar >> tStart;
-        ar >> tEnd;
-        std::string savedFunc;
-        ar >> savedFunc;
-        std::map<std::string, cplx> varMap;
-        ar >> varMap;
-        f = this->parser.Parse(savedFunc);
-        f.RestoreVarsFromMap(varMap);
-        std::string IV;
-        ar >> IV;
-        f.SetIV(IV);
-    }
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
         ar& boost::serialization::base_object<Contour, ContourParametric>(
             *this);
-        boost::serialization::split_member(ar, *this, version);
+        ar& parser;
+        ar& tStart;
+        ar& tEnd;
+        ar& f;
     }
 };
 

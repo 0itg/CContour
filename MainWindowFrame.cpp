@@ -300,7 +300,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                                .MinSize(50, 50)
                                .RightDockable(false)
                                .LeftDockable(false)
-                               .FloatingSize(1200,200));
+                               .FloatingSize(1200, 200));
     aui.Update();
 }
 
@@ -379,8 +379,7 @@ void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
             funcCtrl.GetValue(), input->GetRes(), input->color,
             nameCtrl.GetValue(), tStartCtrl.GetValue(), tEndCtrl.GetValue());
         input->AddContour(C);
-        history.RecordCommand(std::make_unique<CommandAddContour>(
-            input, C));
+        history.RecordCommand(std::make_unique<CommandAddContour>(input, C));
         if (input->randomizeColor) input->color = input->RandomColor();
         input->Update();
         input->Refresh();
@@ -510,10 +509,7 @@ void MainWindowFrame::OnRedo(wxCommandEvent& event)
 
 void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
 {
-    if (input->animating)
-    {
-        input->Redraw();
-    }
+    if (input->animating) { input->Redraw(); }
 }
 
 void MainWindowFrame::Save(std::string& path)
