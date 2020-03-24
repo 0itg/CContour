@@ -286,3 +286,20 @@ void CommandContourColorSet::undo()
     subject->color           = oldColor;
     subject->markedForRedraw = true;
 }
+
+CommandOutputFuncEntry::CommandOutputFuncEntry(ParsedFunc<cplx> g, OutputPlane* par) : newfunc(g), parent(par)
+{
+    oldfunc = parent->GetFunc();
+}
+
+void CommandOutputFuncEntry::exec()
+{
+    parent->CopyFunction(newfunc);
+    parent->GetFuncInput()->SetValue(newfunc.GetInputText());
+}
+
+void CommandOutputFuncEntry::undo()
+{
+    parent->CopyFunction(oldfunc);
+    parent->GetFuncInput()->SetValue(oldfunc.GetInputText());
+}

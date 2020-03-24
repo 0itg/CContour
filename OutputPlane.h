@@ -47,9 +47,12 @@ class OutputPlane : public ComplexPlane
     void Zoom(wxPoint mousePos, int zoomSteps);
 
     void EnterFunction(std::string s);
+    void CopyFunction(ParsedFunc<cplx> g);
+    auto GetFunc() { return f; }
 
     void MarkAllForRedraw();
     void SetFuncInput(wxTextCtrl* fIn) { funcInput = fIn; }
+    auto GetFuncInput() { return funcInput; }
     void RefreshFuncText() { funcInput->SetValue(f.GetInputText()); }
     void SetVarPanel(VariableEditPanel* var) { varPanel = var; }
 

@@ -467,6 +467,32 @@ class CommandParametricFuncEntry : public Command
     }
 };
 
+class CommandOutputFuncEntry : public Command
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandOutputFuncEntry() = default;
+    CommandOutputFuncEntry(ParsedFunc<cplx> g, OutputPlane* par);
+
+    void exec();
+    void undo();
+
+private:
+    OutputPlane* parent;
+    ParsedFunc<cplx> oldfunc;
+    ParsedFunc<cplx> newfunc;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<Command>(*this);
+        ar& newfunc;
+        ar& oldfunc;
+        ar& parent;
+    }
+};
+
 namespace boost
 {
 namespace serialization

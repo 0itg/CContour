@@ -160,18 +160,30 @@ void OutputPlane::Zoom(wxPoint mousePos, int zoomSteps)
 
 void OutputPlane::EnterFunction(std::string s)
 {
-    ParsedFunc g = f;
     try
     {
-        f = parser.Parse(s);
-        f.eval();
+        auto g = parser.Parse(s);
+        g.eval();
+        history->RecordCommand(std::make_unique<CommandOutputFuncEntry>(g, this));
+        f = g;
     }
     catch (std::invalid_argument& func)
     {
-        f = g;
         wxRichToolTip errormsg(wxT("Invalid Function"), func.what());
         errormsg.ShowFor(funcInput);
     }
+    movedViewPort = true;
+    varPanel->PopulateVarTextCtrls(f);
+    varPanel->Update();
+    varPanel->Refresh();
+    MarkAllForRedraw();
+    Update();
+    Refresh();
+}
+
+void OutputPlane::CopyFunction(ParsedFunc<cplx> g)
+{
+    f = g;
     movedViewPort = true;
     varPanel->PopulateVarTextCtrls(f);
     varPanel->Update();

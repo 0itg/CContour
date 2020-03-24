@@ -10,9 +10,6 @@
 #include <wx/richtooltip.h>
 
 // clang-format off
-//wxBEGIN_EVENT_TABLE(ToolPanel, wxVScrolledWindow)
-//EVT_ERASE_BACKGROUND(ToolPanel::OnEraseEvent)
-//wxEND_EVENT_TABLE();
 
 wxBEGIN_EVENT_TABLE(NumCtrlPanel, wxVScrolledWindow)
 EVT_TEXT_ENTER(wxID_ANY, NumCtrlPanel::OnTextEntry)

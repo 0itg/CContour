@@ -105,6 +105,8 @@ template <typename T> class ParsedFunc
     }
     ParsedFunc& operator=(const ParsedFunc& in) noexcept
     {
+        this->tokens.clear();
+        this->symbolStack.clear();
         std::unique_ptr<Symbol<T>> sym;
         for (auto S : in.symbolStack)
         {
