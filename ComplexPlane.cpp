@@ -205,19 +205,7 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
     // far apart or too close together. Rescale when they are more than twice
     // as far apart or half as far apart.
 
-    const int MaxMark = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
-    const int MinMark = GetClientSize().x / (axes.TARGET_TICK_COUNT * 2);
-
-    if (LengthXToScreen(axes.reStep) < MinMark) { axes.reStep *= 2; }
-    else if (LengthXToScreen(axes.reStep) > MaxMark)
-    {
-        axes.reStep /= 2;
-    }
-    if (LengthYToScreen(axes.imStep) < MinMark) { axes.imStep *= 2; }
-    else if (LengthYToScreen(axes.imStep) > MaxMark)
-    {
-        axes.imStep /= 2;
-    }
+    axes.RecalcSteps();
     movedViewPort = true;
     toolPanel->Update();
     toolPanel->Refresh();
@@ -334,5 +322,21 @@ void Axes::Draw(wxDC* dc)
             dc->DrawText(label, mark.x - textLeftEdge,
                          mark.y - textOffset.y / 2);
         }
+    }
+}
+
+void Axes::RecalcSteps()
+{
+    const double MaxMark = parent->GetClientSize().x / (TARGET_TICK_COUNT / 2.0);
+    const double MinMark = parent->GetClientSize().x / (TARGET_TICK_COUNT);
+    if (parent->LengthXToScreen(reStep) < MinMark) { reStep *= 2; }
+    else if (parent->LengthXToScreen(reStep) > MaxMark)
+    {
+        reStep /= 2;
+    }
+    if (parent->LengthYToScreen(imStep) < MinMark) { imStep *= 2; }
+    else if (parent->LengthYToScreen(imStep) > MaxMark)
+    {
+        imStep /= 2;
     }
 }

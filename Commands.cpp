@@ -82,8 +82,8 @@ CommandAxesSet::CommandAxesSet(ComplexPlane* par, double rMin, double rMax,
     newBounds[3] = iMax;
 }
 
-CommandAxesSet::CommandAxesSet(ComplexPlane* par)
-    : subject(&parent->axes), parent(par)
+CommandAxesSet::CommandAxesSet(ComplexPlane* par, Grid* g)
+    : subject(&parent->axes), parent(par), grid(g)
 {
     for (int i = 0; i < 4; i++)
     {
@@ -98,6 +98,12 @@ void CommandAxesSet::exec()
     subject->realMax = newBounds[1];
     subject->imagMin = newBounds[2];
     subject->imagMax = newBounds[3];
+    subject->RecalcSteps();
+    if (grid)
+    {
+        grid->hStep = subject->reStep;
+        grid->vStep = subject->imStep;
+    }
 }
 
 void CommandAxesSet::undo()
@@ -106,6 +112,12 @@ void CommandAxesSet::undo()
     subject->realMax = oldBounds[1];
     subject->imagMin = oldBounds[2];
     subject->imagMax = oldBounds[3];
+    subject->RecalcSteps();
+    if (grid)
+    {
+        grid->hStep = subject->reStep;
+        grid->vStep = subject->imStep;
+    }
 }
 
 void CommandAxesSet::SetPositionParam(cplx c)
@@ -114,7 +126,7 @@ void CommandAxesSet::SetPositionParam(cplx c)
         newBounds[i] = subject->c[i];
 }
 
-CommandAxesReset::CommandAxesReset(ComplexPlane* par) : subject(&par->axes), parent(par)
+CommandAxesReset::CommandAxesReset(ComplexPlane* par, Grid* g) : subject(&par->axes), parent(par), grid(g)
 {
     for (int i = 0; i < 4; i++)
         oldBounds[i] = subject->c[i];
@@ -126,6 +138,12 @@ void CommandAxesReset::exec()
     subject->realMin = -10;
     subject->imagMax = 10;
     subject->imagMin = -10;
+    subject->RecalcSteps();
+    if (grid)
+    {
+        grid->hStep = subject->reStep;
+        grid->vStep = subject->imStep;
+    }
 }
 
 void CommandAxesReset::undo()
@@ -134,6 +152,12 @@ void CommandAxesReset::undo()
     subject->realMax = oldBounds[1];
     subject->imagMin = oldBounds[2];
     subject->imagMax = oldBounds[3];
+    subject->RecalcSteps();
+    if (grid)
+    {
+        grid->hStep = subject->reStep;
+        grid->vStep = subject->imStep;
+    }
 }
 
 CommandParametricFuncEntry::CommandParametricFuncEntry(ContourParametric* C,

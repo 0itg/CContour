@@ -37,6 +37,7 @@ class ComplexPlane;
 class InputPlane;
 class OutputPlane;
 class Animation;
+class Grid;
 struct Axes;
 template <class T> class ParsedFunc;
 
@@ -76,6 +77,7 @@ class CommandHistory
     void SetMenu(wxMenu* m) { menu = m; }
     void RecordCommand(std::unique_ptr<Command> C);
     void UpdateLastCommand(cplx c = 0);
+    //Command* GetCurrentCommand() { if (!history.empty() && index > 0) return history[index-1].get(); else return nullptr; };
     void PopCommand();
 
   private:
@@ -369,7 +371,7 @@ class CommandAxesSet : public Command
     CommandAxesSet() = default;
     CommandAxesSet(ComplexPlane* parent, double rMin, double rMax, double iMin,
                    double iMax);
-    CommandAxesSet(ComplexPlane* parent);
+    CommandAxesSet(ComplexPlane* parent, Grid* grid = nullptr);
 
     void exec();
     void undo();
@@ -377,6 +379,7 @@ class CommandAxesSet : public Command
 
   private:
     ComplexPlane* parent;
+    Grid* grid;
     Axes* subject;
     double newBounds[4];
     double oldBounds[4];
@@ -389,6 +392,7 @@ class CommandAxesSet : public Command
         ar& subject;
         ar& newBounds;
         ar& oldBounds;
+        ar& grid;
     }
 };
 
@@ -398,7 +402,7 @@ class CommandAxesReset : public Command
 
   public:
     CommandAxesReset() = default;
-    CommandAxesReset(ComplexPlane* par);
+    CommandAxesReset(ComplexPlane* par, Grid* grid = nullptr);
 
     void exec();
     void undo();
@@ -406,6 +410,7 @@ class CommandAxesReset : public Command
   private:
     double oldBounds[4];
     ComplexPlane* parent;
+    Grid* grid;
     Axes* subject;
 
     template <class Archive>
@@ -414,6 +419,7 @@ class CommandAxesReset : public Command
         ar& boost::serialization::base_object<Command>(*this);
         ar& subject;
         ar& oldBounds;
+        ar& grid;
     }
 };
 

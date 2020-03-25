@@ -22,7 +22,7 @@ EVT_LEFT_UP(OutputPlane::OnMouseLeftUp)
 EVT_LEFT_DOWN(ComplexPlane::OnMouseLeftDown)
 EVT_RIGHT_UP(ComplexPlane::OnMouseRightUp)
 EVT_RIGHT_DOWN(ComplexPlane::OnMouseRightDown)
-EVT_MOUSEWHEEL(ComplexPlane::OnMouseWheel)
+EVT_MOUSEWHEEL(OutputPlane::OnMouseWheel)
 EVT_MOTION(OutputPlane::OnMouseMoving)
 EVT_PAINT(OutputPlane::OnPaint)
 EVT_LEAVE_WINDOW(ComplexPlane::OnMouseLeaving)
@@ -132,6 +132,13 @@ void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
 {
     EnterFunction(funcInput->GetLineText(0));
+}
+
+void OutputPlane::OnMouseWheel(wxMouseEvent& event)
+{
+    history->RecordCommand(std::make_unique<CommandAxesSet>(this));
+    ComplexPlane::OnMouseWheel(event);
+    history->UpdateLastCommand();
 }
 
 // Override necessary to make sure animations play smoothly while

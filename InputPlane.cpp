@@ -220,7 +220,9 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
 
 void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
 {
+    history->RecordCommand(std::make_unique<CommandAxesSet>(this, &this->grid));
     ComplexPlane::OnMouseWheel(mouse); // Calls the Zoom function.
+    history->UpdateLastCommand();
     if (linkGridToAxes)
     {
         grid.hStep = axes.reStep;

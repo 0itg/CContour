@@ -76,7 +76,7 @@ struct Axes
     const int LABEL_SPACING = 4;
     // Labels can get no closer than this to the edge of the plane
     const int LABEL_PADDING = 4;
-
+    void RecalcSteps();
   private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)

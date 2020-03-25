@@ -42,6 +42,7 @@ class OutputPlane : public ComplexPlane
     void OnGridResCtrl(wxSpinEvent& event);
     void OnGridResCtrl(wxCommandEvent& event);
     void OnFunctionEntry(wxCommandEvent& event);
+    void OnMouseWheel(wxMouseEvent& event);
 
     void Pan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);
