@@ -19,6 +19,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/complex.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/unique_ptr.hpp>
 #include <boost/serialization/vector.hpp>
@@ -31,11 +32,21 @@ enum enum_states
     STATE_IDLE = -1,
 };
 
+enum actions
+{
+    ACTION_IDLE = 0,
+    ACTION_CREATE,
+    ACTION_TRANSLATE,
+    ACTION_EDIT_POINT,
+    ACTION_EDIT_RADIUS
+};
+
 class Contour;
 class OutputPlane;
 class ComplexPlane;
 class Grid;
 class NumCtrlPanel;
+class CommandHistory;
 
 struct Axes
 {
@@ -65,7 +76,7 @@ struct Axes
     const int LABEL_SPACING = 4;
     // Labels can get no closer than this to the edge of the plane
     const int LABEL_PADDING = 4;
-
+    void RecalcSteps();
   private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
@@ -101,6 +112,7 @@ class ComplexPlane : public wxPanel
     void OnMouseCapLost(wxMouseCaptureLostEvent& mouse);
     void OnMouseLeaving(wxMouseEvent& mouse);
     void OnShowAxes_ShowGrid(wxCommandEvent& event);
+    void ShowAxisControls();
 
     void RefreshShowAxes_ShowGrid();
 
@@ -110,6 +122,7 @@ class ComplexPlane : public wxPanel
     void SetToolbar(wxToolBar* tb) { toolbar = tb; }
     void SetStatusBar(wxStatusBar* ptr) { statBar = ptr; };
     void SetToolPanel(NumCtrlPanel* ptr) { toolPanel = ptr; };
+    auto GetToolPanel() { return toolPanel; }
     virtual void PrepareForLoadFromFile() { ClearContours(); }
 
     // For convenience
@@ -124,29 +137,47 @@ class ComplexPlane : public wxPanel
 
     // Flags the contour/control point under this point as highlighted,
     // which marks it for special treatment in the user input and paint
-    // routines
-    void Highlight(wxPoint mousePos);
+    // routines. True return value means the highlights changed.
+    bool Highlight(wxPoint mousePos);
     void Pan(wxPoint mousePos);
     // void InversePan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);
 
     void SetResCtrl(wxSpinCtrl* r) { resCtrl = r; }
+    int GetRes() { return resCtrl->GetValue(); }
     void ClearContours();
+    virtual void UpdateGrid() {}
+
+    int GetHighlightedContour() { return highlightedContour; }
+    void SetHighlightedContour(int h) { highlightedContour = h; }
 
     wxArrayString GetContourNames();
+
+    size_t GetContourCount() { return contours.size(); }
+
+    std::shared_ptr<Contour> GetContour(size_t index)
+    {
+        if (index < contours.size())
+            return contours[index];
+        else
+            return nullptr;
+    }
+
+    void SetCommandHistory(CommandHistory* h) { history = h; }
+    CommandHistory* GetHistoryPtr() { return history; }
 
     Axes axes;
     bool movedViewPort = true;
 
   protected:
     std::string name;
-    std::vector<std::unique_ptr<Contour>> contours;
+    std::vector<std::shared_ptr<Contour>> contours;
     int highlightedContour   = -1;
     int state                = -1;
     int highlightedCtrlPoint = -1;
     const double zoomFactor  = 1.1;
     cplx lastMousePos;
-    cplx lastMidClick;
+    cplx lastClickPos;
 
     bool mouseLeftDown = false;
     bool panning       = false;
@@ -156,6 +187,7 @@ class ComplexPlane : public wxPanel
     wxStatusBar* statBar;
     wxToolBar* toolbar;
     NumCtrlPanel* toolPanel;
+    CommandHistory* history;
 
   private:
     template <class Archive>

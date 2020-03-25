@@ -56,6 +56,7 @@ template <typename T> class Symbol
     virtual T GetVal() const { return T(); };
     virtual void SetVal(const T& v){};
     void SetParent(ParsedFunc<T>* p) { parent = p; }
+    auto GetParent() { return parent; }
 
   protected:
     ParsedFunc<T>* parent = nullptr;

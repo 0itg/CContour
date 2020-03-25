@@ -42,14 +42,18 @@ class OutputPlane : public ComplexPlane
     void OnGridResCtrl(wxSpinEvent& event);
     void OnGridResCtrl(wxCommandEvent& event);
     void OnFunctionEntry(wxCommandEvent& event);
+    void OnMouseWheel(wxMouseEvent& event);
 
     void Pan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);
 
     void EnterFunction(std::string s);
+    void CopyFunction(ParsedFunc<cplx> g);
+    auto GetFunc() { return f; }
 
     void MarkAllForRedraw();
     void SetFuncInput(wxTextCtrl* fIn) { funcInput = fIn; }
+    auto GetFuncInput() { return funcInput; }
     void RefreshFuncText() { funcInput->SetValue(f.GetInputText()); }
     void SetVarPanel(VariableEditPanel* var) { varPanel = var; }
 
@@ -66,35 +70,12 @@ class OutputPlane : public ComplexPlane
     VariableEditPanel* varPanel;
 
     template <class Archive>
-    void save(Archive& ar, const unsigned int version) const
-    {
-        ar << boost::serialization::base_object<ComplexPlane>(*this);
-        ar << parser;
-        ar << tGrid;
-        ar << this->f.GetInputText();
-        ar << this->f.GetVarMap();
-        ar << this->f.GetIV();
-    }
-    template <class Archive> void load(Archive& ar, const unsigned int version)
-    {
-        ar >> boost::serialization::base_object<ComplexPlane>(*this);
-        ar >> parser;
-        ar >> tGrid;
-        resCtrl->SetValue(tGrid.res);
-        std::string savedFunc;
-        ar >> savedFunc;
-        std::map<std::string, cplx> varMap;
-        ar >> varMap;
-        f = this->parser.Parse(savedFunc);
-        f.RestoreVarsFromMap(varMap);
-        std::string IV;
-        ar >> IV;
-        f.SetIV(IV);
-    }
-    template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
-        boost::serialization::split_member(ar, *this, version);
+        ar& boost::serialization::base_object<ComplexPlane>(*this);
+        ar& parser;
+        ar& tGrid;
+        ar& f;
     }
     wxDECLARE_EVENT_TABLE();
 };

@@ -26,6 +26,7 @@ class Contour;
 class Animation
 {
     friend class boost::serialization::access;
+
   public:
     Animation() : f([](cplx c) { return c; }) {}
     void FrameAt(int t);
@@ -36,13 +37,14 @@ class Animation
     }
     void ClearCommands() { commands.clear(); }
     void SetFunction(std::function<cplx(double)> func) { f = func; }
-    void SetPathContour(Contour* C);
+    void SetPathContour(std::shared_ptr<Contour> C);
+    auto GetPath() { return path; }
     bool IsEmpty() { return commands.empty(); }
 
     // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then
     // repeat. else, it will go from t=0 to t=1, then repeat.
     bool bounce     = false;
-    int reverse    = 1;
+    int reverse     = 1;
     int duration_ms = 1000;
     // Stored internally as an offset from 0 to 1;
     double offset;
@@ -52,8 +54,9 @@ class Animation
     int pathSel;
     int comSel;
     int handle;
+
   private:
-    Contour* path;
+    std::shared_ptr<Contour> path;
     std::vector<std::unique_ptr<Command>> commands;
 
     // Function must be parameterized by a variable 't', assumed to
@@ -63,21 +66,10 @@ class Animation
     // That means any other type of function will be overwritten on save.
     std::function<cplx(double)> f;
 
-    //template <class Archive>
-    //void save(Archive& ar, const unsigned int version) const
-    //{
-    //}
-
-    //template <class Archive>
-    //void load(Archive& ar, const unsigned int version)
-    //{
-
-    //}
-
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
-        ar & path;
+        ar& path;
         ar& bounce;
         ar& reverse;
         ar& duration_ms;
@@ -90,6 +82,5 @@ class Animation
         SetPathContour(path);
 
         ar& commands;
-        //boost::serialization::split_member(ar, *this, version);
     }
 };

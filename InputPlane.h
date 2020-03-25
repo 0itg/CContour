@@ -20,6 +20,10 @@ class AnimPanel;
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
 // complex numbers and mapped to the ouput panel under some complex function.
+//
+// This class has sort of evolved into the central class of the application,
+// because most of what the user does is directly or indirectly manipulate the
+// input contours.
 
 class InputPlane : public ComplexPlane
 {
@@ -31,6 +35,7 @@ class InputPlane : public ComplexPlane
     InputPlane(wxWindow* parent, const std::string& n = "Input")
         : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
     {
+        grid.CalcVisibleGrid();
     }
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
@@ -53,29 +58,39 @@ class InputPlane : public ComplexPlane
     int GetRes() const { return res; }
     void RecalcAll();
 
+    // Calls refresh/update for this panel and output panel(s)
+    void Redraw();
+
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
     void RemoveContour(int index);
-    
-    std::unique_ptr<Contour> CreateContour(wxPoint mousePos);
-    
-    void AddContour(std::unique_ptr<Contour> C);
-    
-    Contour* GetContour(size_t index)
-    {
-        if (index < contours.size())
-            return contours[index].get();
-        else
-            return nullptr;
-    }
 
-    void AddAnimation(std::unique_ptr<Animation> A)
+    std::shared_ptr<Contour> CreateContour(wxPoint mousePos);
+
+    void AddContour(std::shared_ptr<Contour> C);
+    void InsertContour(std::shared_ptr<Contour> C, size_t i);
+
+    void UpdateGrid() { grid.CalcVisibleGrid(); }
+
+    void AddAnimation(std::shared_ptr<Animation> A) { animations.push_back(A); }
+    void InsertAnimation(int i, std::shared_ptr<Animation> A)
     {
-        animations.push_back(std::move(A));
+        if (i < 0)
+            animations.push_back(A);
+        else
+            animations.insert(animations.begin() + i, A);
     }
+    auto GetAnimation(int i) { return i > -1 ? animations[i] : animations.back(); }
+    void RemoveAnimation(int i)
+    {
+        if (i > -1) animations.erase(animations.begin() + i);
+        else animations.pop_back();
+    }
+    size_t AnimCount() { return animations.size(); }
 
     void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
     wxColor RandomColor();
+    void AddOutputPlane(OutputPlane* out);
     void SetAnimPanel(AnimPanel* a) { animPanel = a; }
 
     // If true, when axes step values change, grid step values
@@ -87,7 +102,6 @@ class InputPlane : public ComplexPlane
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
-    std::vector<std::unique_ptr<Animation>> animations;
 
     wxStopWatch animTimer;
 
@@ -106,18 +120,19 @@ class InputPlane : public ComplexPlane
 
     wxColourPickerCtrl* colorPicker = nullptr;
     AnimPanel* animPanel            = nullptr;
+    std::vector<std::shared_ptr<Animation>> animations;
 
     int contourType = ID_Circle;
 
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
-        ar & boost::serialization::base_object<ComplexPlane>(*this);
-        ar & linkGridToAxes;
-        ar & res;
+        ar& boost::serialization::base_object<ComplexPlane>(*this);
+        ar& linkGridToAxes;
+        ar& res;
         resCtrl->SetValue(res);
-        ar & grid;
-        ar & animations;
+        ar& grid;
+        ar& animations;
     }
     wxDECLARE_EVENT_TABLE();
 };

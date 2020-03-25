@@ -21,12 +21,15 @@ class ContourCircle : public Contour
 
     void Draw(wxDC* dc, ComplexPlane* canvas);
     // Changes the radius, rather than translating.
-    bool ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
+    int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
+    virtual CommandContourEditRadius* CreateActionCommand(cplx c);
     bool IsDone() { return true; }
     bool IsPointOnContour(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     int OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     cplx Interpolate(double t);
     void Subdivide(int res);
+    void SetRadius(double r) { radius = r; }
+    double GetRadius() { return radius; }
 
     virtual std::tuple<int, int, int> PopulateSupplementalMenu(ToolPanel* TP);
 

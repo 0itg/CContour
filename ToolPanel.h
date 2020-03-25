@@ -24,6 +24,7 @@ class Contour;
 class InputPlane;
 class OutputPlane;
 class LinkedCtrl;
+class CommandHistory;
 template <class T> class Symbol;
 template <class T> class ParsedFunc;
 
@@ -41,7 +42,10 @@ class ToolPanel : public wxScrolledWindow
     virtual void OnSpinButtonUp(wxSpinEvent& event);
     virtual void OnSpinButtonDown(wxSpinEvent& event);
     void OnPaintEvent(wxPaintEvent& event);
-    void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event); }
+    virtual void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event)
+    {
+        OnTextEntry(event);
+    }
     void ClearPanel();
 
     void AddwxCtrl(wxWindow* D) { wxCtrls.push_back(D); }
@@ -55,15 +59,23 @@ class ToolPanel : public wxScrolledWindow
     virtual bool NeedsUpdate()   = 0;
     virtual void RefreshLinked() = 0;
 
-    virtual void RePopulate() { lastPopulateFn(); }
+    virtual void Populate() { lastPopulateFn(); }
+    void SetCommandHistory(CommandHistory* h) { history = h; }
+    CommandHistory* GetHistoryPtr() { return history; }
+
+    void SetInputPlane(InputPlane* in) { input = in; }
+    InputPlane* GetInputPlane() { return input; }
 
     static constexpr int ROW_HEIGHT = 24;
 
     wxPanel* intermediate;
+
   protected:
+    InputPlane* input;
     std::vector<wxWindow*> wxCtrls;
     std::vector<LinkedCtrl*> linkedCtrls;
     std::function<void(void)> lastPopulateFn = 0;
+    CommandHistory* history;
 };
 
 // Panel which dynamically shows either Axis controls or Contour controls,
@@ -73,23 +85,24 @@ class NumCtrlPanel : public ToolPanel
   public:
     NumCtrlPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
                  InputPlane* in = nullptr, OutputPlane* out = nullptr)
-        : ToolPanel(parent, ID, pos, size), input(in)
+        : ToolPanel(parent, ID, pos, size)
     {
+        input = in;
         SetOutputPlane(out);
     }
+    void OnTextEntry(wxCommandEvent& event);
+
     void PopulateAxisTextCtrls();
     void PopulateContourTextCtrls(Contour* C);
 
     bool NeedsUpdate();
     void RefreshLinked();
 
-    void SetInputPlane(InputPlane* in) { input = in; }
     void SetOutputPlane(OutputPlane* out) { outputs.push_back(out); }
 
     wxDECLARE_EVENT_TABLE();
 
   private:
-    InputPlane* input;
     std::vector<OutputPlane*> outputs;
 };
 
@@ -105,7 +118,8 @@ class VariableEditPanel : public ToolPanel
     {
     }
 
-    void PopulateVarTextCtrls(ParsedFunc<cplx>& F);
+    void Populate(ParsedFunc<cplx>& F);
+    void Populate() { Populate(*lastFunc); }
 
     void OnPaintEvent(wxPaintEvent& event);
 
@@ -118,31 +132,34 @@ class VariableEditPanel : public ToolPanel
 
   private:
     OutputPlane* output;
+    ParsedFunc<cplx>* lastFunc;
 };
 
 class AnimPanel : public ToolPanel
 {
   public:
-      AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
-          InputPlane* in = nullptr);
+    AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
+              InputPlane* in = nullptr);
     void SetInputPlane(InputPlane* in) { input = in; }
 
     bool NeedsUpdate() { return true; }
     void RefreshLinked(){};
 
     // Adds a new animation to input and creates an animCtrl for this panel;
-    void AddAnimation();
+    void AddAnimation(int index = -1, std::shared_ptr<Animation> ptr = nullptr);
     // Creates a new animCtrl, using the last item in input's animations vector.
     void AddAnimCtrl(int index = -1);
-    void OnButtonNewAnim(wxCommandEvent& event) { AddAnimation(); }
+    void OnButtonNewAnim(wxCommandEvent& event);
     void OnRemoveAnim(wxCommandEvent& event);
-    void PopulateAnimCtrls();
+    // void OnTextEntry(wxCommandEvent& event);
+    // void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event);
+    // }
+    void Populate();
     void UpdateComboBoxes();
     void FinishLayout();
 
     wxDECLARE_EVENT_TABLE();
 
   private:
-    InputPlane* input;
     wxButton* newAnimButton;
 };

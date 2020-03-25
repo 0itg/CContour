@@ -1,4 +1,5 @@
 #pragma once
+#include "Commands.h"
 #include <wx/aui/aui.h>
 #include <wx/clrpicker.h>
 
@@ -7,6 +8,7 @@ class OutputPlane;
 class NumCtrlPanel;
 class VariableEditPanel;
 class AnimPanel;
+class CommandHistory;
 
 class MainWindowFrame : public wxFrame
 {
@@ -16,6 +18,8 @@ class MainWindowFrame : public wxFrame
                     const long style = wxDEFAULT_FRAME_STYLE);
     ~MainWindowFrame() { aui.UnInit(); }
 
+    CommandHistory history;
+
   private:
     InputPlane* input;
     OutputPlane* output;
@@ -23,6 +27,7 @@ class MainWindowFrame : public wxFrame
     VariableEditPanel* varEditPanel;
     AnimPanel* animPanel;
     wxMenu* menuWindow;
+    wxMenu* menuEdit;
     wxToolBar* toolbar;
     std::string saveFileName = "";
     std::string saveFilePath = "";
@@ -51,11 +56,15 @@ class MainWindowFrame : public wxFrame
     void OnSaveAs(wxCommandEvent& event);
     void OnPlayButton(wxCommandEvent& event);
     void OnPauseButton(wxCommandEvent& event);
+    void OnUndo(wxCommandEvent& event);
+    void OnRedo(wxCommandEvent& event);
 
     void AnimOnIdle(wxIdleEvent& idle);
 
     void Save(std::string& path);
     void Load(std::string& path);
+
+    void RefreshAll();
 
     wxAuiManager aui;
 

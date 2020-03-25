@@ -83,6 +83,7 @@ template <typename T> class Parser
 
 template <typename T> class ParsedFunc
 {
+    friend class boost::serialization::access;
     friend class Parser<T>;
 
   public:
@@ -104,6 +105,8 @@ template <typename T> class ParsedFunc
     }
     ParsedFunc& operator=(const ParsedFunc& in) noexcept
     {
+        this->tokens.clear();
+        this->symbolStack.clear();
         std::unique_ptr<Symbol<T>> sym;
         for (auto S : in.symbolStack)
         {
@@ -159,6 +162,7 @@ template <typename T> class ParsedFunc
     std::string str() { return inputText; }
     void ReplaceVariable(std::string varOld, std::string var);
     auto GetVars();
+    auto GetVar(const std::string& tok) { return tokens.find(tok) != tokens.end() ? tokens[tok].get() : nullptr; }
     auto GetVarMap() const;
     void RestoreVarsFromMap(std::map<std::string, T>);
     std::string GetInputText() const { return inputText; }
@@ -172,6 +176,32 @@ template <typename T> class ParsedFunc
     std::vector<Symbol<T>*> symbolStack;
     std::string inputText = "";
     std::string IV_token  = "z";
+
+    template <class Archive>
+    void save(Archive& ar, const unsigned int version) const
+    {
+        ar << inputText;
+        ar << GetVarMap();
+        ar << IV_token;
+    }
+    template <class Archive> void load(Archive& ar, const unsigned int version)
+    {
+        Parser<T> parser;
+        std::string savedFunc;
+        ar >> savedFunc;
+        std::map<std::string, cplx> varMap;
+        ar >> varMap;
+        *this = parser.Parse(savedFunc);
+        RestoreVarsFromMap(varMap);
+        std::string IV;
+        ar >> IV;
+        SetIV(IV);
+    }
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        boost::serialization::split_member(ar, *this, version);
+    }
 };
 
 template <typename T> inline Parser<T>::Parser() { Initialize(); }

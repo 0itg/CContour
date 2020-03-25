@@ -4,6 +4,7 @@
 #include "ContourRect.h"
 #include "Grid.h"
 #include "OutputPlane.h"
+#include "ToolPanel.h"
 
 #include "Event_IDs.h"
 
@@ -61,6 +62,8 @@ void ComplexPlane::OnMouseWheel(wxMouseEvent& mouse)
 {
     int rot = mouse.GetWheelRotation() / mouse.GetWheelDelta();
     Zoom(mouse.GetPosition(), rot);
+    Update();
+    Refresh();
 }
 
 void ComplexPlane::OnMouseLeftDown(wxMouseEvent& mouse)
@@ -72,11 +75,13 @@ void ComplexPlane::OnMouseRightUp(wxMouseEvent& mouse)
 {
     ReleaseMouseIfAble();
     panning = false;
+    history->UpdateLastCommand(ScreenToComplex(mouse.GetPosition()));
 }
 
 void ComplexPlane::OnMouseRightDown(wxMouseEvent& mouse)
 {
     CaptureMouseIfAble();
+    history->RecordCommand(std::make_unique<CommandAxesSet>(this));
     panning = true;
 }
 
@@ -84,6 +89,7 @@ void ComplexPlane::OnMouseCapLost(wxMouseCaptureLostEvent& mouse)
 {
     ReleaseMouseIfAble();
     panning = false;
+    history->UpdateLastCommand(lastMousePos);
 }
 
 void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse)
@@ -102,8 +108,13 @@ void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
     case ID_Show_Grid:
         showGrid = !showGrid;
     }
-    Refresh();
     Update();
+    Refresh();
+}
+
+void ComplexPlane::ShowAxisControls()
+{
+    if (toolPanel) toolPanel->PopulateAxisTextCtrls();
 }
 
 void ComplexPlane::RefreshShowAxes_ShowGrid()
@@ -112,7 +123,7 @@ void ComplexPlane::RefreshShowAxes_ShowGrid()
     toolbar->ToggleTool(ID_Show_Grid, showGrid);
 }
 
-void ComplexPlane::Highlight(wxPoint mousePos)
+bool ComplexPlane::Highlight(wxPoint mousePos)
 {
     bool notOnAnyContour = true;
     int lastHC           = highlightedContour;
@@ -142,13 +153,8 @@ void ComplexPlane::Highlight(wxPoint mousePos)
         highlightedContour   = -1;
         highlightedCtrlPoint = -1;
     }
-    // Only update the screen if different things are highlighted.
-    // Theoretically more efficient.
-    if (highlightedContour != lastHC || highlightedCtrlPoint != lastHCP)
-    {
-        Refresh();
-        Update();
-    }
+    // true signals that the highlighted contour has changed.
+    return (highlightedContour != lastHC || highlightedCtrlPoint != lastHCP);
 }
 
 void ComplexPlane::Pan(wxPoint mousePos)
@@ -159,8 +165,8 @@ void ComplexPlane::Pan(wxPoint mousePos)
     axes.imagMax += displacement.imag();
     axes.imagMin += displacement.imag();
     movedViewPort = true;
-    Refresh();
-    Update();
+    toolPanel->Update();
+    toolPanel->Refresh();
 }
 
 // void ComplexPlane::InversePan(wxPoint mousePos)
@@ -199,22 +205,10 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
     // far apart or too close together. Rescale when they are more than twice
     // as far apart or half as far apart.
 
-    const int MaxMark = GetClientSize().x / (axes.TARGET_TICK_COUNT / 2);
-    const int MinMark = GetClientSize().x / (axes.TARGET_TICK_COUNT * 2);
-
-    if (LengthXToScreen(axes.reStep) < MinMark) { axes.reStep *= 2; }
-    else if (LengthXToScreen(axes.reStep) > MaxMark)
-    {
-        axes.reStep /= 2;
-    }
-    if (LengthYToScreen(axes.imStep) < MinMark) { axes.imStep *= 2; }
-    else if (LengthYToScreen(axes.imStep) > MaxMark)
-    {
-        axes.imStep /= 2;
-    }
+    axes.RecalcSteps();
     movedViewPort = true;
-    Refresh();
-    Update();
+    toolPanel->Update();
+    toolPanel->Refresh();
 }
 
 void ComplexPlane::ClearContours()
@@ -328,5 +322,21 @@ void Axes::Draw(wxDC* dc)
             dc->DrawText(label, mark.x - textLeftEdge,
                          mark.y - textOffset.y / 2);
         }
+    }
+}
+
+void Axes::RecalcSteps()
+{
+    const double MaxMark = parent->GetClientSize().x / (TARGET_TICK_COUNT / 2.0);
+    const double MinMark = parent->GetClientSize().x / (TARGET_TICK_COUNT);
+    if (parent->LengthXToScreen(reStep) < MinMark) { reStep *= 2; }
+    else if (parent->LengthXToScreen(reStep) > MaxMark)
+    {
+        reStep /= 2;
+    }
+    if (parent->LengthYToScreen(imStep) < MinMark) { imStep *= 2; }
+    else if (parent->LengthYToScreen(imStep) > MaxMark)
+    {
+        imStep /= 2;
     }
 }

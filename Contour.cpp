@@ -36,7 +36,10 @@ int Contour::OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision)
     return -1;
 }
 
-cplx Contour::GetCtrlPoint(int index) { return points[index]; }
+cplx Contour::GetCtrlPoint(int index)
+{
+    return index > -1 ? points[index] : center;
+}
 
 void Contour::SetCtrlPoint(int index, cplx c)
 {
@@ -49,7 +52,7 @@ void Contour::PopulateMenu(ToolPanel* TP)
 {
     auto panel = TP->intermediate;
 
-    auto sizer      = new wxFlexGridSizer(1, 0, 0);
+    auto sizer = new wxFlexGridSizer(1, 0, 0);
     sizer->SetFlexibleDirection(wxHORIZONTAL);
 
     auto sizerFlags = wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 3);
@@ -57,9 +60,8 @@ void Contour::PopulateMenu(ToolPanel* TP)
     wxFont normalFont = TP->intermediate->GetFont();
 
     panel->SetFont(normalFont.Bold());
-    TP->AddwxCtrl(new wxStaticText(panel, wxID_ANY,
-                                       wxString(GetName() + ":"),
-                                       wxDefaultPosition, wxDefaultSize));
+    TP->AddwxCtrl(new wxStaticText(panel, wxID_ANY, wxString(GetName() + ":"),
+                                   wxDefaultPosition, wxDefaultSize));
     panel->SetFont(normalFont);
     sizer->Add(TP->GetwxCtrl(0), sizerFlags);
 
@@ -70,13 +72,12 @@ void Contour::PopulateMenu(ToolPanel* TP)
     {
         std::string c = std::to_string(GetCtrlPoint(i).real()) + " + " +
                         std::to_string(GetCtrlPoint(i).imag()) + "i";
-        TP->AddwxCtrl(
-            new wxStaticText(panel, wxID_ANY,
-                             wxString("Ctrl Point " + std::to_string(i)),
-                             wxDefaultPosition, wxDefaultSize));
+        TP->AddwxCtrl(new wxStaticText(
+            panel, wxID_ANY, wxString("Ctrl Point " + std::to_string(i)),
+            wxDefaultPosition, wxDefaultSize));
         TP->AddLinkedCtrl(new LinkedCtrlPointTextCtrl(
             panel, wxID_ANY, c, wxDefaultPosition, wxDefaultSize,
-            wxTE_PROCESS_ENTER, this, (size_t)i));
+            wxTE_PROCESS_ENTER, this, (size_t)i, TP->GetHistoryPtr()));
         sizer->Add(TP->GetwxCtrl(i + 1 + std::get<0>(sup)), sizerFlags);
         sizer->Add(TP->GetLinkedCtrl(i + std::get<1>(sup))->GetCtrlPtr(),
                    sizerFlags);

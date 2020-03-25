@@ -22,7 +22,7 @@ EVT_LEFT_UP(OutputPlane::OnMouseLeftUp)
 EVT_LEFT_DOWN(ComplexPlane::OnMouseLeftDown)
 EVT_RIGHT_UP(ComplexPlane::OnMouseRightUp)
 EVT_RIGHT_DOWN(ComplexPlane::OnMouseRightDown)
-EVT_MOUSEWHEEL(ComplexPlane::OnMouseWheel)
+EVT_MOUSEWHEEL(OutputPlane::OnMouseWheel)
 EVT_MOTION(OutputPlane::OnMouseMoving)
 EVT_PAINT(OutputPlane::OnPaint)
 EVT_LEAVE_WINDOW(ComplexPlane::OnMouseLeaving)
@@ -34,7 +34,7 @@ OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, const std::string& n)
     : ComplexPlane(parent, n), in(In), tGrid(this)
 {
     f = parser.Parse("z*z");
-    In->outputs.push_back(this);
+    In->AddOutputPlane(this);
 };
 
 void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
@@ -54,8 +54,10 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
     if (panning)
     {
         Pan(mouse.GetPosition());
-        toolPanel->Refresh();
+        Update();
+        Refresh();
         toolPanel->Update();
+        toolPanel->Refresh();
     }
     lastMousePos = ScreenToComplex(mouse.GetPosition());
     Highlight(mouse.GetPosition());
@@ -63,8 +65,8 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
     in->highlightedContour = highlightedContour;
     if (temp != highlightedContour)
     {
-        in->Refresh();
         in->Update();
+        in->Refresh();
     }
 }
 
@@ -123,13 +125,20 @@ void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 {
     tGrid.res     = resCtrl->GetValue();
     movedViewPort = true;
-    Refresh();
     Update();
+    Refresh();
 }
 
 void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
 {
     EnterFunction(funcInput->GetLineText(0));
+}
+
+void OutputPlane::OnMouseWheel(wxMouseEvent& event)
+{
+    history->RecordCommand(std::make_unique<CommandAxesSet>(this));
+    ComplexPlane::OnMouseWheel(event);
+    history->UpdateLastCommand();
 }
 
 // Override necessary to make sure animations play smoothly while
@@ -158,25 +167,37 @@ void OutputPlane::Zoom(wxPoint mousePos, int zoomSteps)
 
 void OutputPlane::EnterFunction(std::string s)
 {
-    ParsedFunc g = f;
     try
     {
-        f = parser.Parse(s);
-        f.eval();
+        auto g = parser.Parse(s);
+        g.eval();
+        history->RecordCommand(std::make_unique<CommandOutputFuncEntry>(g, this));
+        f = g;
     }
     catch (std::invalid_argument& func)
     {
-        f = g;
         wxRichToolTip errormsg(wxT("Invalid Function"), func.what());
         errormsg.ShowFor(funcInput);
     }
     movedViewPort = true;
-    varPanel->PopulateVarTextCtrls(f);
-    varPanel->Refresh();
+    varPanel->Populate(f);
     varPanel->Update();
+    varPanel->Refresh();
     MarkAllForRedraw();
-    Refresh();
     Update();
+    Refresh();
+}
+
+void OutputPlane::CopyFunction(ParsedFunc<cplx> g)
+{
+    f = g;
+    movedViewPort = true;
+    varPanel->Populate(f);
+    varPanel->Update();
+    varPanel->Refresh();
+    MarkAllForRedraw();
+    Update();
+    Refresh();
 }
 
 void OutputPlane::MarkAllForRedraw()
