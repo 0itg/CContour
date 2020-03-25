@@ -9,12 +9,11 @@ BOOST_CLASS_EXPORT_IMPLEMENT(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesReset)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesSet)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAddContour)
-// BOOST_CLASS_EXPORT_IMPLEMENT(CommandInputPlaneCreateContour)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSubdivide)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourRemovePoint)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourAddPoint)
-BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourMovePoint)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSetPoint)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourPlaceAt)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourTranslate)
 
@@ -34,22 +33,22 @@ void CommandContourPlaceAt::exec()
 
 void CommandContourPlaceAt::undo() { subject->Translate(oldPos, newPos); }
 
-CommandContourMovePoint::CommandContourMovePoint(Contour* s, cplx n, int i)
+CommandContourSetPoint::CommandContourSetPoint(Contour* s, cplx n, int i)
     : newPos(n), index(i), subject(s)
 {
     oldPos = s->GetCtrlPoint(i);
 }
 
-CommandContourMovePoint::CommandContourMovePoint(Contour* s, cplx n, int i,
+CommandContourSetPoint::CommandContourSetPoint(Contour* s, cplx n, int i,
                                                  cplx old)
     : newPos(n), index(i), subject(s)
 {
     oldPos = old;
 }
 
-void CommandContourMovePoint::exec() { subject->SetCtrlPoint(index, newPos); }
+void CommandContourSetPoint::exec() { subject->SetCtrlPoint(index, newPos); }
 
-void CommandContourMovePoint::undo() { subject->SetCtrlPoint(index, oldPos); }
+void CommandContourSetPoint::undo() { subject->SetCtrlPoint(index, oldPos); }
 
 void CommandContourAddPoint::exec()
 {
@@ -70,23 +69,6 @@ void CommandContourRemovePoint::exec() { subject->RemovePoint(index); }
 void CommandContourRemovePoint::undo() { subject->AddPoint(oldPos); }
 
 void CommandContourSubdivide::exec() { subject->Subdivide(res); }
-
-// CommandInputPlaneCreateContour::CommandInputPlaneCreateContour(InputPlane* s,
-// wxPoint p)
-//    : mPos(p), subject(s)
-//{
-//    index = s->GetContourCount();
-//}
-//
-// void CommandInputPlaneCreateContour::exec()
-//{
-//    subject->AddContour(std::move(subject->CreateContour(mPos)));
-//}
-//
-// void CommandInputPlaneCreateContour::undo()
-//{
-//    subject->RemoveContour(index);
-//}
 
 CommandAxesSet::CommandAxesSet(ComplexPlane* par, double rMin, double rMax,
                                double iMin, double iMax)
@@ -116,7 +98,6 @@ void CommandAxesSet::exec()
     subject->realMax = newBounds[1];
     subject->imagMin = newBounds[2];
     subject->imagMax = newBounds[3];
-    parent->UpdateGrid();
 }
 
 void CommandAxesSet::undo()
@@ -125,7 +106,6 @@ void CommandAxesSet::undo()
     subject->realMax = oldBounds[1];
     subject->imagMin = oldBounds[2];
     subject->imagMax = oldBounds[3];
-    parent->UpdateGrid();
 }
 
 void CommandAxesSet::SetPositionParam(cplx c)
@@ -134,10 +114,10 @@ void CommandAxesSet::SetPositionParam(cplx c)
         newBounds[i] = subject->c[i];
 }
 
-CommandAxesReset::CommandAxesReset(Axes* a) : subject(a)
+CommandAxesReset::CommandAxesReset(ComplexPlane* par) : subject(&par->axes), parent(par)
 {
     for (int i = 0; i < 4; i++)
-        oldBounds[i] = a->c[i];
+        oldBounds[i] = subject->c[i];
 }
 
 void CommandAxesReset::exec()
@@ -157,9 +137,8 @@ void CommandAxesReset::undo()
 }
 
 CommandParametricFuncEntry::CommandParametricFuncEntry(ContourParametric* C,
-                                                       ParsedFunc<cplx> g,
-                                                       InputPlane* par)
-    : subject(C), parent(par)
+                                                       ParsedFunc<cplx> g)
+    : subject(C)
 {
     oldfunc = *C->GetFunctionPtr();
     newfunc = g;
@@ -168,13 +147,11 @@ CommandParametricFuncEntry::CommandParametricFuncEntry(ContourParametric* C,
 void CommandParametricFuncEntry::exec()
 {
     *subject->GetFunctionPtr() = newfunc;
-    subject->Subdivide(parent->GetRes());
 }
 
 void CommandParametricFuncEntry::undo()
 {
     *subject->GetFunctionPtr() = oldfunc;
-    subject->Subdivide(parent->GetRes());
 }
 
 void CommandHistory::undo()
@@ -228,6 +205,7 @@ void CommandHistory::PopCommand()
 void CommandAddContour::exec()
 {
     subject->AddContour(C);
+    subject->GetToolPanel()->PopulateContourTextCtrls(C.get());
     C->markedForRedraw = true;
 }
 
@@ -235,6 +213,7 @@ void CommandAddContour::undo()
 {
     int i = subject->GetContourCount() - 1;
     subject->RemoveContour(i);
+    subject->ShowAxisControls();
 }
 
 CommandContourEditRadius::CommandContourEditRadius(ContourCircle* s, double rad)
@@ -266,7 +245,7 @@ void CommandRemoveContour::exec()
 void CommandRemoveContour::undo()
 {
     subject->InsertContour(C, index);
-    C->markedForRedraw = true;
+    subject->GetToolPanel()->PopulateContourTextCtrls(C.get());
 }
 
 CommandContourColorSet::CommandContourColorSet(Contour* s, wxColor col)
@@ -278,13 +257,11 @@ CommandContourColorSet::CommandContourColorSet(Contour* s, wxColor col)
 void CommandContourColorSet::exec()
 {
     subject->color           = color;
-    subject->markedForRedraw = true;
 }
 
 void CommandContourColorSet::undo()
 {
     subject->color           = oldColor;
-    subject->markedForRedraw = true;
 }
 
 CommandOutputFuncEntry::CommandOutputFuncEntry(ParsedFunc<cplx> g, OutputPlane* par) : newfunc(g), parent(par)
@@ -302,4 +279,90 @@ void CommandOutputFuncEntry::undo()
 {
     parent->CopyFunction(oldfunc);
     parent->GetFuncInput()->SetValue(oldfunc.GetInputText());
+}
+
+CommandEditVar::CommandEditVar(std::string tok, cplx c, ParsedFunc<cplx>* f) :
+    token(tok), newVal(c), func(f)
+{
+    oldVal = f->GetVar(tok)->GetVal();
+}
+
+void CommandEditVar::exec()
+{
+    func->SetVariable(token, newVal);
+}
+
+void CommandEditVar::undo()
+{
+    func->SetVariable(token, oldVal);
+}
+
+CommandAddAnim::CommandAddAnim(std::shared_ptr<Animation> s, InputPlane* in) : subject(s), parent(in)
+{
+    index = parent->AnimCount();
+}
+
+void CommandAddAnim::exec()
+{
+    parent->AddAnimation(subject);
+}
+
+void CommandAddAnim::undo()
+{
+    parent->RemoveAnimation(index);
+}
+
+CommandRemoveAnim::CommandRemoveAnim(int i, InputPlane* in) : index(i), parent(in)
+{
+    subject = parent->GetAnimation(i);
+}
+
+void CommandRemoveAnim::exec()
+{
+    parent->RemoveAnimation(index);
+}
+
+void CommandRemoveAnim::undo()
+{
+    parent->InsertAnimation(index, subject);
+}
+
+CommandEditAnim::CommandEditAnim(Animation* A, int dur_ms, int reverse, double offset, bool bounce, int sel1, int sel2, int sel3, int handle, std::shared_ptr<Contour> C)
+    : newDur_ms(dur_ms), newReverse(reverse), newOffset(offset), newBounce(bounce), newsel1(sel1), newsel2(sel2), newsel3(sel3), newhandle(handle), newPath(C), subject(A)
+{
+    oldDur_ms = subject->duration_ms;
+    oldReverse = subject->reverse;
+    oldOffset = subject->offset;
+    oldBounce = subject->bounce;
+    oldsel1 = subject->subjSel;
+    oldsel2 = subject->comSel;
+    oldsel3 = subject->pathSel;
+    oldhandle = subject->handle;
+    oldPath = subject->GetPath();
+}
+
+void CommandEditAnim::exec()
+{
+    subject->duration_ms = newDur_ms;
+    subject->reverse     = newReverse;
+    subject->offset      = newOffset;
+    subject->bounce      = newBounce;
+    subject->subjSel     = newsel1;
+    subject->comSel      = newsel2;
+    subject->pathSel     = newsel3;
+    subject->handle      = newhandle;
+    subject->SetPathContour(newPath);
+}
+
+void CommandEditAnim::undo()
+{
+    subject->duration_ms = oldDur_ms;
+    subject->reverse     = oldReverse;
+    subject->offset      = oldOffset;
+    subject->bounce      = oldBounce;
+    subject->subjSel     = oldsel1;
+    subject->comSel      = oldsel2;
+    subject->pathSel     = oldsel3;
+    subject->handle      = oldhandle;
+    subject->SetPathContour(oldPath);
 }

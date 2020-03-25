@@ -73,6 +73,20 @@ class InputPlane : public ComplexPlane
     void UpdateGrid() { grid.CalcVisibleGrid(); }
 
     void AddAnimation(std::shared_ptr<Animation> A) { animations.push_back(A); }
+    void InsertAnimation(int i, std::shared_ptr<Animation> A)
+    {
+        if (i < 0)
+            animations.push_back(A);
+        else
+            animations.insert(animations.begin() + i, A);
+    }
+    auto GetAnimation(int i) { return i > -1 ? animations[i] : animations.back(); }
+    void RemoveAnimation(int i)
+    {
+        if (i > -1) animations.erase(animations.begin() + i);
+        else animations.pop_back();
+    }
+    size_t AnimCount() { return animations.size(); }
 
     void SetColorPicker(wxColourPickerCtrl* ptr) { colorPicker = ptr; };
     wxColor RandomColor();
@@ -88,7 +102,6 @@ class InputPlane : public ComplexPlane
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
-    std::vector<std::shared_ptr<Animation>> animations;
 
     wxStopWatch animTimer;
 
@@ -107,6 +120,7 @@ class InputPlane : public ComplexPlane
 
     wxColourPickerCtrl* colorPicker = nullptr;
     AnimPanel* animPanel            = nullptr;
+    std::vector<std::shared_ptr<Animation>> animations;
 
     int contourType = ID_Circle;
 

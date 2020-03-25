@@ -259,7 +259,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
         new VariableEditPanel(this, ID_VarEditPanel, wxDefaultPosition,
                               wxSize(100, this->GetClientSize().y), output);
     output->SetVarPanel(varEditPanel);
-    varEditPanel->PopulateVarTextCtrls(output->f);
+    varEditPanel->Populate(output->f);
     varEditPanel->SetCommandHistory(&history);
 
     animPanel = new AnimPanel(this, ID_AnimPanel, wxDefaultPosition,
@@ -527,23 +527,26 @@ void MainWindowFrame::Load(std::string& path)
     boost::archive::text_iarchive ia(ifs);
     ia >> *input;
     ia >> *output;
-    output->MarkAllForRedraw();
-    output->RefreshFuncText();
     input->RefreshShowAxes_ShowGrid();
-    varEditPanel->PopulateVarTextCtrls(output->f);
-    animPanel->PopulateAnimCtrls();
+    varEditPanel->Populate(output->f);
+    RefreshAll();
 }
 
 void MainWindowFrame::RefreshAll()
 {
     input->Update();
     input->Refresh();
+    input->RecalcAll();
+    input->UpdateGrid();
     output->Update();
     output->Refresh();
-    numCtrlPanel->Update();
-    numCtrlPanel->Refresh();
-    varEditPanel->Update();
-    varEditPanel->Refresh();
-    animPanel->Update();
-    animPanel->Refresh();
+    output->RefreshFuncText();
+    output->movedViewPort = true;
+    for (auto TP : std::initializer_list<ToolPanel*>
+        { numCtrlPanel, varEditPanel, animPanel })
+    {
+        TP->Update();
+        TP->Refresh();
+        TP->Populate();
+    }
 }

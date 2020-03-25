@@ -114,7 +114,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             if (highlightedCtrlPoint > -1)
             {
                 history->RecordCommand(
-                    std::make_unique<CommandContourMovePoint>(
+                    std::make_unique<CommandContourSetPoint>(
                         contours[highlightedContour].get(), mPos,
                         highlightedCtrlPoint));
             }

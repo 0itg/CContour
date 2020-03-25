@@ -42,7 +42,7 @@ void LinkedCtrlPointTextCtrl::Add(cplx c)
 void LinkedCtrlPointTextCtrl::RecordCommand(cplx c)
 {
     history->RecordCommand(
-        std::make_unique<CommandContourMovePoint>(src, c, i));
+        std::make_unique<CommandContourSetPoint>(src, c, i));
 }
 
 void LinkedDoubleTextCtrl::WriteLinked()
@@ -68,8 +68,8 @@ void LinkedDoubleTextCtrl::WriteLinked()
 LinkedVarTextCtrl::LinkedVarTextCtrl(wxWindow* par, wxStandardID ID,
                                      wxString str, wxPoint defaultPos,
                                      wxSize defSize, int style,
-                                     Symbol<cplx>* sym)
-    : src(sym), LinkedCplxSpinCtrl(par, ID, str, defaultPos, defSize, style)
+                                     Symbol<cplx>* sym, CommandHistory* ch)
+    : src(sym), LinkedCplxSpinCtrl(par, ID, str, defaultPos, defSize, style), history(ch)
 {
 }
 
@@ -79,6 +79,7 @@ void LinkedVarTextCtrl::WriteLinked()
     try
     {
         cplx val = parser.Parse(textCtrl->GetValue()).eval();
+        history->RecordCommand(std::make_unique<CommandEditVar>(src->GetToken(), val, src->GetParent()));
         src->SetVal(val);
     }
     catch (std::invalid_argument& func)
@@ -140,10 +141,9 @@ void LinkedParametricFuncCtrl::WriteLinked()
     {
         auto f = parser.Parse(textCtrl->GetValue());
         TP->GetHistoryPtr()->RecordCommand(
-            std::make_unique<CommandParametricFuncEntry>(C, f,
-                                                         TP->GetInputPlane()));
+            std::make_unique<CommandParametricFuncEntry>(C, f));
         *src = f;
-        TP->RePopulate();
+        TP->Populate();
     }
     catch (std::invalid_argument& func)
     {
@@ -239,21 +239,26 @@ void AnimCtrl::WriteLinked()
     if (subj > -1 && com > -1 && path > -1 && handle > -1)
     {
         dur               = dur ? dur : 1;
-        anim->duration_ms = 1000 * dur;
-        anim->reverse     = reverse;
-        anim->offset      = offset / dur;
-        anim->bounce      = bounceCtrl->GetValue();
-        anim->subjSel     = subj;
-        anim->comSel      = com;
-        anim->pathSel     = path;
-        anim->handle      = handle;
+        //anim->duration_ms = 1000 * dur;
+        //anim->reverse     = reverse;
+        //anim->offset      = offset / dur;
+        //anim->bounce      = bounceCtrl->GetValue();
+        //anim->subjSel     = subj;
+        //anim->comSel      = com;
+        //anim->pathSel     = path;
+        //anim->handle      = handle;
 
         auto C           = input->GetContour(subj);
         auto pathContour = input->GetContour(path);
+
+        auto edit = std::make_unique<CommandEditAnim>(anim, 1000 * dur, reverse,
+            offset / dur, bounceCtrl->GetValue(),
+            subj, com, path, handle, pathContour);
+        edit->exec();
+        input->GetHistoryPtr()->RecordCommand(std::move(edit));
+
         if (C != pathContour)
         {
-            anim->SetPathContour(pathContour);
-
             switch (auto command = commandMenu->GetSelection())
             {
             case COMMAND_PLACE_AT:
@@ -262,7 +267,7 @@ void AnimCtrl::WriteLinked()
                     C.get(), 0, handle));
                 break;
             case COMMAND_SET_PT:
-                anim->AddCommand(std::make_unique<CommandContourMovePoint>(
+                anim->AddCommand(std::make_unique<CommandContourSetPoint>(
                     C.get(), 0, handle));
                 break;
             }

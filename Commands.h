@@ -36,6 +36,7 @@ class ContourParametric;
 class ComplexPlane;
 class InputPlane;
 class OutputPlane;
+class Animation;
 struct Axes;
 template <class T> class ParsedFunc;
 
@@ -83,15 +84,6 @@ class CommandHistory
     wxMenu* menu; // For enabling/disabling undo/redo buttons
 };
 
-class CommandNull : public Command
-{
-    friend class boost::serialization::access;
-
-  public:
-    void exec() {}
-    void undo() {}
-};
-
 class CommandContourTranslate : public Command
 {
     friend class boost::serialization::access;
@@ -111,6 +103,7 @@ class CommandContourTranslate : public Command
     cplx newPos;
     cplx oldPos;
     Contour* subject;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -141,6 +134,7 @@ class CommandContourPlaceAt : public Command
     cplx oldPos;
     cplx newPos;
     Contour* subject;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -152,14 +146,14 @@ class CommandContourPlaceAt : public Command
     }
 };
 
-class CommandContourMovePoint : public Command
+class CommandContourSetPoint : public Command
 {
     friend class boost::serialization::access;
 
   public:
-    CommandContourMovePoint() = default;
-    CommandContourMovePoint(Contour* s, cplx n, int i);
-    CommandContourMovePoint(Contour* s, cplx n, int i, cplx old);
+    CommandContourSetPoint() = default;
+    CommandContourSetPoint(Contour* s, cplx n, int i);
+    CommandContourSetPoint(Contour* s, cplx n, int i, cplx old);
 
     void exec();
     void undo();
@@ -170,6 +164,7 @@ class CommandContourMovePoint : public Command
     cplx oldPos;
     int index;
     Contour* subject;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -197,6 +192,7 @@ class CommandContourAddPoint : public Command
     cplx mPos;
     int index;
     Contour* subject;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -276,6 +272,7 @@ class CommandContourSubdivide : public Command
   private:
     int res;
     Contour* subject;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -284,29 +281,6 @@ class CommandContourSubdivide : public Command
         ar& subject;
     }
 };
-
-// class CommandInputPlaneCreateContour : public Command
-//{
-//    friend class boost::serialization::access;
-//  public:
-//      CommandInputPlaneCreateContour() = default;
-//      CommandInputPlaneCreateContour(InputPlane* s, wxPoint p);
-//
-//    void exec();
-//    void undo();
-//
-//  private:
-//    wxPoint mPos;
-//    int index;
-//    InputPlane* subject;
-//    template <class Archive>
-//    void serialize(Archive& ar, const unsigned int version)
-//    {
-//        ar& mPos;
-//        ar& index;
-//        ar& subject;
-//    }
-//};
 
 class CommandAddContour : public Command
 {
@@ -325,6 +299,7 @@ class CommandAddContour : public Command
   private:
     InputPlane* subject;
     std::shared_ptr<Contour> C;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -349,6 +324,7 @@ class CommandRemoveContour : public Command
     InputPlane* subject;
     size_t index;
     std::shared_ptr<Contour> C;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -404,6 +380,7 @@ class CommandAxesSet : public Command
     Axes* subject;
     double newBounds[4];
     double oldBounds[4];
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -421,14 +398,16 @@ class CommandAxesReset : public Command
 
   public:
     CommandAxesReset() = default;
-    CommandAxesReset(Axes* a);
+    CommandAxesReset(ComplexPlane* par);
 
     void exec();
     void undo();
 
   private:
     double oldBounds[4];
+    ComplexPlane* parent;
     Axes* subject;
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -444,14 +423,12 @@ class CommandParametricFuncEntry : public Command
 
   public:
     CommandParametricFuncEntry() = default;
-    CommandParametricFuncEntry(ContourParametric* C, ParsedFunc<cplx> g,
-                               InputPlane* parent);
+    CommandParametricFuncEntry(ContourParametric* C, ParsedFunc<cplx> g);
 
     void exec();
     void undo();
 
   private:
-    InputPlane* parent;
     ContourParametric* subject;
     ParsedFunc<cplx> oldfunc;
     ParsedFunc<cplx> newfunc;
@@ -463,7 +440,6 @@ class CommandParametricFuncEntry : public Command
         ar& subject;
         ar& newfunc;
         ar& oldfunc;
-        ar& parent;
     }
 };
 
@@ -493,6 +469,139 @@ private:
     }
 };
 
+class CommandEditVar : public Command
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandEditVar() = default;
+    CommandEditVar(std::string tok, cplx c, ParsedFunc<cplx>* f);
+
+    void exec();
+    void undo();
+
+private:
+    std::string token;
+    cplx newVal;
+    cplx oldVal;
+    ParsedFunc<cplx>* func;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<Command>(*this);
+        ar& token;
+        ar& newVal;
+        ar& oldVal;
+        ar& func;
+    }
+};
+
+class CommandAddAnim : public Command
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandAddAnim() = default;
+    CommandAddAnim(std::shared_ptr<Animation> s, InputPlane* in);
+
+    void exec();
+    void undo();
+
+private:
+    std::shared_ptr<Animation> subject;
+    InputPlane* parent;
+    size_t index;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<Command>(*this);
+        ar& subject;
+        ar& parent;
+        ar& index;
+    }
+};
+
+class CommandRemoveAnim : public Command
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandRemoveAnim() = default;
+    CommandRemoveAnim(int i, InputPlane* in);
+
+    void exec();
+    void undo();
+
+private:
+    std::shared_ptr<Animation> subject;
+    InputPlane* parent;
+    size_t index;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<Command>(*this);
+        ar& subject;
+        ar& parent;
+        ar& index;
+    }
+};
+
+class CommandEditAnim : public Command
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandEditAnim() = default;
+    CommandEditAnim(Animation* A, int dur_ms, int reverse, double offset,
+        bool bounce, int sel1, int sel2, int sel3, int handle,
+        std::shared_ptr<Contour> C);
+
+    void exec();
+    void undo();
+
+private:
+    Animation* subject;
+    std::shared_ptr<Contour> newPath;
+    std::shared_ptr<Contour> oldPath;
+    int newDur_ms;
+    int newReverse;
+    double newOffset;
+    bool newBounce;
+    int newsel1;
+    int newsel2;
+    int newsel3;
+    int newhandle;
+
+    int oldDur_ms;
+    int oldReverse;
+    double oldOffset;
+    bool oldBounce;
+    int oldsel1;
+    int oldsel2;
+    int oldsel3;
+    int oldhandle;
+
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<Command>(*this);
+        ar& newDur_ms;
+        ar& newReverse;
+        ar& newOffset;
+        ar& newBounce;
+        ar& newsel1;
+        ar& newsel2;
+        ar& newsel3;
+        ar& newhandle;
+        ar& newPath;
+        ar& oldPath;
+    }
+};
+
 namespace boost
 {
 namespace serialization
@@ -510,12 +619,11 @@ void serialize(Archive& ar, wxPoint& p, const unsigned int version)
 BOOST_CLASS_EXPORT_KEY(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_KEY(CommandAxesReset)
 BOOST_CLASS_EXPORT_KEY(CommandAxesSet)
-// BOOST_CLASS_EXPORT_KEY(CommandInputPlaneCreateContour)
 BOOST_CLASS_EXPORT_KEY(CommandAddContour)
 BOOST_CLASS_EXPORT_KEY(CommandContourSubdivide)
 BOOST_CLASS_EXPORT_KEY(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_KEY(CommandContourRemovePoint)
 BOOST_CLASS_EXPORT_KEY(CommandContourAddPoint)
-BOOST_CLASS_EXPORT_KEY(CommandContourMovePoint)
+BOOST_CLASS_EXPORT_KEY(CommandContourSetPoint)
 BOOST_CLASS_EXPORT_KEY(CommandContourPlaceAt)
 BOOST_CLASS_EXPORT_KEY(CommandContourTranslate)

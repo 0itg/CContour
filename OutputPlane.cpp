@@ -173,7 +173,7 @@ void OutputPlane::EnterFunction(std::string s)
         errormsg.ShowFor(funcInput);
     }
     movedViewPort = true;
-    varPanel->PopulateVarTextCtrls(f);
+    varPanel->Populate(f);
     varPanel->Update();
     varPanel->Refresh();
     MarkAllForRedraw();
@@ -185,7 +185,7 @@ void OutputPlane::CopyFunction(ParsedFunc<cplx> g)
 {
     f = g;
     movedViewPort = true;
-    varPanel->PopulateVarTextCtrls(f);
+    varPanel->Populate(f);
     varPanel->Update();
     varPanel->Refresh();
     MarkAllForRedraw();

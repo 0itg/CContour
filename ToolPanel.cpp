@@ -201,8 +201,10 @@ void NumCtrlPanel::PopulateContourTextCtrls(Contour* C)
     lastPopulateFn = [=] { PopulateContourTextCtrls(C); };
     Freeze();
     ClearPanel();
-    C->PopulateMenu(this);
-
+    if (C) // should never be nullptr, but there's a fallback option, anyway.
+        C->PopulateMenu(this);
+    else
+        PopulateAxisTextCtrls();
     Layout();
     Thaw();
 }
@@ -251,10 +253,11 @@ void VariableEditPanel::RefreshLinked()
     output->movedViewPort = true;
 }
 
-void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
+void VariableEditPanel::Populate(ParsedFunc<cplx>& F)
 {
     Freeze();
     ClearPanel();
+    lastFunc = &F;
     auto sizer = new wxFlexGridSizer(1, 0, 0);
     sizer->SetFlexibleDirection(wxHORIZONTAL);
     wxSizerFlags sizerFlags(1);
@@ -281,7 +284,7 @@ void VariableEditPanel::PopulateVarTextCtrls(ParsedFunc<cplx>& F)
                                    wxDefaultSize));
         AddLinkedCtrl(new LinkedVarTextCtrl(intermediate, wxID_ANY, c,
                                             wxDefaultPosition, wxDefaultSize,
-                                            wxTE_PROCESS_ENTER, v));
+                                            wxTE_PROCESS_ENTER, v, history));
         sizer->Add(wxCtrls.back(), sizerFlags);
         sizer->Add(linkedCtrls.back()->GetCtrlPtr(), sizerFlags);
     }
@@ -315,18 +318,21 @@ AnimPanel::AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
     sizer->AddGrowableCol(0, 1);
 }
 
-void AnimPanel::AddAnimation()
+void AnimPanel::AddAnimation(int index, std::shared_ptr<Animation> ptr)
 {
-    input->animations.push_back(std::make_shared<Animation>());
-    AddAnimCtrl();
+    if (ptr)
+        input->InsertAnimation(index, ptr);
+    else
+        input->InsertAnimation(index, std::make_shared<Animation>());
+    AddAnimCtrl(index);
 }
 
 void AnimPanel::AddAnimCtrl(int index)
 {
-    if (index < 0) index = input->animations.size() - 1;
+    if (index < 0) index = input->AnimCount() - 1;
     Freeze();
     auto newAnim =
-        new AnimCtrl(intermediate, input, input->animations[index].get());
+        new AnimCtrl(intermediate, input, input->GetAnimation(index).get());
     auto sizer = intermediate->GetSizer();
     wxSizerFlags sizerFlags(1);
     sizerFlags.Border(wxLEFT | wxRIGHT, 3).Expand();
@@ -334,6 +340,12 @@ void AnimPanel::AddAnimCtrl(int index)
     AddLinkedCtrl(newAnim);
     FinishLayout();
     Thaw();
+}
+
+void AnimPanel::OnButtonNewAnim(wxCommandEvent& event)
+{
+    history->RecordCommand(std::make_unique<CommandAddAnim>(std::make_shared<Animation>(), input));
+    AddAnimation();
 }
 
 void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
@@ -344,10 +356,10 @@ void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
     {
         if (A->GetId() == event.GetId())
         {
+            history->RecordCommand(std::make_unique<CommandRemoveAnim>(index, input));
             linkedCtrls[index]->Destroy();
             linkedCtrls.erase(linkedCtrls.begin() + index);
-            input->animations[index].reset();
-            input->animations.erase(input->animations.begin() + index);
+            input->RemoveAnimation(index);
             Layout();
             break;
         }
@@ -357,7 +369,7 @@ void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
     Thaw();
 }
 
-void AnimPanel::PopulateAnimCtrls()
+void AnimPanel::Populate()
 {
     Freeze();
     ClearPanel();
@@ -369,7 +381,7 @@ void AnimPanel::PopulateAnimCtrls()
     sizer->Add(newAnimButton);
     intermediate->SetSizer(sizer);
 
-    for (int i = 0; i < input->animations.size(); i++)
+    for (int i = 0; i < input->AnimCount(); i++)
     {
         AddAnimCtrl(i);
         linkedCtrls.back()->ReadLinked();

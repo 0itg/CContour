@@ -162,6 +162,7 @@ template <typename T> class ParsedFunc
     std::string str() { return inputText; }
     void ReplaceVariable(std::string varOld, std::string var);
     auto GetVars();
+    auto GetVar(const std::string& tok) { return tokens.find(tok) != tokens.end() ? tokens[tok].get() : nullptr; }
     auto GetVarMap() const;
     void RestoreVarsFromMap(std::map<std::string, T>);
     std::string GetInputText() const { return inputText; }

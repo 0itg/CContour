@@ -122,6 +122,7 @@ class ComplexPlane : public wxPanel
     void SetToolbar(wxToolBar* tb) { toolbar = tb; }
     void SetStatusBar(wxStatusBar* ptr) { statBar = ptr; };
     void SetToolPanel(NumCtrlPanel* ptr) { toolPanel = ptr; };
+    auto GetToolPanel() { return toolPanel; }
     virtual void PrepareForLoadFromFile() { ClearContours(); }
 
     // For convenience

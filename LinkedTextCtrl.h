@@ -168,7 +168,7 @@ class LinkedVarTextCtrl : public LinkedCplxSpinCtrl
   public:
     LinkedVarTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
                       wxPoint defaultPos, wxSize defSize, int style,
-                      Symbol<cplx>* sym);
+                      Symbol<cplx>* sym, CommandHistory* ch);
     void WriteLinked();
     void ReadLinked();
 
@@ -176,6 +176,7 @@ class LinkedVarTextCtrl : public LinkedCplxSpinCtrl
 
   private:
     Symbol<cplx>* src;
+    CommandHistory* history;
 };
 
 class LinkedParametricFuncCtrl : public LinkedTextCtrl

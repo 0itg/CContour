@@ -38,6 +38,7 @@ class Animation
     void ClearCommands() { commands.clear(); }
     void SetFunction(std::function<cplx(double)> func) { f = func; }
     void SetPathContour(std::shared_ptr<Contour> C);
+    auto GetPath() { return path; }
     bool IsEmpty() { return commands.empty(); }
 
     // if bounce, animation will go from t=0 to t=1, then t=1 to t=0, then

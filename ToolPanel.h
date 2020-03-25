@@ -59,7 +59,7 @@ class ToolPanel : public wxScrolledWindow
     virtual bool NeedsUpdate()   = 0;
     virtual void RefreshLinked() = 0;
 
-    virtual void RePopulate() { lastPopulateFn(); }
+    virtual void Populate() { lastPopulateFn(); }
     void SetCommandHistory(CommandHistory* h) { history = h; }
     CommandHistory* GetHistoryPtr() { return history; }
 
@@ -118,7 +118,8 @@ class VariableEditPanel : public ToolPanel
     {
     }
 
-    void PopulateVarTextCtrls(ParsedFunc<cplx>& F);
+    void Populate(ParsedFunc<cplx>& F);
+    void Populate() { Populate(*lastFunc); }
 
     void OnPaintEvent(wxPaintEvent& event);
 
@@ -131,6 +132,7 @@ class VariableEditPanel : public ToolPanel
 
   private:
     OutputPlane* output;
+    ParsedFunc<cplx>* lastFunc;
 };
 
 class AnimPanel : public ToolPanel
@@ -144,15 +146,15 @@ class AnimPanel : public ToolPanel
     void RefreshLinked(){};
 
     // Adds a new animation to input and creates an animCtrl for this panel;
-    void AddAnimation();
+    void AddAnimation(int index = -1, std::shared_ptr<Animation> ptr = nullptr);
     // Creates a new animCtrl, using the last item in input's animations vector.
     void AddAnimCtrl(int index = -1);
-    void OnButtonNewAnim(wxCommandEvent& event) { AddAnimation(); }
+    void OnButtonNewAnim(wxCommandEvent& event);
     void OnRemoveAnim(wxCommandEvent& event);
     // void OnTextEntry(wxCommandEvent& event);
     // void OnSpinCtrlTextEntry(wxSpinDoubleEvent& event) { OnTextEntry(event);
     // }
-    void PopulateAnimCtrls();
+    void Populate();
     void UpdateComboBoxes();
     void FinishLayout();
 

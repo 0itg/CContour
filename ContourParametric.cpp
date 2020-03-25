@@ -104,7 +104,7 @@ void ContourParametric::PopulateMenu(ToolPanel* TP)
         TP->AddwxCtrl(vName);
         auto vTextBox = new LinkedVarTextCtrl(TP->intermediate, wxID_ANY, c,
                                               wxDefaultPosition, wxDefaultSize,
-                                              wxTE_PROCESS_ENTER, v);
+                                              wxTE_PROCESS_ENTER, v, TP->GetHistoryPtr());
         TP->AddLinkedCtrl(vTextBox);
         sizer->Add(vName, sizerFlags);
         sizer->Add(vTextBox->GetCtrlPtr(), sizerFlags);
