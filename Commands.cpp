@@ -323,7 +323,7 @@ void CommandEditVar::undo()
 
 CommandAddAnim::CommandAddAnim(std::shared_ptr<Animation> s, InputPlane* in) : subject(s), parent(in)
 {
-    index = parent->AnimCount();
+    index = parent->AnimCount()-1;
 }
 
 void CommandAddAnim::exec()
@@ -351,7 +351,7 @@ void CommandRemoveAnim::undo()
     parent->InsertAnimation(index, subject);
 }
 
-CommandEditAnim::CommandEditAnim(Animation* A, int dur_ms, int reverse, double offset, bool bounce, int sel1, int sel2, int sel3, int handle, std::shared_ptr<Contour> C)
+CommandEditAnim::CommandEditAnim(std::shared_ptr<Animation> A, int dur_ms, int reverse, double offset, bool bounce, int sel1, int sel2, int sel3, int handle, std::shared_ptr<Contour> C)
     : newDur_ms(dur_ms), newReverse(reverse), newOffset(offset), newBounce(bounce), newsel1(sel1), newsel2(sel2), newsel3(sel3), newhandle(handle), newPath(C), subject(A)
 {
     oldDur_ms = subject->duration_ms;

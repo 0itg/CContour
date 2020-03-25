@@ -4,20 +4,23 @@
 
 void Animation::FrameAt(int t)
 {
-    if (bounce)
+    if (path)
     {
-        auto max = 2 * duration_ms;
-        t %= max;
-        if (t > duration_ms) t = max - t;
-    }
-    else
-        t %= duration_ms;
+        if (bounce)
+        {
+            auto max = 2 * duration_ms;
+            t %= max;
+            if (t > duration_ms) t = max - t;
+        }
+        else
+            t %= duration_ms;
 
-    double T = (double)t / duration_ms;
-    for (auto& C : commands)
-    {
-        C->SetPositionParam(f(T));
-        C->exec();
+        double T = (double)t / duration_ms;
+        for (auto& C : commands)
+        {
+            C->SetPositionParam(f(T));
+            C->exec();
+        }
     }
 }
 
@@ -30,5 +33,5 @@ void Animation::Reset()
 void Animation::SetPathContour(std::shared_ptr<Contour> C)
 {
     path = C;
-    f    = [&](double t) { return path->Interpolate(reverse * t + offset); };
+    f = [&](double t) {return path->Interpolate(reverse * t + offset); };
 }

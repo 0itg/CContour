@@ -561,7 +561,7 @@ class CommandEditAnim : public Command
 
 public:
     CommandEditAnim() = default;
-    CommandEditAnim(Animation* A, int dur_ms, int reverse, double offset,
+    CommandEditAnim(std::shared_ptr<Animation> A, int dur_ms, int reverse, double offset,
         bool bounce, int sel1, int sel2, int sel3, int handle,
         std::shared_ptr<Contour> C);
 
@@ -569,7 +569,7 @@ public:
     void undo();
 
 private:
-    Animation* subject;
+    std::shared_ptr<Animation> subject;
     std::shared_ptr<Contour> newPath;
     std::shared_ptr<Contour> oldPath;
     int newDur_ms;

@@ -158,10 +158,9 @@ void LinkedParametricFuncCtrl::ReadLinked()
     textCtrl->ChangeValue(src->GetInputText());
 }
 
-AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, Animation* a)
+AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, std::shared_ptr<Animation> a)
     : anim(a), input(in)
 {
-    wxImage::AddHandler(new wxPNGHandler);
     panel          = new wxPanel(parent);
     contourChoices = input->GetContourNames();
     commandChoices.Add("Translate");
@@ -238,15 +237,8 @@ void AnimCtrl::WriteLinked()
 
     if (subj > -1 && com > -1 && path > -1 && handle > -1)
     {
+        anim->ClearCommands();
         dur               = dur ? dur : 1;
-        //anim->duration_ms = 1000 * dur;
-        //anim->reverse     = reverse;
-        //anim->offset      = offset / dur;
-        //anim->bounce      = bounceCtrl->GetValue();
-        //anim->subjSel     = subj;
-        //anim->comSel      = com;
-        //anim->pathSel     = path;
-        //anim->handle      = handle;
 
         auto C           = input->GetContour(subj);
         auto pathContour = input->GetContour(path);
@@ -255,9 +247,10 @@ void AnimCtrl::WriteLinked()
             offset / dur, bounceCtrl->GetValue(),
             subj, com, path, handle, pathContour);
         edit->exec();
+
         input->GetHistoryPtr()->RecordCommand(std::move(edit));
 
-        if (C != pathContour)
+        if (anim->GetPath() && C != pathContour)
         {
             switch (auto command = commandMenu->GetSelection())
             {

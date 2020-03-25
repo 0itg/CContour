@@ -332,7 +332,7 @@ void AnimPanel::AddAnimCtrl(int index)
     if (index < 0) index = input->AnimCount() - 1;
     Freeze();
     auto newAnim =
-        new AnimCtrl(intermediate, input, input->GetAnimation(index).get());
+        new AnimCtrl(intermediate, input, input->GetAnimation(index));
     auto sizer = intermediate->GetSizer();
     wxSizerFlags sizerFlags(1);
     sizerFlags.Border(wxLEFT | wxRIGHT, 3).Expand();
@@ -344,8 +344,8 @@ void AnimPanel::AddAnimCtrl(int index)
 
 void AnimPanel::OnButtonNewAnim(wxCommandEvent& event)
 {
-    history->RecordCommand(std::make_unique<CommandAddAnim>(std::make_shared<Animation>(), input));
     AddAnimation();
+    history->RecordCommand(std::make_unique<CommandAddAnim>(input->GetAnimation(-1), input));
 }
 
 void AnimPanel::OnRemoveAnim(wxCommandEvent& event)

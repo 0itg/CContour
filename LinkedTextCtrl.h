@@ -240,7 +240,7 @@ class LinkedRadiusCtrl : public LinkedDoubleTextCtrl
 class AnimCtrl : public LinkedCtrl
 {
   public:
-    AnimCtrl(wxWindow* parent, InputPlane* input, Animation* a);
+    AnimCtrl(wxWindow* parent, InputPlane* input, std::shared_ptr<Animation> a);
     ~AnimCtrl()
     {
         delete durationCtrl;
@@ -277,7 +277,7 @@ class AnimCtrl : public LinkedCtrl
     wxArrayString handleChoices;
 
     InputPlane* input;
-    Animation* anim;
+    std::shared_ptr<Animation> anim;
     double dur    = 3.0;
     double offset = 0;
     int reverse   = 1; // set to -1 to reverse t;
