@@ -5,6 +5,7 @@
 #include "InputPlane.h"
 #include "OutputPlane.h"
 
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandEditVar)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesReset)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesSet)
@@ -224,6 +225,14 @@ void CommandHistory::PopCommand()
         if (!index) menu->FindItem(wxID_UNDO)->Enable(false);
         menu->FindItem(wxID_REDO)->Enable(true);
     }
+}
+
+void CommandHistory::Clear()
+{
+    history.clear();
+    index = 0;
+    menu->FindItem(wxID_REDO)->Enable(false);
+    menu->FindItem(wxID_REDO)->Enable(false);
 }
 
 void CommandAddContour::exec()

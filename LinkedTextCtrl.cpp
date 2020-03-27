@@ -162,21 +162,22 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, std::shared_ptr<Animation> 
     : anim(a), input(in)
 {
     panel          = new wxPanel(parent);
-    contourChoices = input->GetContourNames();
+    pathChoices = input->GetContourNames();
     commandChoices.Add("Translate");
     commandChoices.Add("Move Ctrl Point");
+    commandChoices.Add("Parameterize Var");
 
     auto panelID        = panel->GetId();
     auto subjectLabel   = new wxStaticText(panel, panelID, "Subject: ");
-    subjectMenu         = new wxComboBox(panel, panelID, "", wxDefaultPosition,
-                                 wxDefaultSize, contourChoices, wxCB_READONLY);
+    subjectMenu         = new MappedComboBox<int>(panel, panelID, "", wxDefaultPosition,
+                                 wxDefaultSize, pathChoices, wxCB_READONLY);
     auto commandLabel   = new wxStaticText(panel, panelID, "Command: ");
     commandMenu         = new wxComboBox(panel, panelID, "", wxDefaultPosition,
                                  wxDefaultSize, commandChoices, wxCB_READONLY);
     auto pathLabel      = new wxStaticText(panel, panelID, "Path: ");
     pathMenu            = new wxComboBox(panel, panelID, "", wxDefaultPosition,
-                              wxDefaultSize, contourChoices, wxCB_READONLY);
-    auto handleLabel    = new wxStaticText(panel, panelID, "Handle: ");
+                              wxDefaultSize, pathChoices, wxCB_READONLY);
+    auto handleLabel    = new wxStaticText(panel, panelID, "Point/Var: ");
     handleMenu          = new wxComboBox(panel, panelID, "", wxDefaultPosition,
                                 wxDefaultSize, handleChoices, wxCB_READONLY);
     auto durationLabel  = new wxStaticText(panel, panelID, "Duration: ");
@@ -200,10 +201,10 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, std::shared_ptr<Animation> 
     wxSizerFlags flag0(1);
     flag0.Border(wxALL, 3).Proportion(0);
 
-    sizer->Add(subjectLabel, flag0);
-    sizer->Add(subjectMenu, flag1);
     sizer->Add(commandLabel, flag0);
     sizer->Add(commandMenu, flag1);
+    sizer->Add(subjectLabel, flag0);
+    sizer->Add(subjectMenu, flag1);
     sizer->Add(pathLabel, flag0);
     sizer->Add(pathMenu, flag1);
     sizer->Add(handleLabel, flag0);
@@ -222,13 +223,23 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, std::shared_ptr<Animation> 
 void AnimCtrl::WriteLinked()
 {
     anim->ClearCommands();
+
     int subj = subjectMenu->GetSelection();
+    PopulateSubjectMenu();
+    subjectMenu->SetSelection(subj);
+
     int path = pathMenu->GetSelection();
     int com  = commandMenu->GetSelection();
 
     int handle = handleMenu->GetSelection();
     PopulateHandleMenu();
-    handleMenu->SetSelection(handle);
+    if (handle < handleChoices.size())
+        handleMenu->SetSelection(handle);
+    else
+    {
+        handleMenu->SetSelection(-1);
+        handle = -1;
+    }
 
     reverse = reverseCtrl->IsChecked() ? -1 : 1;
 
@@ -249,23 +260,33 @@ void AnimCtrl::WriteLinked()
         edit->exec();
 
         input->GetHistoryPtr()->RecordCommand(std::move(edit));
-
-        if (anim->GetPath() && C != pathContour)
+        auto command = commandMenu->GetSelection();
+        if (C != pathContour && (C != nullptr || command == COMMAND_EDIT_VAR))
         {
-            switch (auto command = commandMenu->GetSelection())
+            switch (command)
             {
             case COMMAND_PLACE_AT:
-                handle--; // Center is first on list and has index -1.
+                // Center is first on list and has index -1, hence handle -1.
                 anim->AddCommand(std::make_unique<CommandContourPlaceAt>(
-                    C.get(), 0, handle));
+                    C.get(), 0, handle - 1));
+                anim->AddCommand(std::make_unique<CommandContourSubdivide>(
+                    C.get(), input->GetRes()));
                 break;
             case COMMAND_SET_PT:
                 anim->AddCommand(std::make_unique<CommandContourSetPoint>(
                     C.get(), 0, handle));
+                anim->AddCommand(std::make_unique<CommandContourSubdivide>(
+                    C.get(), input->GetRes()));
+                break;
+            case COMMAND_EDIT_VAR:
+                auto f = input->GetFunction();
+                if (C && C->IsParametric())
+                    f = reinterpret_cast<ContourParametric*>(C.get())->GetFunction();
+                anim->AddCommand(std::make_unique<CommandEditVar>(
+                    handleMenu->GetString(handle), 0, f));
+                anim->animateGrid = true;
                 break;
             }
-            anim->AddCommand(std::make_unique<CommandContourSubdivide>(
-                C.get(), input->GetRes()));
         }
     }
 }
@@ -281,32 +302,34 @@ void AnimCtrl::ReadLinked()
     durationCtrl->ReadLinked();
     durOffsetCtrl->ReadLinked();
 
+    commandMenu->SetSelection(anim->comSel);
+    PopulateSubjectMenu();
     subjectMenu->SetSelection(anim->subjSel);
     pathMenu->SetSelection(anim->pathSel);
-    commandMenu->SetSelection(anim->comSel);
     PopulateHandleMenu();
     handleMenu->SetSelection(anim->handle);
 }
 
 void AnimCtrl::UpdateCtrl()
 {
-    contourChoices = input->GetContourNames();
+    pathChoices = input->GetContourNames();
     auto sel1      = subjectMenu->GetSelection();
     auto sel2      = pathMenu->GetSelection();
     auto sel3      = handleMenu->GetSelection();
     auto sel4      = durationCtrl->GetCtrlPtr()->GetValue();
     auto sel5      = bounceCtrl->GetValue();
 
-    subjectMenu->Set(contourChoices);
-    pathMenu->Set(contourChoices);
+    //subjectMenu->Set(pathChoices);
+    pathMenu->Set(pathChoices);
     handleMenu->Set(handleChoices);
 
+    PopulateSubjectMenu();
     subjectMenu->SetSelection(sel1);
     pathMenu->SetSelection(sel2);
-    if (handleChoices.size() > sel3)
-        handleMenu->SetSelection(sel3);
-    else
-        handleMenu->SetSelection(0);
+    if (handleChoices.size() <= sel3)
+        sel3 = -1;
+    PopulateHandleMenu();
+    handleMenu->SetSelection(sel3);
     durationCtrl->GetCtrlPtr()->SetValue(sel4);
     bounceCtrl->SetValue(sel5);
 }
@@ -314,15 +337,74 @@ void AnimCtrl::UpdateCtrl()
 void AnimCtrl::PopulateHandleMenu()
 {
     handleChoices.Clear();
-    if (commandMenu && commandMenu->GetSelection() != COMMAND_SET_PT)
-        handleChoices.Add("Center");
-    auto C = input->GetContour(subjectMenu->GetSelection());
-    if (C)
-        for (int i = 0; i < C->GetPointCount(); i++)
+    if (commandMenu)
+    {
+        auto cmd = commandMenu->GetSelection();
+        auto subj = subjectMenu->GetSelection();
+        auto C = input->GetContour(subj);
+        switch (cmd)
         {
-            handleChoices.Add("Ctrl Point " + std::to_string(i));
+        case COMMAND_PLACE_AT:
+            handleChoices.Add("Center");
+        case COMMAND_SET_PT:
+        {
+            if (C)
+                for (int i = 0; i < C->GetPointCount(); i++)
+                {
+                    handleChoices.Add("Ctrl Point " + std::to_string(i));
+                }
+            break;
         }
+        case COMMAND_EDIT_VAR:
+        {
+            auto f = input->GetFunction();
+            if (C && subj < std::numeric_limits<int>::max())
+                f = reinterpret_cast<ContourParametric*>(C.get())->GetFunction();
+            if (f)
+            {
+                auto varMap = f->GetVarMap();
+                varMap.erase(f->GetIV());
+                for (auto varName : varMap)
+                {
+                    handleChoices.Add(varName.first);
+                }
+            }
+            break;
+        }
+        }
+    }
     handleMenu->Set(handleChoices);
+}
+
+void AnimCtrl::PopulateSubjectMenu()
+{
+    if (commandMenu)
+    {
+        subjectChoices.clear();
+        subjectMenu->Map.clear();
+        auto cmd = commandMenu->GetSelection();
+        bool parametric = false;
+
+        int i = 0;
+
+        if (cmd == COMMAND_EDIT_VAR)
+        {
+            parametric = true;
+            subjectChoices.Add("f(z)");
+            subjectMenu->Map[0] = std::numeric_limits<int>::max();
+            i++;
+        }
+
+        subjectChoiceMap = input->GetParametricContours(parametric);
+
+        for (auto&& s : subjectChoiceMap)
+        {
+            subjectChoices.Add(s.first);
+            subjectMenu->Map[i] = s.second;
+            i++;
+        }
+    }
+    subjectMenu->Set(subjectChoices);
 }
 
 void LinkedAxisCtrl::RecordCommand(cplx c)

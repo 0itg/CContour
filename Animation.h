@@ -8,6 +8,7 @@
 #include <boost/serialization/complex.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 
 #include "Commands.h"
@@ -55,6 +56,8 @@ class Animation
     int comSel;
     int handle;
 
+    bool animateGrid = false;
+
   private:
     std::shared_ptr<Contour> path;
     std::vector<std::unique_ptr<Command>> commands;
@@ -78,6 +81,7 @@ class Animation
         ar& pathSel;
         ar& comSel;
         ar& handle;
+        ar& animateGrid;
 
         SetPathContour(path);
 

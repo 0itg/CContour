@@ -44,7 +44,8 @@ template <class T> class ParsedFunc;
 enum enum_commands
 {
     COMMAND_PLACE_AT = 0,
-    COMMAND_SET_PT
+    COMMAND_SET_PT,
+    COMMAND_EDIT_VAR
 };
 
 class Command
@@ -79,10 +80,11 @@ class CommandHistory
     void UpdateLastCommand(cplx c = 0);
     //Command* GetCurrentCommand() { if (!history.empty() && index > 0) return history[index-1].get(); else return nullptr; };
     void PopCommand();
+    void Clear();
 
   private:
     std::vector<std::unique_ptr<Command>> history;
-    size_t index;
+    size_t index = 0;
     wxMenu* menu; // For enabling/disabling undo/redo buttons
 };
 
@@ -485,6 +487,7 @@ public:
 
     void exec();
     void undo();
+    virtual void SetPositionParam(cplx c) { newVal = c; }
 
 private:
     std::string token;
@@ -622,6 +625,7 @@ void serialize(Archive& ar, wxPoint& p, const unsigned int version)
 } // namespace serialization
 } // namespace boost
 
+BOOST_CLASS_EXPORT_KEY(CommandEditVar)
 BOOST_CLASS_EXPORT_KEY(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_KEY(CommandAxesReset)
 BOOST_CLASS_EXPORT_KEY(CommandAxesSet)

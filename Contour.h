@@ -101,6 +101,10 @@ class Contour
     cplx CalcCenter();
     void DrawCtrlPoint(wxDC* dc, wxPoint p);
 
+    // Useed to separate out functions which have a ParsedFunc that can be
+    // animated by parameterizing a variable.
+    virtual bool IsParametric() { return false; }
+
     wxColor color = *wxRED;
 
     // Used for deciding whether OutputPlane needs to recalculate curves.
