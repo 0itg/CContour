@@ -140,7 +140,6 @@ class ComplexPlane : public wxPanel
     // routines. True return value means the highlights changed.
     bool Highlight(wxPoint mousePos);
     void Pan(wxPoint mousePos);
-    // void InversePan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);
 
     void SetResCtrl(wxSpinCtrl* r) { resCtrl = r; }
@@ -152,15 +151,20 @@ class ComplexPlane : public wxPanel
     void SetHighlightedContour(int h) { highlightedContour = h; }
 
     wxArrayString GetContourNames();
+    // Needs a better name. If true, returns a map of all the parametric
+    // contours and their indices. If false, returns all the non-parametric
+    // contours.
+    std::map<std::string, int> GetParametricContours(bool parametric = true);
 
     size_t GetContourCount() { return contours.size(); }
 
-    std::shared_ptr<Contour> GetContour(size_t index)
+    std::shared_ptr<Contour> GetContour(int index)
     {
-        if (index < contours.size())
-            return contours[index];
-        else
+        if (index < 0)
             return nullptr;
+        else if (index < contours.size())
+            return contours[index];
+        else return nullptr;
     }
 
     void SetCommandHistory(CommandHistory* h) { history = h; }

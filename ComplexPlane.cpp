@@ -169,18 +169,6 @@ void ComplexPlane::Pan(wxPoint mousePos)
     toolPanel->Refresh();
 }
 
-// void ComplexPlane::InversePan(wxPoint mousePos)
-//{
-//    cplx displacement =
-//        lastMousePos - ScreenToComplex(mousePos);
-//    axes.realMax -= displacement.real();
-//    axes.realMin -= displacement.real();
-//    axes.imagMax -= displacement.imag();
-//    axes.imagMin -= displacement.imag();
-//    Refresh();
-//    Update();
-//}
-
 void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
 {
     cplx zoomCenter = ScreenToComplex(mousePos);
@@ -228,6 +216,19 @@ wxArrayString ComplexPlane::GetContourNames()
         names.Add(C->GetName());
     }
 
+    return names;
+}
+
+std::map<std::string, int> ComplexPlane::GetParametricContours(bool parametric)
+{
+    std::map<std::string, int> names;
+    int index = 0;
+    for (auto& C : contours)
+    {
+        if (C->IsParametric() == parametric)
+            names[C->GetName()] = index;
+        index++;
+    }
     return names;
 }
 

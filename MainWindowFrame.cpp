@@ -492,7 +492,10 @@ void MainWindowFrame::OnPlayButton(wxCommandEvent& event)
 void MainWindowFrame::OnPauseButton(wxCommandEvent& event)
 {
     input->animating = false;
+    input->movedViewPort = true;
     input->animTimer.Pause();
+    varEditPanel->Refresh();
+    numCtrlPanel->Refresh();
 }
 
 void MainWindowFrame::OnUndo(wxCommandEvent& event)
@@ -516,7 +519,9 @@ void MainWindowFrame::Save(std::string& path)
 {
     std::ofstream ofs(path);
     boost::archive::text_oarchive oa(ofs);
-    oa << *input << *output;
+    // Order is important here, since objects in input may have pointers
+    // to output.f which need to be initialized after f. 
+    oa << *output << *input;
 }
 
 void MainWindowFrame::Load(std::string& path)
@@ -525,11 +530,12 @@ void MainWindowFrame::Load(std::string& path)
     output->PrepareForLoadFromFile();
     std::ifstream ifs(path);
     boost::archive::text_iarchive ia(ifs);
-    ia >> *input;
-    ia >> *output;
+    ia >> *output >> *input;
     input->RefreshShowAxes_ShowGrid();
     varEditPanel->Populate(output->f);
     RefreshAll();
+    numCtrlPanel->PopulateAxisTextCtrls();
+    history.Clear();
 }
 
 void MainWindowFrame::RefreshAll()

@@ -42,6 +42,8 @@ class ContourParametric : public ContourPolygon
     // virtual CommandContourTranslate* CreateActionCommand(cplx c);
 
     virtual void PopulateMenu(ToolPanel* TP);
+    virtual bool IsParametric() { return true; }
+    ParsedFunc<cplx>* GetFunction() { return &f; }
 
   private:
     double tStart = 0;

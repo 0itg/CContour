@@ -6,6 +6,7 @@
 #include "Grid.h"
 #include "OutputPlane.h"
 #include "ToolPanel.h"
+#include "Parser.h"
 
 #include <algorithm>
 #include <wx/dcgraph.h>
@@ -128,11 +129,6 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
                 contours[highlightedContour].get());
         }
     }
-    // else
-    //{
-    //    state = STATE_IDLE;
-    //    toolPanel->PopulateAxisTextCtrls();
-    //}
     lastClickPos = ScreenToComplex(mouse.GetPosition());
 }
 
@@ -355,7 +351,23 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
 
     if (animating)
         for (auto& A : animations)
+        {
             A->FrameAt(animTimer.Time());
+            if (A->animateGrid) animateGrid = true;
+            //toolPanel->Refresh();
+        }
+    if (animateGrid)
+    {
+        for (auto out : outputs)
+        {
+            out->MarkAllForRedraw();
+            out->movedViewPort = true;
+            //out->varPanel->Update();
+            //out->varPanel->Refresh();
+        }
+        
+        animateGrid = false;
+    }
 
     if (showGrid) grid.Draw(&dc, this);
     pen.SetWidth(2);
@@ -531,3 +543,8 @@ wxColor InputPlane::RandomColor()
 }
 
 void InputPlane::AddOutputPlane(OutputPlane* out) { outputs.push_back(out); }
+
+ParsedFunc<cplx>* InputPlane::GetFunction(size_t i)
+{
+    return &outputs[i]->f;
+}

@@ -17,6 +17,8 @@ typedef std::complex<double> cplx;
 class ContourPolygon;
 class OutputPlane;
 class AnimPanel;
+template <class T>
+class ParsedFunc;
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
 // complex numbers and mapped to the ouput panel under some complex function.
@@ -92,6 +94,12 @@ class InputPlane : public ComplexPlane
     wxColor RandomColor();
     void AddOutputPlane(OutputPlane* out);
     void SetAnimPanel(AnimPanel* a) { animPanel = a; }
+    auto GetAnimPanel() { return animPanel; }
+
+    // Gets a pointer to the function stored in the specifed output plane.
+    // Not really planning to support multiple outputs anytime soon,
+    // but whatever.
+    ParsedFunc<cplx>* GetFunction(size_t outputIndex = 0);
 
     // If true, when axes step values change, grid step values
     // change accordingly
@@ -112,6 +120,7 @@ class InputPlane : public ComplexPlane
     int LineCount                  = 0;
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 500;
+    bool animateGrid = false;
     Grid grid;
 
     // Pointers to outputs for or sending refresh signals.

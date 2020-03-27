@@ -15,6 +15,9 @@
 #include <wx/vscroll.h>
 
 #include <complex>
+#include <string>
+#include <map>
+#include <algorithm>
 
 typedef std::complex<double> cplx;
 
@@ -237,6 +240,31 @@ class LinkedRadiusCtrl : public LinkedDoubleTextCtrl
     CommandHistory* history;
 };
 
+// Behaves like a standard wxComboBox, but it maps the output from GetSelection
+// to values in the Map.
+template <typename T>
+class MappedComboBox : public wxComboBox
+{
+public:
+    using wxComboBox::wxComboBox;
+    T GetSelection()
+    {
+        int i = wxComboBox::GetSelection();
+        if (Map.find(i) == Map.end())
+            return -1;
+        else
+            return Map[i];
+    }
+    void SetSelection(T i)
+    {
+        if (std::find_if(Map.begin(), Map.end(), [=](auto&& x) { return x.second == i; }) != Map.end())
+            wxComboBox::SetSelection(Map[i]);
+        else
+            wxComboBox::SetSelection(-1);
+    }
+    std::map<int, T> Map;
+};
+
 class AnimCtrl : public LinkedCtrl
 {
   public:
@@ -261,10 +289,11 @@ class AnimCtrl : public LinkedCtrl
 
   private:
     void PopulateHandleMenu();
+    void PopulateSubjectMenu();
     wxPanel* panel;
     wxBoxSizer* sizer;
     wxComboBox* commandMenu;
-    wxComboBox* subjectMenu;
+    MappedComboBox<int>* subjectMenu;
     wxComboBox* pathMenu;
     wxComboBox* handleMenu;
     LinkedDoubleTextCtrl* durationCtrl;
@@ -272,7 +301,9 @@ class AnimCtrl : public LinkedCtrl
     wxCheckBox* reverseCtrl;
     wxCheckBox* bounceCtrl;
     wxButton* removeButton;
-    wxArrayString contourChoices;
+    std::map<std::string, int> subjectChoiceMap;
+    wxArrayString subjectChoices;
+    wxArrayString pathChoices;
     wxArrayString commandChoices;
     wxArrayString handleChoices;
 

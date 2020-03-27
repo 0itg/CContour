@@ -60,7 +60,11 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
         toolPanel->Refresh();
     }
     lastMousePos = ScreenToComplex(mouse.GetPosition());
-    Highlight(mouse.GetPosition());
+    if (Highlight(mouse.GetPosition()))
+    {
+        Update();
+        Refresh();
+    }
     int temp               = in->highlightedContour;
     in->highlightedContour = highlightedContour;
     if (temp != highlightedContour)
@@ -132,6 +136,7 @@ void OutputPlane::OnGridResCtrl(wxCommandEvent& event)
 void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
 {
     EnterFunction(funcInput->GetLineText(0));
+    in->GetAnimPanel()->UpdateComboBoxes();
 }
 
 void OutputPlane::OnMouseWheel(wxMouseEvent& event)
