@@ -13,6 +13,7 @@
 #include "InputPlane.h"
 #include "MainWindowFrame.h"
 #include "OutputPlane.h"
+#include "ExportImageDialog.h"
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
@@ -39,7 +40,8 @@ EVT_TOOL(ID_Pause, MainWindowFrame::OnPauseButton)
 EVT_MENU(wxID_OPEN, MainWindowFrame::OnOpen)
 EVT_MENU(wxID_SAVE, MainWindowFrame::OnSave)
 EVT_MENU(wxID_SAVEAS, MainWindowFrame::OnSaveAs)
-EVT_MENU(ID_Export_Image, MainWindowFrame::OnExportAnimatedGif)
+EVT_MENU(ID_Export_Anim, MainWindowFrame::OnExportAnimatedGif)
+EVT_MENU(ID_Export_Image, MainWindowFrame::OnExportImage)
 EVT_MENU(wxID_UNDO, MainWindowFrame::OnUndo)
 EVT_MENU(wxID_REDO, MainWindowFrame::OnRedo)
 EVT_AUI_PANE_CLOSE(MainWindowFrame::OnAuiPaneClose)
@@ -50,8 +52,8 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                                  const wxSize& size, const long style)
     : wxFrame(NULL, wxID_ANY, title, pos, size, style)
 {
-    //Magick::InitializeMagick(NULL);
     wxImage::AddHandler(new wxPNGHandler);
+    wxImage::AddHandler(new wxJPEGHandler);
     aui.SetManagedWindow(this);
 
     SetMinSize(wxSize(400, 250));
@@ -59,7 +61,8 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     menuFile->Append(wxID_OPEN);
     menuFile->Append(wxID_SAVE);
     menuFile->Append(wxID_SAVEAS);
-    menuFile->Append(ID_Export_Image, "Export Animated GIF...");
+    menuFile->Append(ID_Export_Image, "Export Image...");
+    menuFile->Append(ID_Export_Anim, "Export Animation...");
     menuFile->Append(wxID_EXIT);
 
     menuEdit = new wxMenu;
@@ -499,111 +502,38 @@ void MainWindowFrame::OnRedo(wxCommandEvent& event)
 
 void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
 {
-    wxDialog Export(this, wxID_ANY, "Export Image", wxDefaultPosition,
-        wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-    wxFlexGridSizer sizer(7, 3, 0, 0);
-    wxSizerFlags flagsLeft(1);
-    flagsLeft.Border(wxALL, 3).Proportion(0);
-    wxSizerFlags flagsRight(1);
-    flagsRight.Border(wxALL, 3).Proportion(1).Expand();
+    ExportImageDialog Export(this, saveFileName, saveFilePath, input, true);
 
-    auto clientSize = input->GetClientSize();
-    double defaultDur = input->GetLongestAnimDur();
-    std::string inputFileName;
-    std::string outputFileName;
     std::string inputFilePath;
     std::string outputFilePath;
-    if (saveFileName.length())
-    {
-        auto removeExt = [](std::string str)
-        {
-            size_t lastindex = str.find_last_of(".");
-            if (lastindex != std::string::npos)
-                return str.substr(0, lastindex);
-            else return str;
-        };
-        inputFileName  = removeExt(saveFilePath) + "_input.gif";
-        outputFileName = removeExt(saveFilePath) + "_output.gif";
-    }
     size_t xRes;
     size_t yRes;
     double dur;
     double frameLen;
+    unsigned long frameTime;
     bool saveInputAnim;
     bool saveOutputAnim;
-    wxBitmap image;
 
-    sizer.AddGrowableCol(2);
-
-    wxCheckBox inCheck(&Export, wxID_ANY, "");
-    sizer.Add(&inCheck, flagsLeft);
-    wxStaticText inputFileLabel(&Export, wxID_ANY, "Export Input Animation: ");
-    sizer.Add(&inputFileLabel, flagsLeft);
-    wxFilePickerCtrl inputAnimFile(&Export, wxID_ANY, inputFileName,
-        "Export Animation", "Animated GIF (*.gif)|*.gif",
-        wxDefaultPosition, wxDefaultSize, wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT
-        | wxFLP_USE_TEXTCTRL);
-    sizer.Add(&inputAnimFile, flagsRight);
-    wxCheckBox outCheck(&Export, wxID_ANY, "");
-    sizer.Add(&outCheck, flagsLeft);
-    wxStaticText outputFileLabel(&Export, wxID_ANY, "Export Output Animation: ");
-    sizer.Add(&outputFileLabel, flagsLeft);
-    wxFilePickerCtrl outputAnimFile(&Export, wxID_ANY, outputFileName,
-        "Export Animation", "Animated GIF (*.gif)|*.gif",
-        wxDefaultPosition, wxDefaultSize, wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT
-        | wxFLP_USE_TEXTCTRL);
-    sizer.Add(&outputAnimFile, flagsRight);
-    sizer.AddSpacer(0);
-    wxStaticText xResLabel(&Export, wxID_ANY, "x Resolution: ");
-    sizer.Add(&xResLabel, flagsLeft);
-    wxSpinCtrl xResCtrl(&Export, wxID_ANY, std::to_string(clientSize.x),
-        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, clientSize.x);
-    sizer.Add(&xResCtrl, flagsRight);
-    sizer.AddSpacer(0);
-    wxStaticText yResLabel(&Export, wxID_ANY, "y Resolution: ");
-    sizer.Add(&yResLabel, flagsLeft);
-    wxSpinCtrl yResCtrl(&Export, wxID_ANY, std::to_string(clientSize.y),
-        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, clientSize.y);
-    sizer.Add(&yResCtrl, flagsRight);
-    sizer.AddSpacer(0);
-    wxStaticText durLabel(&Export, wxID_ANY, "Duration: ");
-    sizer.Add(&durLabel, flagsLeft);
-    wxSpinCtrlDouble durCtrl(&Export, wxID_ANY, std::to_string(defaultDur),
-        wxDefaultPosition, xResCtrl.GetSize(), wxSP_ARROW_KEYS, 0, 10000, defaultDur);
-    sizer.Add(&durCtrl, flagsRight);
-    sizer.AddSpacer(0);
-    wxStaticText fpsLabel(&Export, wxID_ANY, "Frame Rate: ");
-    sizer.Add(&fpsLabel, flagsLeft);
-    wxSpinCtrlDouble fpsCtrl(&Export, wxID_ANY, "30",
-        wxDefaultPosition, xResCtrl.GetSize(), wxSP_ARROW_KEYS, 1, 1000, 30);
-    sizer.Add(&fpsCtrl, flagsRight);
-    sizer.AddSpacer(0);
-    sizer.Add(Export.CreateButtonSizer(wxOK | wxCANCEL),
-        wxSizerFlags(1).Border(wxALL, 3).Align(wxALIGN_RIGHT));
-
-    Export.SetSizerAndFit(&sizer);
     if (Export.ShowModal() == wxID_OK)
     {
-        xRes = xResCtrl.GetValue();
-        yRes = yResCtrl.GetValue();
-        dur = durCtrl.GetValue();
-        frameLen = 1 / fpsCtrl.GetValue();
-        image.Create(xRes, yRes);
-        inputFilePath  = inputAnimFile.GetPath();
-        outputFilePath = outputAnimFile.GetPath();
-        saveInputAnim  = inCheck.IsChecked();
-        saveOutputAnim = outCheck.IsChecked();
+        xRes = Export.xResCtrl.GetValue();
+        yRes = Export.yResCtrl.GetValue();
+        dur = Export.durCtrl.GetValue();
+        frameLen = 1 / Export.fpsCtrl.GetValue();
+        inputFilePath = Export.inputAnimFile.GetPath();
+        outputFilePath = Export.outputAnimFile.GetPath();
+        saveInputAnim = Export.inCheck.IsChecked();
+        saveOutputAnim = Export.outCheck.IsChecked();
     }
     else
     {
         Export.SetSizer(NULL, false);
         return;
     }
-
-    DWORD frameTime = 1000 * frameLen + 0.5;
-
     // Necessary to stop wxWidgets from deleting stack items twice.
     Export.SetSizer(NULL, false);
+
+    frameTime = 1000 * frameLen + 0.5;
 
     // Copy the program state so the animation can be created in a
     // separate thread. Reusing serialization code for simplicity.
@@ -717,6 +647,73 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
     }
 }
 
+void MainWindowFrame::OnExportImage(wxCommandEvent& event)
+{
+    std::string exportPath;
+    ExportImageDialog Export(this, saveFileName, saveFilePath, input, false);
+
+    std::string inputFilePath;
+    std::string outputFilePath;
+    size_t xRes;
+    size_t yRes;
+    bool saveInputAnim;
+    bool saveOutputAnim;
+    std::string InputFileType, OutputFileType;
+
+    //auto getExt = [](const std::string & str)
+    //{
+    //    size_t lastindex = str.find_last_of(".");
+    //    if (lastindex != std::string::npos)
+    //        return str.substr(lastindex, std::string::npos);
+    //    else return std::string();
+    //};
+
+    static std::unordered_map<std::string, wxBitmapType> fileTypes =
+    { {"", wxBITMAP_TYPE_PNG }, { "png", wxBITMAP_TYPE_PNG},
+    { "bmp", wxBITMAP_TYPE_BMP }, {"jpg", wxBITMAP_TYPE_JPEG} };
+
+    if (Export.ShowModal() == wxID_OK)
+    {
+        xRes = Export.xResCtrl.GetValue();
+        yRes = Export.yResCtrl.GetValue();
+        inputFilePath = Export.inputAnimFile.GetPath();
+        outputFilePath = Export.outputAnimFile.GetPath();
+        saveInputAnim = Export.inCheck.IsChecked();
+        saveOutputAnim = Export.outCheck.IsChecked();
+        InputFileType = Export.inputAnimFile.GetFileName().GetExt();
+        OutputFileType = Export.outputAnimFile.GetFileName().GetExt();
+        if (!InputFileType.length())
+        {
+            inputFilePath += ".png";
+            InputFileType =  "png";
+        }
+        if (!OutputFileType.length())
+        {
+            outputFilePath += ".png";
+            OutputFileType =  "png";
+        }
+    }
+    else
+    {
+        Export.SetSizer(NULL, false);
+        return;
+    }
+    // Necessary to stop wxWidgets from deleting stack items twice.
+    Export.SetSizer(NULL, false);
+
+    wxBitmap image(xRes, yRes);
+    if (saveInputAnim)
+    {
+        input->DrawFrame(image);
+        image.SaveFile(inputFilePath, fileTypes[InputFileType]);
+    }
+    if (saveOutputAnim)
+    {
+        output->DrawFrame(image);
+        image.SaveFile(outputFilePath, fileTypes[OutputFileType]);
+    }
+}
+
 void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
 {
     if (input->animating) { input->Redraw(); }
@@ -771,3 +768,11 @@ void MainWindowFrame::RefreshAll()
         TP->Populate();
     }
 }
+
+std::string removeExt(const std::string& str)
+{
+    size_t lastindex = str.find_last_of(".");
+    if (lastindex != std::string::npos)
+        return str.substr(0, lastindex);
+    else return str;
+};
