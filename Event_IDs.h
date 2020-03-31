@@ -32,6 +32,7 @@ enum enum_buttons
     ID_AnimPanel,
     ID_New_Anim,
 
+    ID_Export_Anim,
     ID_Export_Image,
 
     ID_Test // Can be reused for any temporary testing widgets.

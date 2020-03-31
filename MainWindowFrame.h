@@ -63,6 +63,7 @@ class MainWindowFrame : public wxFrame
     void OnUndo(wxCommandEvent& event);
     void OnRedo(wxCommandEvent& event);
     void OnExportAnimatedGif(wxCommandEvent& event);
+    void OnExportImage(wxCommandEvent& event);
 
     void AnimOnIdle(wxIdleEvent& idle);
 
@@ -75,3 +76,5 @@ class MainWindowFrame : public wxFrame
 
     wxDECLARE_EVENT_TABLE();
 };
+
+std::string removeExt(const std::string& str);
