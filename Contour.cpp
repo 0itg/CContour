@@ -1,10 +1,7 @@
 #include "Contour.h"
-#include "ComplexPlane.h"
 #include "ContourPolygon.h"
 #include "LinkedTextCtrl.h"
-#include "Parser.h"
 #include "ToolPanel.h"
-#include <algorithm>
 #include <numeric>
 
 void Contour::AddPoint(cplx mousePos)

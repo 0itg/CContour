@@ -1,6 +1,4 @@
 #include "ContourRect.h"
-#include "ComplexPlane.h"
-#include "ToolPanel.h"
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourRect)
 

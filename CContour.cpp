@@ -4,9 +4,6 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/dcbuffer.h>
-#include <wx/dcclient.h>
-#include <wx/dcmemory.h>
 
 #include "MainWindowFrame.h"
 

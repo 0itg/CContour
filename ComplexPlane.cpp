@@ -1,16 +1,8 @@
 #include "ComplexPlane.h"
-#include "ContourCircle.h"
-#include "ContourPolygon.h"
-#include "ContourRect.h"
-#include "Grid.h"
 #include "OutputPlane.h"
-#include "ToolPanel.h"
 
 #include "Event_IDs.h"
 
-#include <complex>
-#include <iomanip>
-#include <sstream>
 
 ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
     : axes(this), wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
@@ -19,6 +11,15 @@ ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
+
+//ComplexPlane::ComplexPlane(const ComplexPlane& P) : ComplexPlane(P.GetParent(), P.GetName_())
+//{
+//    for (auto C : P.contours)
+//    {
+//        contours.push_back(std::shared_ptr<Contour>(C->Clone()));
+//    }
+//    axes.CopySettings(P.axes);
+//}
 
 cplx ComplexPlane::ScreenToComplex(wxPoint P)
 {
@@ -341,3 +342,11 @@ void Axes::RecalcSteps()
         imStep /= 2;
     }
 }
+
+//void Axes::CopySettings(const Axes& A)
+//{
+//    for (int i = 0; i < 4; i++)
+//        c[i] = A.c[i];
+//    reStep = A.reStep;
+//    imStep = A.imStep;
+//}

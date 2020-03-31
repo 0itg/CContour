@@ -77,6 +77,7 @@ struct Axes
     // Labels can get no closer than this to the edge of the plane
     const int LABEL_PADDING = 4;
     void RecalcSteps();
+    //void CopySettings(const Axes& A);
   private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
@@ -95,6 +96,7 @@ class ComplexPlane : public wxPanel
   public:
     ComplexPlane() {}
     ComplexPlane(wxWindow* parent, const std::string& name);
+    //ComplexPlane(const ComplexPlane& P);
     virtual ~ComplexPlane() {}
 
     // Functions for converting between screen and mathematical coordinates.
@@ -116,13 +118,13 @@ class ComplexPlane : public wxPanel
 
     void RefreshShowAxes_ShowGrid();
 
-    std::string& GetName() { return name; }
+    const std::string& GetName_() const { return name; }
 
     wxSize DoBestClientSize() const { return wxSize(200, 200); }
     void SetToolbar(wxToolBar* tb) { toolbar = tb; }
     void SetStatusBar(wxStatusBar* ptr) { statBar = ptr; };
     void SetToolPanel(NumCtrlPanel* ptr) { toolPanel = ptr; };
-    auto GetToolPanel() { return toolPanel; }
+    auto GetToolPanel() const { return toolPanel; }
     virtual void PrepareForLoadFromFile() { ClearContours(); }
 
     // For convenience
@@ -169,6 +171,8 @@ class ComplexPlane : public wxPanel
 
     void SetCommandHistory(CommandHistory* h) { history = h; }
     CommandHistory* GetHistoryPtr() { return history; }
+
+    virtual bool DrawFrame(wxBitmap& image, double t = -1) { return false; }
 
     Axes axes;
     bool movedViewPort = true;

@@ -1,6 +1,4 @@
 #include "ContourCircle.h"
-#include "ComplexPlane.h"
-#include "ContourPolygon.h"
 #include "LinkedTextCtrl.h"
 #include "ToolPanel.h"
 

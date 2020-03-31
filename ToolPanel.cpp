@@ -1,13 +1,8 @@
 #include "ToolPanel.h"
-#include "Animation.h"
-#include "Contour.h"
 #include "InputPlane.h"
 #include "LinkedTextCtrl.h"
 #include "OutputPlane.h"
-#include "Parser.h"
-#include "Token.h"
 
-#include <wx/richtooltip.h>
 
 // clang-format off
 
@@ -144,7 +139,7 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
     {
         intermediate->SetFont(normalFont.Bold());
         wxCtrls.push_back(new wxStaticText(intermediate, wxID_ANY,
-                                           wxString(input->GetName() + ":"),
+                                           wxString(input->GetName_() + ":"),
                                            wxDefaultPosition, wxDefaultSize));
         sizer->Add(wxCtrls.back(), sizerFlags);
         intermediate->SetFont(normalFont);
@@ -173,7 +168,7 @@ void NumCtrlPanel::PopulateAxisTextCtrls()
                 intermediate->SetFont(normalFont.Bold());
                 wxCtrls.push_back(
                     new wxStaticText(intermediate, wxID_ANY,
-                                     wxString(outputs[i]->GetName() + ":"),
+                                     wxString(outputs[i]->GetName_() + ":"),
                                      wxDefaultPosition, wxDefaultSize));
                 sizer->Add(wxCtrls.back(), sizerFlags);
                 intermediate->SetFont(normalFont);

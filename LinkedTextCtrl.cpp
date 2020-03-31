@@ -1,10 +1,6 @@
 #include "LinkedTextCtrl.h"
-#include "Animation.h"
-#include "Commands.h"
-#include "Contour.h"
 #include "ContourParametric.h"
 #include "InputPlane.h"
-#include "Parser.h"
 #include "ToolPanel.h"
 
 #include <wx/richtooltip.h>

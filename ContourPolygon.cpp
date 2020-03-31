@@ -1,8 +1,5 @@
 #include "ContourPolygon.h"
-#include "ComplexPlane.h"
-#include "Parser.h"
 #include <numeric>
-#include <thread>
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourPolygon)
 
