@@ -1,18 +1,9 @@
 #include "OutputPlane.h"
-#include "ContourCircle.h"
-#include "ContourPolygon.h"
-#include "ContourRect.h"
-#include "Event_IDs.h"
-#include "Grid.h"
 #include "InputPlane.h"
-#include "Parser.h"
-#include "Token.h"
-#include "ToolPanel.h"
 
 #include <wx/dcgraph.h>
 #include <wx/richtooltip.h>
 
-#include <algorithm>
 
 BOOST_CLASS_EXPORT_GUID(OutputPlane, "OutputPlane")
 
@@ -78,8 +69,8 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
 {
     wxAutoBufferedPaintDC pdc(this);
     wxGCDC dc(pdc);
-    // wxDCClipper(dc, GetClientSize());
     dc.Clear();
+    dc.SetClippingRegion(GetClientSize());
     wxPen pen(tGrid.color, 1);
     wxBrush brush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(pen);
@@ -214,6 +205,47 @@ void OutputPlane::MarkAllForRedraw()
     {
         contours[i] = std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
     }
+}
+
+bool OutputPlane::DrawFrame(wxBitmap& image, double t)
+{
+    auto clientSize = GetClientSize();
+    SetClientSize(image.GetSize());
+
+    wxMemoryDC pdc(image);
+    if (!pdc.IsOk()) return false;
+    wxGCDC dc(pdc);
+    dc.Clear();
+    dc.SetClippingRegion(GetClientSize());
+    wxPen pen(tGrid.color, 1);
+    wxBrush brush(*wxTRANSPARENT_BRUSH);
+    dc.SetPen(pen);
+    dc.SetBrush(brush);
+
+    if (t >= 0)
+        for (auto& A : in->animations)
+            A->FrameAt(t * 1000);
+
+    tGrid.MapGrid(in->grid, f);
+
+    auto& inputContours = in->contours;
+    for (int i = 0; i < inputContours.size(); i++)
+        contours[i] =
+            std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
+
+    if (showGrid) tGrid.Draw(&dc, this);
+    pen.SetWidth(2);
+
+    for (auto& C : contours)
+    {
+        pen.SetColour(C->color);
+        dc.SetPen(pen);
+        C->Draw(&dc, this);
+    }
+    if (showAxes) axes.Draw(&dc);
+
+    SetClientSize(clientSize);
+    return true;
 }
 
 int OutputPlane::GetRes() { return tGrid.res; }

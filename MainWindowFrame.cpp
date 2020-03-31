@@ -4,30 +4,15 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/aui/aui.h>
-#include <wx/dcbuffer.h>
-#include <wx/dcclient.h>
-#include <wx/dcmemory.h>
-#include <wx/spinctrl.h>
-
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
+#include <wx/filepicker.h>
 
 #include <fstream>
+#include <FreeImage.h>
 
-#include "Animation.h"
-#include "Commands.h"
-#include "ContourCircle.h"
-#include "ContourLine.h"
 #include "ContourParametric.h"
-#include "ContourPolygon.h"
-#include "ContourRect.h"
-#include "Event_IDs.h"
-#include "Grid.h"
 #include "InputPlane.h"
 #include "MainWindowFrame.h"
 #include "OutputPlane.h"
-#include "ToolPanel.h"
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
@@ -54,6 +39,7 @@ EVT_TOOL(ID_Pause, MainWindowFrame::OnPauseButton)
 EVT_MENU(wxID_OPEN, MainWindowFrame::OnOpen)
 EVT_MENU(wxID_SAVE, MainWindowFrame::OnSave)
 EVT_MENU(wxID_SAVEAS, MainWindowFrame::OnSaveAs)
+EVT_MENU(ID_Export_Image, MainWindowFrame::OnExportAnimatedGif)
 EVT_MENU(wxID_UNDO, MainWindowFrame::OnUndo)
 EVT_MENU(wxID_REDO, MainWindowFrame::OnRedo)
 EVT_AUI_PANE_CLOSE(MainWindowFrame::OnAuiPaneClose)
@@ -64,6 +50,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                                  const wxSize& size, const long style)
     : wxFrame(NULL, wxID_ANY, title, pos, size, style)
 {
+    //Magick::InitializeMagick(NULL);
     wxImage::AddHandler(new wxPNGHandler);
     aui.SetManagedWindow(this);
 
@@ -72,6 +59,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     menuFile->Append(wxID_OPEN);
     menuFile->Append(wxID_SAVE);
     menuFile->Append(wxID_SAVEAS);
+    menuFile->Append(ID_Export_Image, "Export Animated GIF...");
     menuFile->Append(wxID_EXIT);
 
     menuEdit = new wxMenu;
@@ -195,7 +183,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
 
     auto cResText = new wxStaticText(toolbar, wxID_ANY, "Contour res: ");
     toolbar->AddControl(cResText);
-    auto cResCtrl = new wxSpinCtrl(
+    cResCtrl = new wxSpinCtrl(
         toolbar, ID_ContourResCtrl, std::to_string(input->GetRes()),
         wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, 20, 10000,
         input->GetRes());
@@ -204,7 +192,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolbar->AddSeparator();
     auto gResText = new wxStaticText(toolbar, wxID_ANY, "Grid res: ");
     toolbar->AddControl(gResText);
-    auto gResCtrl = new wxSpinCtrl(
+    gResCtrl = new wxSpinCtrl(
         toolbar, ID_GridResCtrl, std::to_string(output->GetRes()),
         wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, 20, 10000,
         output->GetRes());
@@ -370,8 +358,7 @@ void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
     sizer.Add(&tEndCtrl, flags);
     sizer.Add(ParametricCreate.CreateButtonSizer(wxOK | wxCANCEL),
               wxSizerFlags(1).Border(wxALL, 3).CenterHorizontal());
-    ParametricCreate.SetSizer(&sizer);
-    ParametricCreate.Fit();
+    ParametricCreate.SetSizerAndFit(&sizer);
 
     if (ParametricCreate.ShowModal() == wxID_OK)
     {
@@ -510,6 +497,226 @@ void MainWindowFrame::OnRedo(wxCommandEvent& event)
     RefreshAll();
 }
 
+void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
+{
+    wxDialog Export(this, wxID_ANY, "Export Image", wxDefaultPosition,
+        wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    wxFlexGridSizer sizer(7, 3, 0, 0);
+    wxSizerFlags flagsLeft(1);
+    flagsLeft.Border(wxALL, 3).Proportion(0);
+    wxSizerFlags flagsRight(1);
+    flagsRight.Border(wxALL, 3).Proportion(1).Expand();
+
+    auto clientSize = input->GetClientSize();
+    double defaultDur = input->GetLongestAnimDur();
+    std::string inputFileName;
+    std::string outputFileName;
+    std::string inputFilePath;
+    std::string outputFilePath;
+    if (saveFileName.length())
+    {
+        auto removeExt = [](std::string str)
+        {
+            size_t lastindex = str.find_last_of(".");
+            if (lastindex != std::string::npos)
+                return str.substr(0, lastindex);
+            else return str;
+        };
+        inputFileName  = removeExt(saveFilePath) + "_input.gif";
+        outputFileName = removeExt(saveFilePath) + "_output.gif";
+    }
+    size_t xRes;
+    size_t yRes;
+    double dur;
+    double frameLen;
+    bool saveInputAnim;
+    bool saveOutputAnim;
+    wxBitmap image;
+
+    sizer.AddGrowableCol(2);
+
+    wxCheckBox inCheck(&Export, wxID_ANY, "");
+    sizer.Add(&inCheck, flagsLeft);
+    wxStaticText inputFileLabel(&Export, wxID_ANY, "Export Input Animation: ");
+    sizer.Add(&inputFileLabel, flagsLeft);
+    wxFilePickerCtrl inputAnimFile(&Export, wxID_ANY, inputFileName,
+        "Export Animation", "Animated GIF (*.gif)|*.gif",
+        wxDefaultPosition, wxDefaultSize, wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT
+        | wxFLP_USE_TEXTCTRL);
+    sizer.Add(&inputAnimFile, flagsRight);
+    wxCheckBox outCheck(&Export, wxID_ANY, "");
+    sizer.Add(&outCheck, flagsLeft);
+    wxStaticText outputFileLabel(&Export, wxID_ANY, "Export Output Animation: ");
+    sizer.Add(&outputFileLabel, flagsLeft);
+    wxFilePickerCtrl outputAnimFile(&Export, wxID_ANY, outputFileName,
+        "Export Animation", "Animated GIF (*.gif)|*.gif",
+        wxDefaultPosition, wxDefaultSize, wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT
+        | wxFLP_USE_TEXTCTRL);
+    sizer.Add(&outputAnimFile, flagsRight);
+    sizer.AddSpacer(0);
+    wxStaticText xResLabel(&Export, wxID_ANY, "x Resolution: ");
+    sizer.Add(&xResLabel, flagsLeft);
+    wxSpinCtrl xResCtrl(&Export, wxID_ANY, std::to_string(clientSize.x),
+        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, clientSize.x);
+    sizer.Add(&xResCtrl, flagsRight);
+    sizer.AddSpacer(0);
+    wxStaticText yResLabel(&Export, wxID_ANY, "y Resolution: ");
+    sizer.Add(&yResLabel, flagsLeft);
+    wxSpinCtrl yResCtrl(&Export, wxID_ANY, std::to_string(clientSize.y),
+        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, clientSize.y);
+    sizer.Add(&yResCtrl, flagsRight);
+    sizer.AddSpacer(0);
+    wxStaticText durLabel(&Export, wxID_ANY, "Duration: ");
+    sizer.Add(&durLabel, flagsLeft);
+    wxSpinCtrlDouble durCtrl(&Export, wxID_ANY, std::to_string(defaultDur),
+        wxDefaultPosition, xResCtrl.GetSize(), wxSP_ARROW_KEYS, 0, 10000, defaultDur);
+    sizer.Add(&durCtrl, flagsRight);
+    sizer.AddSpacer(0);
+    wxStaticText fpsLabel(&Export, wxID_ANY, "Frame Rate: ");
+    sizer.Add(&fpsLabel, flagsLeft);
+    wxSpinCtrlDouble fpsCtrl(&Export, wxID_ANY, "30",
+        wxDefaultPosition, xResCtrl.GetSize(), wxSP_ARROW_KEYS, 1, 1000, 30);
+    sizer.Add(&fpsCtrl, flagsRight);
+    sizer.AddSpacer(0);
+    sizer.Add(Export.CreateButtonSizer(wxOK | wxCANCEL),
+        wxSizerFlags(1).Border(wxALL, 3).Align(wxALIGN_RIGHT));
+
+    Export.SetSizerAndFit(&sizer);
+    if (Export.ShowModal() == wxID_OK)
+    {
+        xRes = xResCtrl.GetValue();
+        yRes = yResCtrl.GetValue();
+        dur = durCtrl.GetValue();
+        frameLen = 1 / fpsCtrl.GetValue();
+        image.Create(xRes, yRes);
+        inputFilePath  = inputAnimFile.GetPath();
+        outputFilePath = outputAnimFile.GetPath();
+        saveInputAnim  = inCheck.IsChecked();
+        saveOutputAnim = outCheck.IsChecked();
+    }
+    else
+    {
+        Export.SetSizer(NULL, false);
+        return;
+    }
+
+    DWORD frameTime = 1000 * frameLen + 0.5;
+
+    // Necessary to stop wxWidgets from deleting stack items twice.
+    Export.SetSizer(NULL, false);
+
+    // Copy the program state so the animation can be created in a
+    // separate thread. Reusing serialization code for simplicity.
+    // Do it once per animation so that they can be run simultaneously.
+    // FreeImage is single-threaded, and GIF generation is slow,
+    // so this is a net gain.
+
+    std::unique_ptr<InputPlane> tempIn1, tempIn2;
+    std::unique_ptr<OutputPlane> tempOut1, tempOut2;
+
+    auto copyAppState = [&](std::unique_ptr<InputPlane>& tempInput,
+        std::unique_ptr<OutputPlane>& tempOutput) {
+            tempInput = std::make_unique<InputPlane>(this);
+            tempOutput = std::make_unique<OutputPlane>(this, tempInput.get());
+            tempInput->AddOutputPlane(tempOutput.get());
+
+            std::stringstream ss;
+            boost::archive::text_oarchive oa(ss);
+            oa << *output << *input;
+            boost::archive::text_iarchive ia(ss);
+            ia >> *tempOutput >> *tempInput;
+            tempInput->UpdateGrid();
+            tempInput->RecalcAll();
+
+            tempInput->SetClientSize(xRes, yRes);
+            tempOutput->SetClientSize(xRes, yRes);
+            tempInput->Hide();
+            tempOutput->Hide();
+    };
+
+    //tempInput->DrawFrame(image);
+    //image.SaveFile(name, wxBITMAP_TYPE_PNG);
+    //src->DrawFrame(image);
+    //image.SaveFile(name2, wxBITMAP_TYPE_PNG);
+
+
+    // src is the plane from which the animation is generated.
+    // Input and output planes must both be passed to this function, and
+    // either order is allowed.
+    auto saveAnimation = [=](std::unique_ptr<ComplexPlane> src,
+        std::unique_ptr<ComplexPlane> other, std::string filePath)
+    {
+        auto frame = wxBitmap(xRes, yRes);
+
+        FIMULTIBITMAP* frames = FreeImage_OpenMultiBitmap(FIF_GIF,
+            filePath.c_str(), TRUE, FALSE, 0, BMP_SAVE_RLE);
+
+        for (double t = 0; t < dur; t += frameLen)
+        {
+            src->DrawFrame(frame, t);
+            auto frameIMG = frame.ConvertToImage();
+
+            // Gives horizontal line width. Pitch may include padding, but
+            // wxWidgets doesn't use any.
+            int pitch = 3 * xRes;
+
+            // Formula to calculate width with padding if necessary in future:
+            //int pitch = ((((24 * xRes) + 31) / 32) * 4);
+
+            // FreeImage stores images in BGRA order, and due to a bug doesn't 
+            // respect its own color masks, so we have to swap B and R manually.
+            // this lambda is an adaptation of FreeImage's SwapRedandBlue32
+            // utility function, not included in the vcpkg build.
+            auto SwapRedBlue = [=](BYTE* dib) {
+                for (size_t y = 0; y < yRes; ++y, dib += pitch)
+                {
+                    for (BYTE* pixel = (BYTE*)dib; pixel < dib + pitch; pixel += 3)
+                        {
+                            pixel[0] ^= pixel[2];
+                            pixel[2] ^= pixel[0];
+                            pixel[0] ^= pixel[2];
+                        }
+                    }
+            };
+
+            SwapRedBlue((BYTE*)frameIMG.GetData());
+
+            FIBITMAP* dib = FreeImage_ConvertFromRawBits(frameIMG.GetData(),
+                xRes, yRes, pitch, 24, 0, 0, 0);
+            FIBITMAP* frameGIF = FreeImage_ColorQuantize(dib, FIQ_WUQUANT);
+            FreeImage_SetMetadata(FIMD_ANIMATION, frameGIF, NULL, NULL);
+
+            FITAG* tag = FreeImage_CreateTag();
+            if (tag) {
+                FreeImage_SetTagKey(tag, "FrameTime");
+                FreeImage_SetTagType(tag, FIDT_LONG);
+                FreeImage_SetTagCount(tag, 1);
+                FreeImage_SetTagLength(tag, 4);
+                FreeImage_SetTagValue(tag, &frameTime);
+                FreeImage_SetMetadata(FIMD_ANIMATION, frameGIF,
+                    FreeImage_GetTagKey(tag), tag);
+                FreeImage_DeleteTag(tag);
+            }
+            FreeImage_AppendPage(frames, frameGIF);
+            FreeImage_Unload(dib);
+            FreeImage_Unload(frameGIF);
+        }
+        FreeImage_CloseMultiBitmap(frames);
+    };
+    if (saveOutputAnim)
+    {
+        copyAppState(tempIn1, tempOut1);
+        threads.emplace_back(saveAnimation,
+            std::move(tempOut1), std::move(tempIn1), outputFilePath);
+    }
+    if (saveInputAnim)
+    {
+        copyAppState(tempIn2, tempOut2);
+        threads.emplace_back(saveAnimation,
+            std::move(tempIn2), std::move(tempOut2), inputFilePath);
+    }
+}
+
 void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
 {
     if (input->animating) { input->Redraw(); }
@@ -528,10 +735,18 @@ void MainWindowFrame::Load(std::string& path)
 {
     input->PrepareForLoadFromFile();
     output->PrepareForLoadFromFile();
-    std::ifstream ifs(path);
-    boost::archive::text_iarchive ia(ifs);
-    ia >> *output >> *input;
+    try
+    {
+        std::ifstream ifs(path);
+        boost::archive::text_iarchive ia(ifs);
+        ia >> *output >> *input;
+    }
+    catch (std::exception error)
+    {
+        wxMessageBox(error.what(), "Error Loading File");
+    }
     input->RefreshShowAxes_ShowGrid();
+    cResCtrl->SetValue(input->GetRes());
     varEditPanel->Populate(output->f);
     RefreshAll();
     numCtrlPanel->PopulateAxisTextCtrls();

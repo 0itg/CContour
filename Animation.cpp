@@ -1,5 +1,4 @@
 #include "Animation.h"
-#include "Commands.h"
 #include "Contour.h"
 
 void Animation::FrameAt(int t)

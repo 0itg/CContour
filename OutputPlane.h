@@ -44,6 +44,8 @@ class OutputPlane : public ComplexPlane
     void OnFunctionEntry(wxCommandEvent& event);
     void OnMouseWheel(wxMouseEvent& event);
 
+    void SetInputPlane(InputPlane* input) { in = input; }
+
     void Pan(wxPoint mousePos);
     void Zoom(wxPoint mousePos, int zoomSteps);
 
@@ -56,6 +58,9 @@ class OutputPlane : public ComplexPlane
     auto GetFuncInput() { return funcInput; }
     void RefreshFuncText() { funcInput->SetValue(f.GetInputText()); }
     void SetVarPanel(VariableEditPanel* var) { varPanel = var; }
+
+    // t = -1 means don't use the parameter.
+    bool DrawFrame(wxBitmap& image, double t = -1);
 
     int GetRes();
 

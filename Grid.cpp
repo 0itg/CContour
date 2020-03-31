@@ -1,10 +1,5 @@
 #include "Grid.h"
-#include "ComplexPlane.h"
-#include "ContourLine.h"
-#include "ContourPolygon.h"
-#include "Parser.h"
 
-#include <algorithm>
 //#include <thread>
 //#include <execution>
 

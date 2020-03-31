@@ -2,6 +2,8 @@
 #include "Commands.h"
 #include <wx/aui/aui.h>
 #include <wx/clrpicker.h>
+#include <wx/spinctrl.h>
+#include <thread>
 
 class InputPlane;
 class OutputPlane;
@@ -16,7 +18,7 @@ class MainWindowFrame : public wxFrame
     MainWindowFrame(const wxString& title, const wxPoint& pos,
                     const wxSize& size,
                     const long style = wxDEFAULT_FRAME_STYLE);
-    ~MainWindowFrame() { aui.UnInit(); }
+    ~MainWindowFrame() { aui.UnInit(); for (auto& T : threads) T.join(); }
 
     CommandHistory history;
 
@@ -29,9 +31,11 @@ class MainWindowFrame : public wxFrame
     wxMenu* menuWindow;
     wxMenu* menuEdit;
     wxToolBar* toolbar;
+    wxSpinCtrl* cResCtrl;
+    wxSpinCtrl* gResCtrl;
     std::string saveFileName = "";
     std::string saveFilePath = "";
-    wxTimer* frameTimer;
+    std::vector<std::thread> threads;
 
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
@@ -58,6 +62,7 @@ class MainWindowFrame : public wxFrame
     void OnPauseButton(wxCommandEvent& event);
     void OnUndo(wxCommandEvent& event);
     void OnRedo(wxCommandEvent& event);
+    void OnExportAnimatedGif(wxCommandEvent& event);
 
     void AnimOnIdle(wxIdleEvent& idle);
 

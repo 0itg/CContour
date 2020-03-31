@@ -1,6 +1,4 @@
 #include "ContourLine.h"
-#include "ComplexPlane.h"
-#include "ContourPolygon.h"
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourLine)
 

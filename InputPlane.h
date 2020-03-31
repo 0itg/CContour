@@ -39,6 +39,7 @@ class InputPlane : public ComplexPlane
     {
         grid.CalcVisibleGrid();
     }
+    //InputPlane(const InputPlane& in);
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
     void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
@@ -96,6 +97,11 @@ class InputPlane : public ComplexPlane
     void SetAnimPanel(AnimPanel* a) { animPanel = a; }
     auto GetAnimPanel() { return animPanel; }
 
+    // t = -1 means don't use the parameter.
+    bool DrawFrame(wxBitmap& image, double t = -1);
+
+    double GetLongestAnimDur();
+
     // Gets a pointer to the function stored in the specifed output plane.
     // Not really planning to support multiple outputs anytime soon,
     // but whatever.
@@ -139,7 +145,7 @@ class InputPlane : public ComplexPlane
         ar& boost::serialization::base_object<ComplexPlane>(*this);
         ar& linkGridToAxes;
         ar& res;
-        resCtrl->SetValue(res);
+        //resCtrl->SetValue(res);
         ar& grid;
         ar& animations;
     }

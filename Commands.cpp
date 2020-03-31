@@ -1,5 +1,4 @@
 #include "Commands.h"
-#include "Contour.h"
 #include "ContourCircle.h"
 #include "ContourParametric.h"
 #include "InputPlane.h"

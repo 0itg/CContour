@@ -1,14 +1,8 @@
 #include "InputPlane.h"
 #include "ContourCircle.h"
-#include "ContourLine.h"
-#include "ContourPolygon.h"
 #include "ContourRect.h"
-#include "Grid.h"
 #include "OutputPlane.h"
-#include "ToolPanel.h"
-#include "Parser.h"
 
-#include <algorithm>
 #include <wx/dcgraph.h>
 
 BOOST_CLASS_EXPORT_GUID(InputPlane, "InputPlane")
@@ -29,6 +23,24 @@ EVT_LEAVE_WINDOW(ComplexPlane::OnMouseLeaving)
 EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
+
+//InputPlane::InputPlane(const InputPlane& in) : ComplexPlane(in)
+//{
+//    grid.hStep = in.grid.hStep;
+//    grid.vStep = in.grid.vStep;
+//    grid.CalcVisibleGrid();
+//    color = in.color;
+//    //BGcolor = in.BGcolor;
+//    CircleCount  = in.CircleCount;
+//    PolygonCount = in.PolygonCount;
+//    RectCount    = in.RectCount;
+//    LineCount    = in.LineCount;
+//    res = in.res;
+//    for (auto out : in.outputs)
+//    {
+//        outputs.push_back(out);
+//    }
+//}
 
 void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 {
@@ -342,8 +354,8 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
 {
     wxAutoBufferedPaintDC pdc(this);
     wxGCDC dc(pdc);
-    wxDCClipper(dc, GetClientSize());
     dc.Clear();
+    dc.SetClippingRegion(GetClientSize());
     wxPen pen(grid.color, 1);
     wxBrush brush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(pen);
@@ -543,6 +555,56 @@ wxColor InputPlane::RandomColor()
 }
 
 void InputPlane::AddOutputPlane(OutputPlane* out) { outputs.push_back(out); }
+
+bool InputPlane::DrawFrame(wxBitmap& image, double t)
+{
+
+    // A bit of a hack, because drawing code uses the panel's client size.
+    // Temporary sets the inputplane's client size to match the output image. 
+    // Can't use the dc's GetSize() in drawing code because of wxWidgets issues.
+    // A better solution would be to directly pass client size info to the
+    // drawing functions.
+    auto clientSize = GetClientSize();
+    SetClientSize(image.GetSize());
+
+    wxMemoryDC pdc(image);
+    if (!pdc.IsOk()) return false;
+    wxGCDC dc(pdc);
+    dc.Clear();
+    dc.SetClippingRegion(GetClientSize());
+    wxPen pen(grid.color, 1);
+    wxBrush brush(*wxTRANSPARENT_BRUSH);
+    dc.SetPen(pen);
+    dc.SetBrush(brush);
+
+    if (t >= 0)
+        for (auto& A : animations)
+            A->FrameAt(t * 1000);
+
+    if (showGrid) grid.Draw(&dc, this);
+    pen.SetWidth(2);
+
+    for (auto& C : contours)
+    {
+        pen.SetColour(C->color);
+        dc.SetPen(pen);
+        C->Draw(&dc, this);
+    }
+    if (showAxes) axes.Draw(&dc);
+
+    SetClientSize(clientSize);
+    return true;
+}
+
+double InputPlane::GetLongestAnimDur()
+{
+    double dur = 0;
+    for (auto& A : animations)
+    {
+        dur = std::max(dur, A->duration_ms / 1000.0);
+    }
+	return dur;
+}
 
 ParsedFunc<cplx>* InputPlane::GetFunction(size_t i)
 {
