@@ -1,5 +1,5 @@
 #include "ContourCircle.h"
-#include "LinkedTextCtrl.h"
+#include "LinkedCtrls.h"
 #include "ToolPanel.h"
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourCircle)
@@ -65,6 +65,18 @@ void ContourCircle::Subdivide(int res)
         subDiv.push_back(Interpolate(t));
     }
     markedForRedraw = true;
+}
+
+void ContourCircle::Scale(double factor, cplx pivot)
+{
+    Contour::Scale(factor, pivot);
+    radius *= factor;
+}
+
+void ContourCircle::RotateAndScale(cplx V, cplx pivot)
+{
+    Contour::RotateAndScale(V, pivot);
+    radius *= abs(V);
 }
 
 std::tuple<int, int, int> ContourCircle::PopulateSupplementalMenu(ToolPanel* TP)

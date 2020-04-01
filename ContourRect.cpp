@@ -46,3 +46,8 @@ void ContourRect::SetCtrlPoint(int ptIndex, cplx mousePos)
     }
     CalcCenter();
 }
+
+void ContourRect::RotateAndScale(cplx V, cplx pivot)
+{
+    Contour::RotateAndScale(abs(V), pivot);
+}

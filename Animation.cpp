@@ -23,12 +23,6 @@ void Animation::FrameAt(int t)
     }
 }
 
-void Animation::Reset()
-{
-    // for (auto& C : commands)
-    //    C->reset();
-}
-
 void Animation::SetPathContour(std::shared_ptr<Contour> C)
 {
     path = C;

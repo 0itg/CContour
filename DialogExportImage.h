@@ -10,12 +10,12 @@
 
 class InputPlane;
 
-class ExportImageDialog : public wxDialog
+class DialogExportImage : public wxDialog
 {
 public:
-	ExportImageDialog(wxWindow* parent, const std::string& saveFileName,
+	DialogExportImage(wxWindow* parent, const std::string& saveFileName,
 		const std::string& saveFilePath, InputPlane* input, bool animation = false);
-	~ExportImageDialog() {}
+	~DialogExportImage() { SetSizer(NULL, false); }
 
 	wxCheckBox inCheck, outCheck;
 	wxFilePickerCtrl inputAnimFile, outputAnimFile;

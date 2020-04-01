@@ -1,6 +1,6 @@
 #include "ToolPanel.h"
 #include "InputPlane.h"
-#include "LinkedTextCtrl.h"
+#include "LinkedCtrls.h"
 #include "OutputPlane.h"
 
 

@@ -171,16 +171,18 @@
     <ClCompile Include="Contour.cpp" />
     <ClCompile Include="ContourLine.cpp" />
     <ClCompile Include="ContourParametric.cpp" />
-    <ClCompile Include="ExportImageDialog.cpp" />
+    <ClCompile Include="DialogCreateParametricCurve.cpp" />
+    <ClCompile Include="DialogExportImage.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="ContourPolygon.cpp" />
     <ClCompile Include="ContourRect.cpp" />
     <ClCompile Include="InputPlane.cpp" />
-    <ClCompile Include="LinkedTextCtrl.cpp" />
+    <ClCompile Include="LinkedCtrls.cpp" />
     <ClCompile Include="MainWindowFrame.cpp" />
     <ClCompile Include="OutputPlane.cpp" />
     <ClCompile Include="ComplexPlane.cpp" />
     <ClCompile Include="ToolPanel.cpp" />
+    <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h" />
@@ -189,19 +191,21 @@
     <ClInclude Include="Contour.h" />
     <ClInclude Include="ContourLine.h" />
     <ClInclude Include="ContourParametric.h" />
+    <ClInclude Include="DialogCreateParametricCurve.h" />
     <ClInclude Include="Event_IDs.h" />
-    <ClInclude Include="ExportImageDialog.h" />
+    <ClInclude Include="DialogExportImage.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ContourPolygon.h" />
     <ClInclude Include="ContourRect.h" />
     <ClInclude Include="InputPlane.h" />
-    <ClInclude Include="LinkedTextCtrl.h" />
+    <ClInclude Include="LinkedCtrls.h" />
     <ClInclude Include="MainWindowFrame.h" />
     <ClInclude Include="OutputPlane.h" />
     <ClInclude Include="ComplexPlane.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Token.h" />
     <ClInclude Include="ToolPanel.h" />
+    <ClInclude Include="Utilities.h" />
     <ClInclude Include="zeta.h" />
   </ItemGroup>
   <ItemGroup>

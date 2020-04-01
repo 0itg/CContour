@@ -76,5 +76,3 @@ class MainWindowFrame : public wxFrame
 
     wxDECLARE_EVENT_TABLE();
 };
-
-std::string removeExt(const std::string& str);

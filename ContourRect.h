@@ -20,6 +20,11 @@ class ContourRect : public ContourPolygon
     void SetCtrlPoint(int ptIndex, cplx mousePos);
     bool IsDone() { return true; }
     void Finalize(){};
+    // Rotation is disabled, since drawing/editing functions assume a rectangle
+    // to be square with the screen. Use a ContourPolygon if rotation is needed.
+    virtual void Rotate(double angle, cplx pivot = cplx(INFINITY, INFINITY)) {}
+    // Since rotation is disabled, the function ignores the arg and just scales. 
+    virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
 
   private:
     template <class Archive>
