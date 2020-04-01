@@ -19,6 +19,7 @@
 
 #include "Commands.h"
 #include "ComplexPlane.h"
+#include "Utilities.h"
 
 struct Axes;
 class ToolPanel;
@@ -55,6 +56,10 @@ class Contour
     virtual Command* CreateActionCommand(cplx c)                        = 0;
 
     virtual void Translate(cplx z1, cplx z2);
+    // if pivot = cplx(INFINITY, INFINITY), default to this->center 
+    virtual void Rotate(double angle, cplx pivot = cplx(INFINITY, INFINITY));
+    virtual void Scale(double factor, cplx pivot = cplx(INFINITY, INFINITY));
+    virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
 
     // Returns true if editing is finished on this contour.
     virtual bool IsDone() = 0;
@@ -128,24 +133,4 @@ class Contour
     }
 };
 
-double DistancePointToLine(cplx pt, cplx z1, cplx z2);
-bool IsInsideBox(cplx pt, cplx z1, cplx z2);
-
-void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas);
-
 BOOST_SERIALIZATION_ASSUME_ABSTRACT(Contour)
-
-// Serialization for wxColor.
-template <class Archive>
-void save(Archive& ar, const wxColour& c, unsigned int version)
-{
-    ar << (uint32_t)c.GetRGBA();
-}
-template <class Archive>
-void load(Archive& ar, wxColour& c, unsigned int version)
-{
-    uint32_t x;
-    ar >> x;
-    c.SetRGBA(x);
-}
-BOOST_SERIALIZATION_SPLIT_FREE(wxColour)

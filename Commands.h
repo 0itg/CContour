@@ -44,8 +44,11 @@ template <class T> class ParsedFunc;
 enum enum_commands
 {
     COMMAND_PLACE_AT = 0,
+    COMMAND_EDIT_VAR,
     COMMAND_SET_PT,
-    COMMAND_EDIT_VAR
+    COMMAND_ROT_AND_SCALE,
+    COMMAND_ROT,
+    COMMAND_SCALE
 };
 
 class Command
@@ -177,6 +180,71 @@ class CommandContourSetPoint : public Command
         ar& oldPos;
         ar& index;
         ar& subject;
+    }
+};
+
+class CommandContourRotateAndScale : public Command
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandContourRotateAndScale() = default;
+    CommandContourRotateAndScale(Contour* s, cplx c = 1, cplx piv = cplx(INFINITY, INFINITY));
+
+    void exec();
+    void undo();
+    virtual void SetPositionParam(cplx c) { Vlast = V;  V = c; }
+
+protected:
+    cplx V;
+    cplx Vlast = 1;
+    cplx pivot;
+    Contour* subject;
+private:
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<Command>(*this);
+        ar& V;
+        ar& Vlast;
+        ar& pivot;
+        ar& subject;
+    }
+};
+
+class CommandContourRotate : public CommandContourRotateAndScale
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandContourRotate() = default;
+    CommandContourRotate(Contour * s, cplx c = 1, cplx piv = cplx(INFINITY, INFINITY))
+        : CommandContourRotateAndScale(s, c / abs(c), piv) {}
+
+    virtual void SetPositionParam(cplx c) { Vlast = V;  V = c / abs(c); }
+private:
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<CommandContourRotateAndScale>(*this);
+    }
+};
+
+class CommandContourScale : public CommandContourRotateAndScale
+{
+    friend class boost::serialization::access;
+
+public:
+    CommandContourScale() = default;
+    CommandContourScale(Contour* s, cplx c = 1, cplx piv = cplx(INFINITY, INFINITY))
+        : CommandContourRotateAndScale(s, abs(c), piv) {}
+
+    virtual void SetPositionParam(cplx c) { Vlast = V;  V = abs(c); }
+private:
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& boost::serialization::base_object<CommandContourRotateAndScale>(*this);
     }
 };
 
@@ -611,20 +679,6 @@ private:
     }
 };
 
-namespace boost
-{
-namespace serialization
-{
-template <class Archive>
-void serialize(Archive& ar, wxPoint& p, const unsigned int version)
-{
-    ar& boost::serialization::base_object<Command>(*this);
-    ar& p.x;
-    ar& p.y;
-}
-} // namespace serialization
-} // namespace boost
-
 BOOST_CLASS_EXPORT_KEY(CommandEditVar)
 BOOST_CLASS_EXPORT_KEY(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_KEY(CommandAxesReset)
@@ -633,6 +687,9 @@ BOOST_CLASS_EXPORT_KEY(CommandAddContour)
 BOOST_CLASS_EXPORT_KEY(CommandContourSubdivide)
 BOOST_CLASS_EXPORT_KEY(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_KEY(CommandContourRemovePoint)
+BOOST_CLASS_EXPORT_KEY(CommandContourScale)
+BOOST_CLASS_EXPORT_KEY(CommandContourRotate)
+BOOST_CLASS_EXPORT_KEY(CommandContourRotateAndScale)
 BOOST_CLASS_EXPORT_KEY(CommandContourAddPoint)
 BOOST_CLASS_EXPORT_KEY(CommandContourSetPoint)
 BOOST_CLASS_EXPORT_KEY(CommandContourPlaceAt)

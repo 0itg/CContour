@@ -1,5 +1,5 @@
 #include "ContourParametric.h"
-#include "LinkedTextCtrl.h"
+#include "LinkedCtrls.h"
 #include "ToolPanel.h"
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourParametric)

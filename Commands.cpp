@@ -12,6 +12,9 @@ BOOST_CLASS_EXPORT_IMPLEMENT(CommandAddContour)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSubdivide)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourRemovePoint)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourScale)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourRotate)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourRotateAndScale)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourAddPoint)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSetPoint)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourPlaceAt)
@@ -397,4 +400,21 @@ void CommandEditAnim::undo()
     subject->pathSel     = oldsel3;
     subject->handle      = oldhandle;
     subject->SetPathContour(oldPath);
+}
+
+CommandContourRotateAndScale::CommandContourRotateAndScale(Contour* s, cplx c, cplx piv)
+    : subject(s), V(c)
+{
+    if (pivot == cplx(INFINITY, INFINITY)) pivot = s->GetCenter();
+    else pivot = piv;
+}
+
+void CommandContourRotateAndScale::exec()
+{
+    subject->RotateAndScale(V / Vlast, pivot);
+}
+
+void CommandContourRotateAndScale::undo()
+{
+    subject->RotateAndScale(Vlast / V, pivot);
 }

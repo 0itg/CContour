@@ -31,6 +31,9 @@ class ContourCircle : public Contour
     void SetRadius(double r) { radius = r; }
     double GetRadius() { return radius; }
 
+    virtual void Scale(double factor, cplx pivot = cplx(INFINITY, INFINITY));
+    virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
+
     virtual std::tuple<int, int, int> PopulateSupplementalMenu(ToolPanel* TP);
 
   private:

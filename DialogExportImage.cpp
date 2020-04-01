@@ -1,8 +1,8 @@
-#include "ExportImageDialog.h"
+#include "DialogExportImage.h"
 #include "MainWindowFrame.h"
 #include "InputPlane.h"
 
-ExportImageDialog::ExportImageDialog(wxWindow* parent,
+DialogExportImage::DialogExportImage(wxWindow* parent,
     const std::string& saveFileName, const std::string& saveFilePath,
     InputPlane* input, bool animation) :
     wxDialog(parent, wxID_ANY, "", wxDefaultPosition,

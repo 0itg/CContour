@@ -13,7 +13,8 @@
 #include "InputPlane.h"
 #include "MainWindowFrame.h"
 #include "OutputPlane.h"
-#include "ExportImageDialog.h"
+#include "DialogExportImage.h"
+#include "DialogCreateParametricCurve.h"
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
@@ -331,43 +332,14 @@ inline void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event)
 
 void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
 {
-    wxDialog ParametricCreate(this, wxID_ANY, "Create a Parametric Curve");
-    wxBoxSizer sizer(wxVERTICAL);
-    wxSizerFlags flags(1);
-    flags.Expand().Border(wxALL, 3);
+    DialogCreateParametricCurve ParCreate(this);
 
-    wxStaticText enterName(&ParametricCreate, wxID_ANY, "Curve name");
-    sizer.Add(&enterName, flags);
-    wxTextCtrl nameCtrl(&ParametricCreate, wxID_ANY, "Parametric Curve");
-    sizer.Add(&nameCtrl, flags);
-
-    wxStaticText enterFunc(&ParametricCreate, wxID_ANY, "Function f(t)");
-    sizer.Add(&enterFunc, flags);
-    wxTextCtrl funcCtrl(&ParametricCreate, wxID_ANY, "4*t*exp(4pi*i*t)");
-    sizer.Add(&funcCtrl, flags);
-
-    wxStaticText enterTStart(&ParametricCreate, wxID_ANY, "t Start");
-    sizer.Add(&enterTStart, flags);
-    wxSpinCtrlDouble tStartCtrl(&ParametricCreate, wxID_ANY, "0",
-                                wxDefaultPosition, wxDefaultSize,
-                                wxSP_ARROW_KEYS, -1e10, 1e10, 0, 0.1);
-    sizer.Add(&tStartCtrl, flags);
-
-    wxStaticText enterTEnd(&ParametricCreate, wxID_ANY, "t End");
-    sizer.Add(&enterTEnd, flags);
-    wxSpinCtrlDouble tEndCtrl(&ParametricCreate, wxID_ANY, "1.0",
-                              wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS,
-                              -1e10, 1e10, 1, 0.1);
-    sizer.Add(&tEndCtrl, flags);
-    sizer.Add(ParametricCreate.CreateButtonSizer(wxOK | wxCANCEL),
-              wxSizerFlags(1).Border(wxALL, 3).CenterHorizontal());
-    ParametricCreate.SetSizerAndFit(&sizer);
-
-    if (ParametricCreate.ShowModal() == wxID_OK)
+    if (ParCreate.ShowModal() == wxID_OK)
     {
         auto C = std::make_shared<ContourParametric>(
-            funcCtrl.GetValue(), input->GetRes(), input->color,
-            nameCtrl.GetValue(), tStartCtrl.GetValue(), tEndCtrl.GetValue());
+            ParCreate.funcCtrl.GetValue(), input->GetRes(), input->color,
+            ParCreate.nameCtrl.GetValue(), ParCreate.tStartCtrl.GetValue(),
+            ParCreate.tEndCtrl.GetValue());
         input->AddContour(C);
         history.RecordCommand(std::make_unique<CommandAddContour>(input, C));
         if (input->randomizeColor) input->color = input->RandomColor();
@@ -377,8 +349,6 @@ void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
         output->Refresh();
         animPanel->UpdateComboBoxes();
     }
-    // Necessary to stop wxWidgets from deleting stack items twice.
-    ParametricCreate.SetSizer(NULL, false);
 }
 
 inline void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event)
@@ -502,7 +472,7 @@ void MainWindowFrame::OnRedo(wxCommandEvent& event)
 
 void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
 {
-    ExportImageDialog Export(this, saveFileName, saveFilePath, input, true);
+    DialogExportImage Export(this, saveFileName, saveFilePath, input, true);
 
     std::string inputFilePath;
     std::string outputFilePath;
@@ -527,11 +497,8 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
     }
     else
     {
-        Export.SetSizer(NULL, false);
         return;
     }
-    // Necessary to stop wxWidgets from deleting stack items twice.
-    Export.SetSizer(NULL, false);
 
     frameTime = 1000 * frameLen + 0.5;
 
@@ -563,12 +530,6 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
             tempInput->Hide();
             tempOutput->Hide();
     };
-
-    //tempInput->DrawFrame(image);
-    //image.SaveFile(name, wxBITMAP_TYPE_PNG);
-    //src->DrawFrame(image);
-    //image.SaveFile(name2, wxBITMAP_TYPE_PNG);
-
 
     // src is the plane from which the animation is generated.
     // Input and output planes must both be passed to this function, and
@@ -650,7 +611,7 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
 void MainWindowFrame::OnExportImage(wxCommandEvent& event)
 {
     std::string exportPath;
-    ExportImageDialog Export(this, saveFileName, saveFilePath, input, false);
+    DialogExportImage Export(this, saveFileName, saveFilePath, input, false);
 
     std::string inputFilePath;
     std::string outputFilePath;
@@ -768,11 +729,3 @@ void MainWindowFrame::RefreshAll()
         TP->Populate();
     }
 }
-
-std::string removeExt(const std::string& str)
-{
-    size_t lastindex = str.find_last_of(".");
-    if (lastindex != std::string::npos)
-        return str.substr(0, lastindex);
-    else return str;
-};

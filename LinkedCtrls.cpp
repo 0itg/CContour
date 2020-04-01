@@ -1,4 +1,4 @@
-#include "LinkedTextCtrl.h"
+#include "LinkedCtrls.h"
 #include "ContourParametric.h"
 #include "InputPlane.h"
 #include "ToolPanel.h"
@@ -159,9 +159,12 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, std::shared_ptr<Animation> 
 {
     panel          = new wxPanel(parent);
     pathChoices = input->GetContourNames();
-    commandChoices.Add("Translate");
+    commandChoices.Add("Translate (follow path)");
+    commandChoices.Add("Parameterize Variable");
     commandChoices.Add("Move Ctrl Point");
-    commandChoices.Add("Parameterize Var");
+    commandChoices.Add("Rotate and Scale");
+    commandChoices.Add("Rotate (arg of path)");
+    commandChoices.Add("Scale (magnitude of path)");
 
     auto panelID        = panel->GetId();
     auto subjectLabel   = new wxStaticText(panel, panelID, "Subject: ");
@@ -259,22 +262,32 @@ void AnimCtrl::WriteLinked()
         auto command = commandMenu->GetSelection();
         if (C != pathContour && (C != nullptr || command == COMMAND_EDIT_VAR))
         {
+            bool subdivide = true;
             switch (command)
             {
             case COMMAND_PLACE_AT:
                 // Center is first on list and has index -1, hence handle -1.
                 anim->AddCommand(std::make_unique<CommandContourPlaceAt>(
                     C.get(), 0, handle - 1));
-                anim->AddCommand(std::make_unique<CommandContourSubdivide>(
-                    C.get(), input->GetRes()));
                 break;
             case COMMAND_SET_PT:
                 anim->AddCommand(std::make_unique<CommandContourSetPoint>(
                     C.get(), 0, handle));
-                anim->AddCommand(std::make_unique<CommandContourSubdivide>(
-                    C.get(), input->GetRes()));
+                break;
+            case COMMAND_ROT_AND_SCALE:
+                anim->AddCommand(std::make_unique<CommandContourRotateAndScale>(
+                    C.get(), 1, C->GetCtrlPoint(handle-1)));                
+                break;
+            case COMMAND_ROT:
+                anim->AddCommand(std::make_unique<CommandContourRotate>(
+                    C.get(), 1, C->GetCtrlPoint(handle - 1)));
+                break;
+            case COMMAND_SCALE:
+                anim->AddCommand(std::make_unique<CommandContourScale>(
+                    C.get(), 1, C->GetCtrlPoint(handle - 1)));
                 break;
             case COMMAND_EDIT_VAR:
+                subdivide = false;
                 auto f = input->GetFunction();
                 if (C && C->IsParametric())
                     f = reinterpret_cast<ContourParametric*>(C.get())->GetFunction();
@@ -283,6 +296,9 @@ void AnimCtrl::WriteLinked()
                 anim->animateGrid = true;
                 break;
             }
+            if (subdivide)
+                anim->AddCommand(std::make_unique<CommandContourSubdivide>(
+                    C.get(), input->GetRes()));
         }
     }
 }
@@ -315,7 +331,6 @@ void AnimCtrl::UpdateCtrl()
     auto sel4      = durationCtrl->GetCtrlPtr()->GetValue();
     auto sel5      = bounceCtrl->GetValue();
 
-    //subjectMenu->Set(pathChoices);
     pathMenu->Set(pathChoices);
     handleMenu->Set(handleChoices);
 
@@ -341,6 +356,9 @@ void AnimCtrl::PopulateHandleMenu()
         switch (cmd)
         {
         case COMMAND_PLACE_AT:
+        case COMMAND_ROT_AND_SCALE:
+        case COMMAND_ROT:
+        case COMMAND_SCALE:
             handleChoices.Add("Center");
         case COMMAND_SET_PT:
         {

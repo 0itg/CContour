@@ -26,6 +26,7 @@ OutputPlane::OutputPlane(wxWindow* parent, InputPlane* In, const std::string& n)
 {
     f = parser.Parse("z*z");
     In->AddOutputPlane(this);
+    cullLargeSegments = true;
 };
 
 void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)

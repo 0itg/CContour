@@ -176,6 +176,7 @@ class ComplexPlane : public wxPanel
 
     Axes axes;
     bool movedViewPort = true;
+    bool cullLargeSegments = false;
 
   protected:
     std::string name;

@@ -29,17 +29,21 @@ void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
     auto screenH = abs(
         canvas->LengthYToScreen(canvas->axes.imagMax - canvas->axes.imagMin));
 
-    // If the distance between two points is greater than the distance across
-    // the screen, assume it really should be a discontinuity and skip it.
     for (auto pt = screenPoints.begin(); pt != screenPoints.end() - 1; pt++)
     {
         auto p1 = *pt;
         auto p2 = *(pt + 1);
-        if ((abs(p2.x - p1.x) < screenW) && (abs(p2.y - p1.y) < screenH))
+        // If canvas->cullLargeSegments and the distance between two points is
+        // greater than the distance across the screen, assume it really should
+        // be a discontinuity and skip it.
+        if (!canvas->cullLargeSegments ||
+            ((abs(p2.x - p1.x) < screenW) && (abs(p2.y - p1.y) < screenH)))
             DrawClippedLine(p1, p2, dc, canvas);
     }
     if (closed)
         DrawClippedLine(screenPoints.back(), screenPoints.front(), dc, canvas);
+    /*if (closed) dc->DrawPolygon(screenPoints.size(), &screenPoints.front());
+    else dc->DrawLines(screenPoints.size(), &screenPoints.front());*/
 }
 
 int ContourPolygon::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)

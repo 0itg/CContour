@@ -51,9 +51,6 @@
     <ClCompile Include="ToolPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinkedTextCtrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,7 +60,16 @@
     <ClCompile Include="ContourParametric.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExportImageDialog.cpp">
+    <ClCompile Include="DialogExportImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogCreateParametricCurve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkedCtrls.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -110,9 +116,6 @@
     <ClInclude Include="ToolPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LinkedTextCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="zeta.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -125,7 +128,16 @@
     <ClInclude Include="ContourParametric.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExportImageDialog.h">
+    <ClInclude Include="DialogExportImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogCreateParametricCurve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedCtrls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -31,7 +31,6 @@ class Animation
   public:
     Animation() : f([](cplx c) { return c; }) {}
     void FrameAt(int t);
-    void Reset();
     void AddCommand(std::unique_ptr<Command> C)
     {
         commands.push_back(std::move(C));
