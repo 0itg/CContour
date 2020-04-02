@@ -69,12 +69,6 @@ void ContourCircle::Subdivide(int res)
     markedForRedraw = true;
 }
 
-void ContourCircle::Scale(double factor, cplx pivot)
-{
-    Contour::Scale(factor, pivot);
-    radius *= factor;
-}
-
 void ContourCircle::RotateAndScale(cplx V, cplx pivot)
 {
     Contour::RotateAndScale(V, pivot);

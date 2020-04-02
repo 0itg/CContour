@@ -14,7 +14,7 @@ class CommandHistory;
 
 class MainWindowFrame : public wxFrame
 {
-    public:
+public:
     MainWindowFrame(const wxString& title, const wxPoint& pos,
                     const wxSize& size,
                     const long style = wxDEFAULT_FRAME_STYLE);
@@ -27,7 +27,7 @@ class MainWindowFrame : public wxFrame
 
     CommandHistory history;
 
-    private:
+private:
     InputPlane* input;
     OutputPlane* output;
     NumCtrlPanel* numCtrlPanel;

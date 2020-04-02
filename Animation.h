@@ -28,7 +28,7 @@ class Animation
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     Animation() : f([](cplx c) { return c; }) {}
     void FrameAt(int t);
     void AddCommand(std::unique_ptr<Command> C)
@@ -57,7 +57,7 @@ class Animation
 
     bool animateGrid = false;
 
-    private:
+private:
     std::shared_ptr<Contour> path;
     std::vector<std::unique_ptr<Command>> commands;
 

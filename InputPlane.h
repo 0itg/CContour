@@ -31,7 +31,7 @@ class InputPlane : public ComplexPlane
     friend class OutputPlane;
     friend class boost::serialization::access;
 
-    public:
+public:
     InputPlane() {}
     InputPlane(wxWindow* parent, const std::string& n = "Input")
         : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
@@ -57,7 +57,6 @@ class InputPlane : public ComplexPlane
     void OnContourResCtrl(wxCommandEvent& event);
     void OnMouseMovingIdle(wxMouseEvent& mouse);
 
-    void DeSelect();
     int GetState() const { return state; }
     int GetRes() const { return res; }
     void RecalcAll();
@@ -129,7 +128,8 @@ class InputPlane : public ComplexPlane
     int LineCount       = 0;
     int ParametricCount = 0;
 
-    private:
+private:
+    void DeSelect();
     void SelectionTool(wxMouseEvent& mouse);
     // Workaround for wxWidgets handling double clicks poorly in modal dialigs
     void wxDClickWorkaround();

@@ -9,7 +9,7 @@ class ContourRect : public ContourPolygon
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     ContourRect() noexcept { closed = true; }
     ContourRect(cplx c, wxColor col = wxColor(255, 255, 255),
                 std::string n = "Rectangle") noexcept;
@@ -28,7 +28,7 @@ class ContourRect : public ContourPolygon
     // Since rotation is disabled, the function ignores the arg and just scales.
     virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

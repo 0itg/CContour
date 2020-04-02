@@ -41,7 +41,7 @@ class Contour
     friend class ToolPanel;
     friend class boost::serialization::access;
 
-    public:
+public:
     virtual ~Contour() {}
     virtual Contour* Clone() = 0;
 
@@ -122,14 +122,14 @@ class Contour
     // should skip it.
     bool isPathOnly = false;
 
-    protected:
+protected:
     std::string name;
     std::vector<cplx> points;
     std::vector<cplx> subDiv;
 
     cplx center;
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

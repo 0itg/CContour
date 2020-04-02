@@ -10,7 +10,7 @@ class ContourPolygon : public Contour
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     // ContourPolygon() {}
     ContourPolygon(cplx c, wxColor col = wxColor(0, 0, 0),
                    std::string n = "Polygon") noexcept;
@@ -31,13 +31,13 @@ class ContourPolygon : public Contour
     virtual cplx Interpolate(double t);
     void Subdivide(int res);
 
-    protected:
+protected:
     bool closed = false;
     std::vector<double> sideLengths;
     double perimeter = 0;
     void CalcSideLengths();
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

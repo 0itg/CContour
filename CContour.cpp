@@ -11,7 +11,7 @@
 
 class ContourViewer : public wxApp
 {
-    public:
+public:
     virtual bool OnInit();
     // virtual int OnExit();
 };

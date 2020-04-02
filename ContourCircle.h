@@ -10,7 +10,7 @@ class ContourCircle : public Contour
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     ContourCircle() noexcept {}
     ContourCircle(cplx c, double r = 0, wxColor col = wxColor(255, 255, 255),
                   std::string n = "Circle") noexcept;
@@ -31,12 +31,11 @@ class ContourCircle : public Contour
     void SetRadius(double r) { radius = r; }
     double GetRadius() { return radius; }
 
-    virtual void Scale(double factor, cplx pivot = cplx(INFINITY, INFINITY));
     virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
 
     virtual std::tuple<int, int, int> PopulateSupplementalMenu(ToolPanel* TP);
 
-    private:
+private:
     double radius = 0;
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)

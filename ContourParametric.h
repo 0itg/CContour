@@ -10,7 +10,7 @@ class ContourParametric : public ContourPolygon
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     ContourParametric() {}
     ContourParametric(std::string func, int res = 200,
                       wxColor col   = wxColor(0, 0, 0),
@@ -56,7 +56,7 @@ class ContourParametric : public ContourPolygon
     {
     }
 
-    private:
+private:
     double tStart = 0;
     double tEnd   = 1;
     Parser<cplx> parser;
