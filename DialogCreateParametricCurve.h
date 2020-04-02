@@ -9,7 +9,7 @@
 
 class DialogCreateParametricCurve : public wxDialog
 {
-    public:
+public:
     DialogCreateParametricCurve(wxWindow* parent,
                                 std::string defName = "Parametric Curve");
     ~DialogCreateParametricCurve() { SetSizer(NULL, false); }

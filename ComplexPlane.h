@@ -78,7 +78,7 @@ struct Axes
     const int LABEL_PADDING = 4;
     void RecalcSteps();
     // void CopySettings(const Axes& A);
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -93,7 +93,7 @@ class ComplexPlane : public wxPanel
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     ComplexPlane() {}
     ComplexPlane(wxWindow* parent, const std::string& name);
     // ComplexPlane(const ComplexPlane& P);
@@ -179,7 +179,7 @@ class ComplexPlane : public wxPanel
     bool movedViewPort     = true;
     bool cullLargeSegments = false;
 
-    protected:
+protected:
     std::string name;
     std::vector<std::shared_ptr<Contour>> contours;
     int active              = -1;
@@ -199,7 +199,7 @@ class ComplexPlane : public wxPanel
     NumCtrlPanel* toolPanel;
     CommandHistory* history;
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

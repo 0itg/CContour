@@ -12,7 +12,7 @@ class InputPlane;
 
 class DialogExportImage : public wxDialog
 {
-    public:
+public:
     DialogExportImage(wxWindow* parent, const std::string& saveFileName,
                       const std::string& saveFilePath, InputPlane* input,
                       bool animation = false);

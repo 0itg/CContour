@@ -29,7 +29,7 @@ class OutputPlane : public ComplexPlane
     friend class boost::serialization::access;
     friend class InputPlane;
 
-    public:
+public:
     OutputPlane() {}
     OutputPlane(wxWindow* parent, InputPlane* In,
                 const std::string& name = "Output");
@@ -66,7 +66,7 @@ class OutputPlane : public ComplexPlane
 
     ParsedFunc<cplx> f;
 
-    private:
+private:
     Parser<cplx> parser;
     TransformedGrid tGrid;
 

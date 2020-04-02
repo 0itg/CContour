@@ -55,7 +55,7 @@ class Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     virtual ~Command() {}
     virtual void exec() = 0;
     // If a command is not invertible, it must store the state of the relevant
@@ -64,7 +64,7 @@ class Command
     // Used for animations.
     virtual void SetPositionParam(cplx c){};
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -75,7 +75,7 @@ BOOST_SERIALIZATION_ASSUME_ABSTRACT(Command)
 // Simple undo/redo system.
 class CommandHistory
 {
-    public:
+public:
     void undo();
     void redo();
     void SetMenu(wxMenu* m) { menu = m; }
@@ -86,7 +86,7 @@ class CommandHistory
     void PopCommand();
     void Clear();
 
-    private:
+private:
     std::vector<std::unique_ptr<Command>> history;
     size_t index = 0;
     wxMenu* menu; // For enabling/disabling undo/redo buttons
@@ -96,7 +96,7 @@ class CommandContourTranslate : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourTranslate() = default;
     CommandContourTranslate(Contour* s, cplx n, cplx o)
         : newPos(n), oldPos(o), subject(s)
@@ -107,7 +107,7 @@ class CommandContourTranslate : public Command
     void undo();
     void SetPositionParam(cplx c) { newPos = c; }
 
-    private:
+private:
     cplx newPos;
     cplx oldPos;
     Contour* subject;
@@ -129,7 +129,7 @@ class CommandContourPlaceAt : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourPlaceAt() = default;
     CommandContourPlaceAt(Contour* s, cplx n = 0, int pt = -1);
 
@@ -137,7 +137,7 @@ class CommandContourPlaceAt : public Command
     void undo();
     void SetPositionParam(cplx c) { newPos = c; }
 
-    private:
+private:
     int point;
     cplx oldPos;
     cplx newPos;
@@ -158,7 +158,7 @@ class CommandContourSetPoint : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourSetPoint() = default;
     CommandContourSetPoint(Contour* s, cplx n, int i);
     CommandContourSetPoint(Contour* s, cplx n, int i, cplx old);
@@ -167,7 +167,7 @@ class CommandContourSetPoint : public Command
     void undo();
     void SetPositionParam(cplx c) { newPos = c; }
 
-    private:
+private:
     cplx newPos;
     cplx oldPos;
     int index;
@@ -188,7 +188,7 @@ class CommandContourRotateAndScale : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourRotateAndScale() = default;
     CommandContourRotateAndScale(Contour* s, cplx c = 1,
                                  cplx piv = cplx(INFINITY, INFINITY));
@@ -201,13 +201,13 @@ class CommandContourRotateAndScale : public Command
         V     = c;
     }
 
-    protected:
+protected:
     cplx V;
     cplx Vlast = 1;
     cplx pivot;
     Contour* subject;
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -223,7 +223,7 @@ class CommandContourRotate : public CommandContourRotateAndScale
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourRotate() = default;
     CommandContourRotate(Contour* s, cplx c = 1,
                          cplx piv = cplx(INFINITY, INFINITY))
@@ -237,7 +237,7 @@ class CommandContourRotate : public CommandContourRotateAndScale
         V     = c / abs(c);
     }
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -250,7 +250,7 @@ class CommandContourScale : public CommandContourRotateAndScale
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourScale() = default;
     CommandContourScale(Contour* s, cplx c = 1,
                         cplx piv = cplx(INFINITY, INFINITY))
@@ -264,7 +264,7 @@ class CommandContourScale : public CommandContourRotateAndScale
         V     = abs(c);
     }
 
-    private:
+private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -277,7 +277,7 @@ class CommandContourAddPoint : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourAddPoint() = default;
     CommandContourAddPoint(Contour* s, cplx n) : mPos(n), subject(s) {}
 
@@ -285,7 +285,7 @@ class CommandContourAddPoint : public Command
     void undo();
     void SetPositionParam(cplx c) { mPos = c; }
 
-    private:
+private:
     cplx mPos;
     int index;
     Contour* subject;
@@ -304,14 +304,14 @@ class CommandContourRemovePoint : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourRemovePoint() = default;
     CommandContourRemovePoint(Contour* s, int i);
 
     void exec();
     void undo();
 
-    private:
+private:
     int index;
     cplx oldPos;
     Contour* subject;
@@ -329,14 +329,14 @@ class CommandContourEditRadius : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourEditRadius() = default;
     CommandContourEditRadius(ContourCircle* s, double rad);
     void exec();
     void undo();
     void SetPositionParam(cplx c);
 
-    private:
+private:
     ContourCircle* subject;
     double radius;
     double oldRad;
@@ -357,7 +357,7 @@ class CommandContourSubdivide : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourSubdivide() = default;
     CommandContourSubdivide(Contour* s, int i) : res(i), subject(s) {}
 
@@ -366,7 +366,7 @@ class CommandContourSubdivide : public Command
     // since it should be overwritten next time it's needed.
     void undo() {}
 
-    private:
+private:
     int res;
     Contour* subject;
 
@@ -383,7 +383,7 @@ class CommandAddContour : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandAddContour() = default;
     CommandAddContour(InputPlane* s, std::shared_ptr<Contour> c)
         : subject(s), C(c)
@@ -393,7 +393,7 @@ class CommandAddContour : public Command
     void exec();
     void undo();
 
-    private:
+private:
     InputPlane* subject;
     std::shared_ptr<Contour> C;
 
@@ -410,14 +410,14 @@ class CommandRemoveContour : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandRemoveContour() = default;
     CommandRemoveContour(InputPlane* s, size_t i);
 
     void exec();
     void undo();
 
-    private:
+private:
     InputPlane* subject;
     size_t index;
     std::shared_ptr<Contour> C;
@@ -436,14 +436,14 @@ class CommandContourColorSet : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandContourColorSet() = default;
     CommandContourColorSet(Contour* s, wxColor col);
 
     void exec();
     void undo();
 
-    private:
+private:
     Contour* subject;
     wxColor color;
     wxColor oldColor;
@@ -462,7 +462,7 @@ class CommandAxesSet : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandAxesSet() = default;
     CommandAxesSet(ComplexPlane* parent, double rMin, double rMax, double iMin,
                    double iMax);
@@ -472,7 +472,7 @@ class CommandAxesSet : public Command
     void undo();
     void SetPositionParam(cplx c);
 
-    private:
+private:
     ComplexPlane* parent;
     Grid* grid;
     Axes* subject;
@@ -495,14 +495,14 @@ class CommandAxesReset : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandAxesReset() = default;
     CommandAxesReset(ComplexPlane* par, Grid* grid = nullptr);
 
     void exec();
     void undo();
 
-    private:
+private:
     double oldBounds[4];
     ComplexPlane* parent;
     Grid* grid;
@@ -522,14 +522,14 @@ class CommandParametricFuncEntry : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandParametricFuncEntry() = default;
     CommandParametricFuncEntry(ContourParametric* C, ParsedFunc<cplx> g);
 
     void exec();
     void undo();
 
-    private:
+private:
     ContourParametric* subject;
     ParsedFunc<cplx> oldfunc;
     ParsedFunc<cplx> newfunc;
@@ -548,14 +548,14 @@ class CommandOutputFuncEntry : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandOutputFuncEntry() = default;
     CommandOutputFuncEntry(ParsedFunc<cplx> g, OutputPlane* par);
 
     void exec();
     void undo();
 
-    private:
+private:
     OutputPlane* parent;
     ParsedFunc<cplx> oldfunc;
     ParsedFunc<cplx> newfunc;
@@ -574,7 +574,7 @@ class CommandEditVar : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandEditVar() = default;
     CommandEditVar(std::string tok, cplx c, ParsedFunc<cplx>* f);
 
@@ -582,7 +582,7 @@ class CommandEditVar : public Command
     void undo();
     virtual void SetPositionParam(cplx c) { newVal = c; }
 
-    private:
+private:
     std::string token;
     cplx newVal;
     cplx oldVal;
@@ -603,14 +603,14 @@ class CommandAddAnim : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandAddAnim() = default;
     CommandAddAnim(std::shared_ptr<Animation> s, InputPlane* in);
 
     void exec();
     void undo();
 
-    private:
+private:
     std::shared_ptr<Animation> subject;
     InputPlane* parent;
     size_t index;
@@ -629,14 +629,14 @@ class CommandRemoveAnim : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandRemoveAnim() = default;
     CommandRemoveAnim(int i, InputPlane* in);
 
     void exec();
     void undo();
 
-    private:
+private:
     std::shared_ptr<Animation> subject;
     InputPlane* parent;
     size_t index;
@@ -655,7 +655,7 @@ class CommandEditAnim : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandEditAnim() = default;
     CommandEditAnim(std::shared_ptr<Animation> A, int dur_ms, int reverse,
                     double offset, bool bounce, int sel1, int sel2, int sel3,
@@ -664,7 +664,7 @@ class CommandEditAnim : public Command
     void exec();
     void undo();
 
-    private:
+private:
     std::shared_ptr<Animation> subject;
     std::shared_ptr<Contour> newPath;
     std::shared_ptr<Contour> oldPath;
@@ -707,14 +707,14 @@ class CommandSetFlag : public Command
 {
     friend class boost::serialization::access;
 
-    public:
+public:
     CommandSetFlag() = default;
     CommandSetFlag(bool* s, bool val) : subject(s), value(val), old(*s) {}
 
     void exec() { *subject = value; }
     void undo() { *subject = old; }
 
-    private:
+private:
     bool* subject;
     bool old;
     bool value;
