@@ -29,7 +29,7 @@ class Grid
     friend class TransformedGrid;
     friend class boost::serialization::access;
 
-  public:
+    public:
     Grid() {}
     Grid(ComplexPlane* par) : parent(par) {}
     Grid(ComplexPlane* par, double h, double v)
@@ -47,10 +47,10 @@ class Grid
     double vStep  = 1;
     wxColor color = wxColor(216, 216, 216);
 
-  protected:
+    protected:
     ComplexPlane* parent;
 
-  private:
+    private:
     std::vector<std::unique_ptr<ContourLine>> lines;
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
@@ -65,7 +65,7 @@ class TransformedGrid : public Grid
 {
     friend class boost::serialization::access;
 
-  public:
+    public:
     TransformedGrid() {}
     TransformedGrid(ComplexPlane* par) : Grid(par) {}
 
@@ -76,7 +76,7 @@ class TransformedGrid : public Grid
     void MapGrid(const Grid& grid, ParsedFunc<cplx>& f);
     int res = 200;
 
-  private:
+    private:
     std::vector<std::unique_ptr<ContourPolygon>> lines;
 
     template <class Archive>

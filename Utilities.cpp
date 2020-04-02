@@ -4,8 +4,8 @@
 double DistancePointToLine(cplx pt, cplx z1, cplx z2)
 {
     double n = abs((z2.imag() - z1.imag()) * pt.real() -
-        (z2.real() - z1.real()) * pt.imag() + z2.real() * z1.imag() -
-        z1.real() * z2.imag());
+                   (z2.real() - z1.real()) * pt.imag() + z2.real() * z1.imag() -
+                   z1.real() * z2.imag());
     double d = abs(z2 - z1);
     if (d != 0)
         return n / d;
@@ -29,20 +29,20 @@ void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas)
 {
     const int PADDING = 4;
     wxPoint size(canvas->GetClientSize().x + PADDING,
-        canvas->GetClientSize().y + PADDING);
+                 canvas->GetClientSize().y + PADDING);
 
     auto IsLineOffscreen = [&](wxPoint p1, wxPoint p2) {
         return ((p1.x < -PADDING && p2.x < -PADDING) ||
-            (p1.y < -PADDING && p2.y < -PADDING) ||
-            (p1.x > size.x&& p2.x > size.x) ||
-            (p1.y > size.y&& p2.y > size.y));
+                (p1.y < -PADDING && p2.y < -PADDING) ||
+                (p1.x > size.x && p2.x > size.x) ||
+                (p1.y > size.y && p2.y > size.y));
     };
 
     if (!IsLineOffscreen(p1, p2))
     {
-        double dx = p2.x - p1.x;
-        double dy = p2.y - p1.y;
-        double slope = NAN;
+        double dx         = p2.x - p1.x;
+        double dy         = p2.y - p1.y;
+        double slope      = NAN;
         double slopeRecip = NAN;
 
         if (dx)
@@ -51,7 +51,7 @@ void DrawClippedLine(wxPoint p1, wxPoint p2, wxDC* dc, ComplexPlane* canvas)
             if (slope) slopeRecip = 1.0 / slope;
         }
 
-        for (auto p : { p1, p2 })
+        for (auto p : {p1, p2})
         {
             if (!isnan(slope))
             {
@@ -103,5 +103,6 @@ std::string removeExt(const std::string& str)
     size_t lastindex = str.find_last_of(".");
     if (lastindex != std::string::npos)
         return str.substr(0, lastindex);
-    else return str;
+    else
+        return str;
 };

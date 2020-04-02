@@ -15,7 +15,7 @@ ContourLine::ContourLine(cplx c, cplx d, wxColor col, std::string n) noexcept
 {
     points.push_back(c);
     points.push_back(d);
-    center = c;
+    center = (c + d) / 2.0;
     color  = col;
     name   = n;
 }
@@ -55,6 +55,8 @@ cplx ContourLine::Interpolate(double t)
 
 void ContourLine::Subdivide(int res)
 {
+    if (isPathOnly) return;
+
     subDiv.clear();
     subDiv.reserve(res);
     cplx zStep((points[1].real() - points[0].real()) / res,

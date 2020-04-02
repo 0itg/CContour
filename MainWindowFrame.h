@@ -1,9 +1,9 @@
 #pragma once
 #include "Commands.h"
+#include <thread>
 #include <wx/aui/aui.h>
 #include <wx/clrpicker.h>
 #include <wx/spinctrl.h>
-#include <thread>
 
 class InputPlane;
 class OutputPlane;
@@ -14,15 +14,20 @@ class CommandHistory;
 
 class MainWindowFrame : public wxFrame
 {
-  public:
+    public:
     MainWindowFrame(const wxString& title, const wxPoint& pos,
                     const wxSize& size,
                     const long style = wxDEFAULT_FRAME_STYLE);
-    ~MainWindowFrame() { aui.UnInit(); for (auto& T : threads) T.join(); }
+    ~MainWindowFrame()
+    {
+        aui.UnInit();
+        for (auto& T : threads)
+            T.join();
+    }
 
     CommandHistory history;
 
-  private:
+    private:
     InputPlane* input;
     OutputPlane* output;
     NumCtrlPanel* numCtrlPanel;
@@ -40,6 +45,8 @@ class MainWindowFrame : public wxFrame
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnButtonSelectionTool(wxCommandEvent& event);
+    void OnButtonRotationTool(wxCommandEvent& event);
+    void OnButtonScaleTool(wxCommandEvent& event);
     void OnToolbarContourSelect(wxCommandEvent& event);
     void OnColorPicked(wxColourPickerEvent& col);
     void OnButtonColorRandomizer(wxCommandEvent& event);

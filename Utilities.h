@@ -46,13 +46,13 @@ BOOST_SERIALIZATION_SPLIT_FREE(wxColour)
 // Serialization for wxPoint
 namespace boost
 {
-    namespace serialization
-    {
-        template <class Archive>
-        void serialize(Archive& ar, wxPoint& p, const unsigned int version)
-        {
-            ar& p.x;
-            ar& p.y;
-        }
-    } // namespace serialization
+namespace serialization
+{
+template <class Archive>
+void serialize(Archive& ar, wxPoint& p, const unsigned int version)
+{
+    ar& p.x;
+    ar& p.y;
+}
+} // namespace serialization
 } // namespace boost

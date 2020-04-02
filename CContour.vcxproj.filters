@@ -184,5 +184,11 @@
     <Image Include="icons\play.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="icons\rotation.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icons\scale.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

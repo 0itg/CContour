@@ -77,8 +77,8 @@ struct Axes
     // Labels can get no closer than this to the edge of the plane
     const int LABEL_PADDING = 4;
     void RecalcSteps();
-    //void CopySettings(const Axes& A);
-  private:
+    // void CopySettings(const Axes& A);
+    private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -93,10 +93,10 @@ class ComplexPlane : public wxPanel
 {
     friend class boost::serialization::access;
 
-  public:
+    public:
     ComplexPlane() {}
     ComplexPlane(wxWindow* parent, const std::string& name);
-    //ComplexPlane(const ComplexPlane& P);
+    // ComplexPlane(const ComplexPlane& P);
     virtual ~ComplexPlane() {}
 
     // Functions for converting between screen and mathematical coordinates.
@@ -149,8 +149,8 @@ class ComplexPlane : public wxPanel
     void ClearContours();
     virtual void UpdateGrid() {}
 
-    int GetHighlightedContour() { return highlightedContour; }
-    void SetHighlightedContour(int h) { highlightedContour = h; }
+    int GetHighlightedContour() { return active; }
+    void SetHighlightedContour(int h) { active = h; }
 
     wxArrayString GetContourNames();
     // Needs a better name. If true, returns a map of all the parametric
@@ -166,7 +166,8 @@ class ComplexPlane : public wxPanel
             return nullptr;
         else if (index < contours.size())
             return contours[index];
-        else return nullptr;
+        else
+            return nullptr;
     }
 
     void SetCommandHistory(CommandHistory* h) { history = h; }
@@ -175,16 +176,16 @@ class ComplexPlane : public wxPanel
     virtual bool DrawFrame(wxBitmap& image, double t = -1) { return false; }
 
     Axes axes;
-    bool movedViewPort = true;
+    bool movedViewPort     = true;
     bool cullLargeSegments = false;
 
-  protected:
+    protected:
     std::string name;
     std::vector<std::shared_ptr<Contour>> contours;
-    int highlightedContour   = -1;
-    int state                = -1;
-    int highlightedCtrlPoint = -1;
-    const double zoomFactor  = 1.1;
+    int active              = -1;
+    int state               = -1;
+    int activePt            = -1;
+    const double zoomFactor = 1.1;
     cplx lastMousePos;
     cplx lastClickPos;
 
@@ -198,7 +199,7 @@ class ComplexPlane : public wxPanel
     NumCtrlPanel* toolPanel;
     CommandHistory* history;
 
-  private:
+    private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
@@ -207,10 +208,10 @@ class ComplexPlane : public wxPanel
         movedViewPort = false;
         ar& name;
         ar& contours;
-        highlightedContour   = -1;
-        state                = -1;
-        highlightedCtrlPoint = -1;
-        panning              = false;
+        active   = -1;
+        state    = -1;
+        activePt = -1;
+        panning  = false;
         ar& showAxes;
         ar& showGrid;
         // NOTE: Must set parent and pointers to other controls manually

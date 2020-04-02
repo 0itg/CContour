@@ -4,6 +4,8 @@
 #include "InputPlane.h"
 #include "OutputPlane.h"
 
+// BOOST_CLASS_EXPORT_IMPLEMENT(CommandSetFlag)
+BOOST_CLASS_EXPORT_IMPLEMENT(CommandEditAnim)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandEditVar)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesReset)
@@ -43,7 +45,7 @@ CommandContourSetPoint::CommandContourSetPoint(Contour* s, cplx n, int i)
 }
 
 CommandContourSetPoint::CommandContourSetPoint(Contour* s, cplx n, int i,
-                                                 cplx old)
+                                               cplx old)
     : newPos(n), index(i), subject(s)
 {
     oldPos = old;
@@ -129,7 +131,8 @@ void CommandAxesSet::SetPositionParam(cplx c)
         newBounds[i] = subject->c[i];
 }
 
-CommandAxesReset::CommandAxesReset(ComplexPlane* par, Grid* g) : subject(&par->axes), parent(par), grid(g)
+CommandAxesReset::CommandAxesReset(ComplexPlane* par, Grid* g)
+    : subject(&par->axes), parent(par), grid(g)
 {
     for (int i = 0; i < 4; i++)
         oldBounds[i] = subject->c[i];
@@ -289,17 +292,13 @@ CommandContourColorSet::CommandContourColorSet(Contour* s, wxColor col)
     oldColor = s->color;
 }
 
-void CommandContourColorSet::exec()
-{
-    subject->color           = color;
-}
+void CommandContourColorSet::exec() { subject->color = color; }
 
-void CommandContourColorSet::undo()
-{
-    subject->color           = oldColor;
-}
+void CommandContourColorSet::undo() { subject->color = oldColor; }
 
-CommandOutputFuncEntry::CommandOutputFuncEntry(ParsedFunc<cplx> g, OutputPlane* par) : newfunc(g), parent(par)
+CommandOutputFuncEntry::CommandOutputFuncEntry(ParsedFunc<cplx> g,
+                                               OutputPlane* par)
+    : newfunc(g), parent(par)
 {
     oldfunc = parent->GetFunc();
 }
@@ -316,64 +315,53 @@ void CommandOutputFuncEntry::undo()
     parent->GetFuncInput()->SetValue(oldfunc.GetInputText());
 }
 
-CommandEditVar::CommandEditVar(std::string tok, cplx c, ParsedFunc<cplx>* f) :
-    token(tok), newVal(c), func(f)
+CommandEditVar::CommandEditVar(std::string tok, cplx c, ParsedFunc<cplx>* f)
+    : token(tok), newVal(c), func(f)
 {
     oldVal = f->GetVar(tok)->GetVal();
 }
 
-void CommandEditVar::exec()
+void CommandEditVar::exec() { func->SetVariable(token, newVal); }
+
+void CommandEditVar::undo() { func->SetVariable(token, oldVal); }
+
+CommandAddAnim::CommandAddAnim(std::shared_ptr<Animation> s, InputPlane* in)
+    : subject(s), parent(in)
 {
-    func->SetVariable(token, newVal);
+    index = parent->AnimCount() - 1;
 }
 
-void CommandEditVar::undo()
-{
-    func->SetVariable(token, oldVal);
-}
+void CommandAddAnim::exec() { parent->AddAnimation(subject); }
 
-CommandAddAnim::CommandAddAnim(std::shared_ptr<Animation> s, InputPlane* in) : subject(s), parent(in)
-{
-    index = parent->AnimCount()-1;
-}
+void CommandAddAnim::undo() { parent->RemoveAnimation(index); }
 
-void CommandAddAnim::exec()
-{
-    parent->AddAnimation(subject);
-}
-
-void CommandAddAnim::undo()
-{
-    parent->RemoveAnimation(index);
-}
-
-CommandRemoveAnim::CommandRemoveAnim(int i, InputPlane* in) : index(i), parent(in)
+CommandRemoveAnim::CommandRemoveAnim(int i, InputPlane* in)
+    : index(i), parent(in)
 {
     subject = parent->GetAnimation(i);
 }
 
-void CommandRemoveAnim::exec()
-{
-    parent->RemoveAnimation(index);
-}
+void CommandRemoveAnim::exec() { parent->RemoveAnimation(index); }
 
-void CommandRemoveAnim::undo()
-{
-    parent->InsertAnimation(index, subject);
-}
+void CommandRemoveAnim::undo() { parent->InsertAnimation(index, subject); }
 
-CommandEditAnim::CommandEditAnim(std::shared_ptr<Animation> A, int dur_ms, int reverse, double offset, bool bounce, int sel1, int sel2, int sel3, int handle, std::shared_ptr<Contour> C)
-    : newDur_ms(dur_ms), newReverse(reverse), newOffset(offset), newBounce(bounce), newsel1(sel1), newsel2(sel2), newsel3(sel3), newhandle(handle), newPath(C), subject(A)
+CommandEditAnim::CommandEditAnim(std::shared_ptr<Animation> A, int dur_ms,
+                                 int reverse, double offset, bool bounce,
+                                 int sel1, int sel2, int sel3, int handle,
+                                 std::shared_ptr<Contour> C)
+    : newDur_ms(dur_ms), newReverse(reverse), newOffset(offset),
+      newBounce(bounce), newsel1(sel1), newsel2(sel2), newsel3(sel3),
+      newhandle(handle), newPath(C), subject(A)
 {
-    oldDur_ms = subject->duration_ms;
+    oldDur_ms  = subject->duration_ms;
     oldReverse = subject->reverse;
-    oldOffset = subject->offset;
-    oldBounce = subject->bounce;
-    oldsel1 = subject->subjSel;
-    oldsel2 = subject->comSel;
-    oldsel3 = subject->pathSel;
-    oldhandle = subject->handle;
-    oldPath = subject->GetPath();
+    oldOffset  = subject->offset;
+    oldBounce  = subject->bounce;
+    oldsel1    = subject->subjSel;
+    oldsel2    = subject->comSel;
+    oldsel3    = subject->pathSel;
+    oldhandle  = subject->handle;
+    oldPath    = subject->GetPath();
 }
 
 void CommandEditAnim::exec()
@@ -402,11 +390,14 @@ void CommandEditAnim::undo()
     subject->SetPathContour(oldPath);
 }
 
-CommandContourRotateAndScale::CommandContourRotateAndScale(Contour* s, cplx c, cplx piv)
+CommandContourRotateAndScale::CommandContourRotateAndScale(Contour* s, cplx c,
+                                                           cplx piv)
     : subject(s), V(c)
 {
-    if (pivot == cplx(INFINITY, INFINITY)) pivot = s->GetCenter();
-    else pivot = piv;
+    if (pivot == cplx(INFINITY, INFINITY))
+        pivot = s->GetCenter();
+    else
+        pivot = piv;
 }
 
 void CommandContourRotateAndScale::exec()

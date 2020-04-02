@@ -35,7 +35,7 @@ template <class T> class ParsedFunc;
 // derived class may be used to provide that function.
 class ToolPanel : public wxScrolledWindow
 {
-  public:
+    public:
     ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
     virtual ~ToolPanel();
     virtual void OnTextEntry(wxCommandEvent& event);
@@ -46,6 +46,7 @@ class ToolPanel : public wxScrolledWindow
     {
         OnTextEntry(event);
     }
+    virtual void OnCheckBox(wxCommandEvent& event) { OnTextEntry(event); }
     void ClearPanel();
 
     void AddwxCtrl(wxWindow* D) { wxCtrls.push_back(D); }
@@ -70,7 +71,7 @@ class ToolPanel : public wxScrolledWindow
 
     wxPanel* intermediate;
 
-  protected:
+    protected:
     InputPlane* input;
     std::vector<wxWindow*> wxCtrls;
     std::vector<LinkedCtrl*> linkedCtrls;
@@ -82,7 +83,7 @@ class ToolPanel : public wxScrolledWindow
 // Depending on whether or not a contour is selected.
 class NumCtrlPanel : public ToolPanel
 {
-  public:
+    public:
     NumCtrlPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
                  InputPlane* in = nullptr, OutputPlane* out = nullptr)
         : ToolPanel(parent, ID, pos, size)
@@ -102,7 +103,7 @@ class NumCtrlPanel : public ToolPanel
 
     wxDECLARE_EVENT_TABLE();
 
-  private:
+    private:
     std::vector<OutputPlane*> outputs;
 };
 
@@ -111,7 +112,7 @@ class NumCtrlPanel : public ToolPanel
 // unrecognized text is used in a function.
 class VariableEditPanel : public ToolPanel
 {
-  public:
+    public:
     VariableEditPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
                       OutputPlane* out = nullptr)
         : ToolPanel(parent, ID, pos, size), output(out)
@@ -130,14 +131,14 @@ class VariableEditPanel : public ToolPanel
 
     wxDECLARE_EVENT_TABLE();
 
-  private:
+    private:
     OutputPlane* output;
     ParsedFunc<cplx>* lastFunc;
 };
 
 class AnimPanel : public ToolPanel
 {
-  public:
+    public:
     AnimPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
               InputPlane* in = nullptr);
     void SetInputPlane(InputPlane* in) { input = in; }
@@ -160,6 +161,6 @@ class AnimPanel : public ToolPanel
 
     wxDECLARE_EVENT_TABLE();
 
-  private:
+    private:
     wxButton* newAnimButton;
 };

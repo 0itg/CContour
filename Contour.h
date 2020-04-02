@@ -41,7 +41,7 @@ class Contour
     friend class ToolPanel;
     friend class boost::serialization::access;
 
-  public:
+    public:
     virtual ~Contour() {}
     virtual Contour* Clone() = 0;
 
@@ -56,10 +56,14 @@ class Contour
     virtual Command* CreateActionCommand(cplx c)                        = 0;
 
     virtual void Translate(cplx z1, cplx z2);
-    // if pivot = cplx(INFINITY, INFINITY), default to this->center 
+
+    virtual bool RotationEnabled() { return true; }
+    virtual bool ScalingEnabled() { return true; }
+    // if pivot = cplx(INFINITY, INFINITY), default to this->center
+    virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
+    virtual void Rotate(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
     virtual void Rotate(double angle, cplx pivot = cplx(INFINITY, INFINITY));
     virtual void Scale(double factor, cplx pivot = cplx(INFINITY, INFINITY));
-    virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
 
     // Returns true if editing is finished on this contour.
     virtual bool IsDone() = 0;
@@ -114,21 +118,25 @@ class Contour
 
     // Used for deciding whether OutputPlane needs to recalculate curves.
     bool markedForRedraw = true;
+    // If true, contour should be drawn with dashed lines and OutputPlane
+    // should skip it.
+    bool isPathOnly = false;
 
-  protected:
+    protected:
     std::string name;
     std::vector<cplx> points;
     std::vector<cplx> subDiv;
 
     cplx center;
 
-  private:
+    private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {
         ar& name;
         ar& points;
         ar& color;
+        ar& isPathOnly;
         CalcCenter();
     }
 };
