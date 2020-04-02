@@ -44,7 +44,7 @@ wxEND_EVENT_TABLE();
 
 void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 {
-    wxDClickWorkaround();
+    wxDClickWorkaround()
 
     // if state > STATE_IDLE, then a contour is selected for editing
     // and state equals the index of the contour.
@@ -191,7 +191,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
 
 void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
 {
-    wxDClickWorkaround();
+    wxDClickWorkaround()
 
     if (active > -1)
     {
@@ -205,13 +205,13 @@ void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
 
 void InputPlane::OnMouseLeftUpSelectionTool(wxMouseEvent& mouse)
 {
-    wxDClickWorkaround();
+    wxDClickWorkaround()
     SelectionTool(mouse);
 }
 
 void InputPlane::OnMouseLeftUpRotationTool(wxMouseEvent& mouse)
 {
-    wxDClickWorkaround();
+    wxDClickWorkaround()
 
     auto v = [&] {
         return ScreenToComplex(mouse.GetPosition()) -
@@ -263,7 +263,7 @@ void InputPlane::OnMouseMovingRotationTool(wxMouseEvent& mouse)
 
 void InputPlane::OnMouseLeftUpScaleTool(wxMouseEvent& mouse)
 {
-    wxDClickWorkaround();
+    wxDClickWorkaround()
     auto factor = [&] {
         return ScreenToComplex(mouse.GetPosition()) -
                contours[state]->GetCenter();
@@ -552,13 +552,6 @@ void InputPlane::SelectionTool(wxMouseEvent& mouse)
     {
         toolPanel->PopulateContourTextCtrls(contours[i].get());
     }
-}
-
-void InputPlane::wxDClickWorkaround()
-{
-    if (!mouseLeftDown) return;
-    mouseLeftDown = false;
-    SetFocus();
 }
 
 void InputPlane::RecalcAll()

@@ -131,8 +131,6 @@ public:
 private:
     void DeSelect();
     void SelectionTool(wxMouseEvent& mouse);
-    // Workaround for wxWidgets handling double clicks poorly in modal dialigs
-    void wxDClickWorkaround();
 
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 500;
@@ -161,3 +159,8 @@ private:
     }
     wxDECLARE_EVENT_TABLE();
 };
+
+// Workaround for wxWidgets handling double clicks poorly in modal dialogs.
+#define wxDClickWorkaround() if (!mouseLeftDown) return; \
+                                  mouseLeftDown = false; \
+                                  SetFocus();
