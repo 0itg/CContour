@@ -3,7 +3,6 @@
 
 #include "Event_IDs.h"
 
-
 ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
     : axes(this), wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                           wxFULL_REPAINT_ON_RESIZE),
@@ -12,7 +11,8 @@ ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
 
-//ComplexPlane::ComplexPlane(const ComplexPlane& P) : ComplexPlane(P.GetParent(), P.GetName_())
+// ComplexPlane::ComplexPlane(const ComplexPlane& P) :
+// ComplexPlane(P.GetParent(), P.GetName_())
 //{
 //    for (auto C : P.contours)
 //    {
@@ -127,8 +127,8 @@ void ComplexPlane::RefreshShowAxes_ShowGrid()
 bool ComplexPlane::Highlight(wxPoint mousePos)
 {
     bool notOnAnyContour = true;
-    int lastHC           = highlightedContour;
-    int lastHCP          = highlightedCtrlPoint;
+    int lastHC           = active;
+    int lastHCP          = activePt;
 
     for (int i = 0; i < contours.size(); i++)
     {
@@ -136,26 +136,26 @@ bool ComplexPlane::Highlight(wxPoint mousePos)
             contours[i]->OnCtrlPoint(ScreenToComplex(mousePos), this);
         if (CtrlPtIndex > -1)
         {
-            notOnAnyContour      = false;
-            highlightedCtrlPoint = CtrlPtIndex;
-            highlightedContour   = i;
+            notOnAnyContour = false;
+            activePt        = CtrlPtIndex;
+            active          = i;
         }
         else if (contours[i]->IsPointOnContour(ScreenToComplex(mousePos), this))
         {
-            notOnAnyContour      = false;
-            highlightedContour   = i;
-            highlightedCtrlPoint = -1;
+            notOnAnyContour = false;
+            active          = i;
+            activePt        = -1;
         }
     }
     // Unhighlight the previously highlighted contour if the mouse
     // is not over one anymore.
-    if (highlightedContour > -1 && notOnAnyContour)
+    if (active > -1 && notOnAnyContour)
     {
-        highlightedContour   = -1;
-        highlightedCtrlPoint = -1;
+        active   = -1;
+        activePt = -1;
     }
     // true signals that the highlighted contour has changed.
-    return (highlightedContour != lastHC || highlightedCtrlPoint != lastHCP);
+    return (active != lastHC || activePt != lastHCP);
 }
 
 void ComplexPlane::Pan(wxPoint mousePos)
@@ -203,9 +203,9 @@ void ComplexPlane::Zoom(wxPoint mousePos, int zoomSteps)
 void ComplexPlane::ClearContours()
 {
     contours.clear();
-    highlightedContour   = -1;
-    highlightedCtrlPoint = -1;
-    state                = -1;
+    active   = -1;
+    activePt = -1;
+    state    = -1;
 }
 
 wxArrayString ComplexPlane::GetContourNames()
@@ -226,8 +226,7 @@ std::map<std::string, int> ComplexPlane::GetParametricContours(bool parametric)
     int index = 0;
     for (auto& C : contours)
     {
-        if (C->IsParametric() == parametric)
-            names[C->GetName()] = index;
+        if (C->IsParametric() == parametric) names[C->GetName()] = index;
         index++;
     }
     return names;
@@ -329,7 +328,8 @@ void Axes::Draw(wxDC* dc)
 
 void Axes::RecalcSteps()
 {
-    const double MaxMark = parent->GetClientSize().x / (TARGET_TICK_COUNT / 2.0);
+    const double MaxMark =
+        parent->GetClientSize().x / (TARGET_TICK_COUNT / 2.0);
     const double MinMark = parent->GetClientSize().x / (TARGET_TICK_COUNT);
     if (parent->LengthXToScreen(reStep) < MinMark) { reStep *= 2; }
     else if (parent->LengthXToScreen(reStep) > MaxMark)
@@ -343,7 +343,7 @@ void Axes::RecalcSteps()
     }
 }
 
-//void Axes::CopySettings(const Axes& A)
+// void Axes::CopySettings(const Axes& A)
 //{
 //    for (int i = 0; i < 4; i++)
 //        c[i] = A.c[i];

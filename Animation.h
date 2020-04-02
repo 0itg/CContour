@@ -6,9 +6,9 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/complex.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/unique_ptr.hpp>
-#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 
 #include "Commands.h"
@@ -28,7 +28,7 @@ class Animation
 {
     friend class boost::serialization::access;
 
-  public:
+    public:
     Animation() : f([](cplx c) { return c; }) {}
     void FrameAt(int t);
     void AddCommand(std::unique_ptr<Command> C)
@@ -57,7 +57,7 @@ class Animation
 
     bool animateGrid = false;
 
-  private:
+    private:
     std::shared_ptr<Contour> path;
     std::vector<std::unique_ptr<Command>> commands;
 

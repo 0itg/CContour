@@ -9,7 +9,7 @@ class ContourLine : public Contour
 {
     friend class boost::serialization::access;
 
-  public:
+    public:
     // ContourLine() {}
     ContourLine(cplx c, wxColor col = wxColor(255, 255, 255),
                 std::string n = "Line") noexcept;
@@ -32,7 +32,7 @@ class ContourLine : public Contour
     virtual cplx Interpolate(double t);
     virtual void Subdivide(int res);
 
-  private:
+    private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

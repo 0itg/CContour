@@ -4,7 +4,6 @@
 #include <wx/wx.h>
 #endif
 
-
 #include "MainWindowFrame.h"
 
 // App which graphs a complex function as a mapping between two complex planes.
@@ -12,7 +11,7 @@
 
 class ContourViewer : public wxApp
 {
-  public:
+    public:
     virtual bool OnInit();
     // virtual int OnExit();
 };

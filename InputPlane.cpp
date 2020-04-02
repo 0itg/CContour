@@ -24,7 +24,7 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-//InputPlane::InputPlane(const InputPlane& in) : ComplexPlane(in)
+// InputPlane::InputPlane(const InputPlane& in) : ComplexPlane(in)
 //{
 //    grid.hStep = in.grid.hStep;
 //    grid.vStep = in.grid.vStep;
@@ -44,10 +44,7 @@ wxEND_EVENT_TABLE();
 
 void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 {
-    // Workaround for wxWidgets handling double clicks poorly in save dialog
-    if (!mouseLeftDown) return;
-    mouseLeftDown = false;
-    SetFocus();
+    wxDClickWorkaround();
 
     // if state > STATE_IDLE, then a contour is selected for editing
     // and state equals the index of the contour.
@@ -62,13 +59,11 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             history->UpdateLastCommand(ScreenToComplex(mouse.GetPosition()));
             toolPanel->PopulateContourTextCtrls(contours[state].get());
 
-            // For now delete the whole subvidived contour and recalculate.
+            // For now recalculate all subdivided points.
             // Later, could recalculate only the affected portion.
             contours[state]->Subdivide(res);
 
-            state                = STATE_IDLE;
-            highlightedContour   = -1;
-            highlightedCtrlPoint = -1;
+            DeSelect();
         }
         // If not, user must be drawing a contour with multiple control points,
         // so move on to the next one
@@ -76,7 +71,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
         {
             contours[state]->AddPoint(ScreenToComplex(mouse.GetPosition()));
             toolPanel->PopulateContourTextCtrls(contours[state].get());
-            highlightedCtrlPoint++;
+            activePt++;
         }
         Redraw();
     }
@@ -89,17 +84,16 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
         // If a contour is not highlighted (< 0), then create a new one
         // And set to be the active contour. If a contour is highlighted,
         // User can still create a new one with Ctrl-click
-        if (highlightedContour < 0 || mouse.ControlDown())
+        if (active < 0 || mouse.ControlDown())
         {
             cplx c;
             bool snap = false;
 
             // Snap to control point if Ctrl key is down
-            if (highlightedCtrlPoint > 0 && mouse.ControlDown())
+            if (activePt > 0 && mouse.ControlDown())
             {
                 snap = true;
-                c    = contours[highlightedContour]->GetCtrlPoint(
-                    highlightedCtrlPoint);
+                c    = contours[active]->GetCtrlPoint(activePt);
             }
             contours.push_back(CreateContour(pt));
             history->RecordCommand(
@@ -108,14 +102,14 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             if (snap) contours.back()->SetCtrlPoint(0, c);
 
             contours.back()->Subdivide(res);
-            state              = contours.size() - 1;
-            highlightedContour = state;
+            state  = contours.size() - 1;
+            active = state;
             toolPanel->PopulateContourTextCtrls(contours[state].get());
             animPanel->UpdateComboBoxes();
 
             for (auto out : outputs)
             {
-                out->highlightedContour = state;
+                out->active = state;
                 // make space for transformed contour later on
                 out->contours.push_back(nullptr);
             }
@@ -124,124 +118,21 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
         else
         {
             auto mPos = ScreenToComplex(mouse.GetPosition());
-            if (highlightedCtrlPoint > -1)
+            if (activePt > -1)
             {
-                history->RecordCommand(
-                    std::make_unique<CommandContourSetPoint>(
-                        contours[highlightedContour].get(), mPos,
-                        highlightedCtrlPoint));
+                history->RecordCommand(std::make_unique<CommandContourSetPoint>(
+                    contours[active].get(), mPos, activePt));
             }
             else
             {
                 history->RecordCommand(std::unique_ptr<Command>(
-                    contours[highlightedContour]->CreateActionCommand(mPos)));
+                    contours[active]->CreateActionCommand(mPos)));
             }
-            state = highlightedContour;
-            toolPanel->PopulateContourTextCtrls(
-                contours[highlightedContour].get());
+            state = active;
+            toolPanel->PopulateContourTextCtrls(contours[active].get());
         }
     }
     lastClickPos = ScreenToComplex(mouse.GetPosition());
-}
-
-void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
-{
-    // Workaround for wxWidgets handling double clicks poorly in save dialog
-    if (!mouseLeftDown) return;
-    mouseLeftDown = false;
-    SetFocus();
-
-    if (highlightedContour > -1)
-    {
-        history->RecordCommand(std::make_unique<CommandContourColorSet>(
-            contours[highlightedContour].get(), color));
-        contours[highlightedContour]->color           = color;
-        contours[highlightedContour]->markedForRedraw = true;
-    }
-    Redraw();
-}
-
-void InputPlane::OnMouseLeftUpSelectionTool(wxMouseEvent& mouse)
-{
-    // Workaround for wxWidgets handling double clicks poorly in save dialog
-    if (!mouseLeftDown) return;
-    mouseLeftDown = false;
-    SetFocus();
-
-    wxPoint mousePos(mouse.GetPosition());
-    int i = 0;
-
-    for (i = 0; i < contours.size(); i++)
-    {
-        if (contours[i]->IsPointOnContour(ScreenToComplex(mousePos), this))
-        {
-            highlightedContour = i;
-            break;
-        }
-    }
-    if (i == contours.size())
-    {
-        highlightedContour = -1;
-        toolPanel->PopulateAxisTextCtrls();
-    }
-    else
-    {
-        toolPanel->PopulateContourTextCtrls(contours[i].get());
-    }
-}
-
-void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
-{
-    ReleaseMouseIfAble();
-    if (state > STATE_IDLE && highlightedCtrlPoint > -1)
-    {
-        // Remove the selected point if the contour is done. If it is still
-        // being edited, the selected point is temporary, so remove the
-        // previous one.
-        int nextState = state;
-        if (contours[state]->IsDone())
-        {
-            contours[state]->RemovePoint(highlightedCtrlPoint);
-            toolPanel->PopulateContourTextCtrls(contours[state].get());
-            highlightedCtrlPoint = -1;
-            highlightedContour   = -1;
-            nextState            = STATE_IDLE;
-        }
-        else
-        {
-            contours[state]->RemovePoint(highlightedCtrlPoint - 1);
-            highlightedCtrlPoint--;
-            toolPanel->PopulateContourTextCtrls(contours[state].get());
-        }
-        if (contours[state]->GetPointCount() < 2)
-        {
-            RemoveContour(state);
-            nextState = STATE_IDLE;
-            toolPanel->PopulateAxisTextCtrls();
-            animPanel->UpdateComboBoxes();
-        }
-        state = nextState;
-        Redraw();
-    }
-    ComplexPlane::OnMouseRightUp(mouse);
-}
-
-void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
-{
-    history->RecordCommand(std::make_unique<CommandAxesSet>(this, &this->grid));
-    ComplexPlane::OnMouseWheel(mouse); // Calls the Zoom function.
-    history->UpdateLastCommand();
-    if (linkGridToAxes)
-    {
-        grid.hStep = axes.reStep;
-        grid.vStep = axes.imStep;
-    }
-    for (auto out : outputs)
-    {
-        out->movedViewPort = true;
-    }
-    grid.CalcVisibleGrid();
-    Redraw();
 }
 
 void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
@@ -264,7 +155,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
     if (state > STATE_IDLE)
     {
         CaptureMouseIfAble();
-        if (highlightedCtrlPoint < 0)
+        if (activePt < 0)
         {
             if (contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos))
             {
@@ -275,15 +166,13 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
             }
             else
             {
-                highlightedContour   = -1;
-                highlightedCtrlPoint = -1;
-                state                = STATE_IDLE;
+                DeSelect();
                 ReleaseMouseIfAble();
             }
         }
         else
         {
-            contours[state]->SetCtrlPoint(highlightedCtrlPoint, mousePos);
+            contours[state]->SetCtrlPoint(activePt, mousePos);
             contours[state]->Subdivide(res);
             toolPanel->Update();
             toolPanel->Refresh();
@@ -294,27 +183,192 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
     // and control points.
     else if (state == STATE_IDLE)
     {
-        if (Highlight(mouse.GetPosition())) Redraw();
+        OnMouseMovingIdle(mouse);
+    }
 
-        for (auto out : outputs)
+    lastMousePos = ScreenToComplex(mouse.GetPosition());
+}
+
+void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
+{
+    wxDClickWorkaround();
+
+    if (active > -1)
+    {
+        history->RecordCommand(std::make_unique<CommandContourColorSet>(
+            contours[active].get(), color));
+        contours[active]->color           = color;
+        contours[active]->markedForRedraw = true;
+    }
+    Redraw();
+}
+
+void InputPlane::OnMouseLeftUpSelectionTool(wxMouseEvent& mouse)
+{
+    wxDClickWorkaround();
+    SelectionTool(mouse);
+}
+
+void InputPlane::OnMouseLeftUpRotationTool(wxMouseEvent& mouse)
+{
+    wxDClickWorkaround();
+
+    auto v = [&] {
+        return ScreenToComplex(mouse.GetPosition()) -
+               contours[state]->GetCenter();
+    };
+
+    if (state == STATE_IDLE)
+    {
+        SelectionTool(mouse);
+        if (state > STATE_IDLE && contours[active]->RotationEnabled())
         {
-            out->highlightedContour = highlightedContour;
+            if (state > -1)
+                history->RecordCommand(std::make_unique<CommandContourRotate>(
+                    contours[active].get(), v()));
+        }
+        else
+        {
+            DeSelect();
         }
     }
-    if (panning)
+    else
     {
-        Pan(mouse.GetPosition());
-        grid.CalcVisibleGrid();
+        history->UpdateLastCommand(v());
+        DeSelect();
+    }
+}
+
+void InputPlane::OnMouseMovingRotationTool(wxMouseEvent& mouse)
+{
+    if (state > STATE_IDLE)
+    {
+        contours[state]->Rotate((ScreenToComplex(mouse.GetPosition()) -
+                                 contours[state]->GetCenter()) /
+                                (lastMousePos - contours[state]->GetCenter()));
+        contours[state]->Subdivide(res);
+        toolPanel->Update();
+        toolPanel->Refresh();
         for (auto out : outputs)
         {
             out->movedViewPort = true;
         }
         Redraw();
-        toolPanel->Update();
-        toolPanel->Refresh();
     }
+    else
+        OnMouseMovingIdle(mouse);
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
+}
+
+void InputPlane::OnMouseLeftUpScaleTool(wxMouseEvent& mouse)
+{
+    wxDClickWorkaround();
+    auto factor = [&] {
+        return ScreenToComplex(mouse.GetPosition()) -
+               contours[state]->GetCenter();
+    };
+
+    if (state == STATE_IDLE)
+    {
+        SelectionTool(mouse);
+        if (state > STATE_IDLE && contours[state]->ScalingEnabled())
+        {
+            if (active > -1)
+                history->RecordCommand(std::make_unique<CommandContourScale>(
+                    contours[active].get(), factor()));
+        }
+        else
+        {
+            DeSelect();
+        }
+    }
+    else
+    {
+        history->UpdateLastCommand(factor());
+        DeSelect();
+    }
+}
+
+void InputPlane::OnMouseMovingScaleTool(wxMouseEvent& mouse)
+{
+    if (state > STATE_IDLE)
+    {
+        contours[state]->Scale(
+            abs((ScreenToComplex(mouse.GetPosition()) -
+                 contours[state]->GetCenter()) /
+                (lastMousePos - contours[state]->GetCenter())));
+        contours[state]->Subdivide(res);
+        toolPanel->Update();
+        toolPanel->Refresh();
+        for (auto out : outputs)
+        {
+            out->movedViewPort = true;
+        }
+        Redraw();
+    }
+    else
+        OnMouseMovingIdle(mouse);
+
+    lastMousePos = ScreenToComplex(mouse.GetPosition());
+}
+
+void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
+{
+    ReleaseMouseIfAble();
+    if (state > STATE_IDLE && activePt > -1)
+    {
+        // Remove the selected point if the contour is done. If it is still
+        // being edited, the selected point is temporary, so remove the
+        // previous one.
+        int nextState = state;
+        if (contours[state]->IsDone())
+        {
+            contours[state]->RemovePoint(activePt);
+            toolPanel->PopulateContourTextCtrls(contours[state].get());
+            activePt  = -1;
+            active    = -1;
+            nextState = STATE_IDLE;
+        }
+        else
+        {
+            contours[state]->RemovePoint(activePt - 1);
+            activePt--;
+            toolPanel->PopulateContourTextCtrls(contours[state].get());
+        }
+        if (contours[state]->GetPointCount() < 2)
+        {
+            RemoveContour(state);
+            nextState = STATE_IDLE;
+            toolPanel->PopulateAxisTextCtrls();
+            animPanel->UpdateComboBoxes();
+        }
+        state = nextState;
+        Redraw();
+    }
+    ComplexPlane::OnMouseRightUp(mouse);
+}
+
+void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
+{
+    if (state == STATE_IDLE)
+    {
+        history->RecordCommand(
+            std::make_unique<CommandAxesSet>(this, &this->grid));
+        ComplexPlane::OnMouseWheel(mouse); // Calls the Zoom function.
+        history->UpdateLastCommand();
+        if (linkGridToAxes)
+        {
+            grid.hStep = axes.reStep;
+            grid.vStep = axes.imStep;
+        }
+        for (auto out : outputs)
+        {
+            out->movedViewPort = true;
+        }
+        grid.CalcVisibleGrid();
+        Redraw();
+    }
 }
 
 void InputPlane::OnKeyUp(wxKeyEvent& Key)
@@ -327,22 +381,22 @@ void InputPlane::OnKeyUp(wxKeyEvent& Key)
         toolPanel->Update();
         toolPanel->Refresh();
         ReleaseMouseIfAble(); // Captured by OnMouseRightDown
-        if (highlightedContour > -1)
+        if (active > -1)
         {
-            if (contours[highlightedContour]->IsDone())
+            if (contours[active]->IsDone())
             {
                 if (state > STATE_IDLE)
                     history->UpdateLastCommand(lastMousePos);
-                history->RecordCommand(std::make_unique<CommandRemoveContour>(
-                    this, highlightedContour));
+                history->RecordCommand(
+                    std::make_unique<CommandRemoveContour>(this, active));
             }
             else
             {
                 history->PopCommand();
             }
-            RemoveContour(highlightedContour);
-            state              = STATE_IDLE;
-            highlightedContour = -1;
+            RemoveContour(active);
+            state  = STATE_IDLE;
+            active = -1;
             Redraw();
             animPanel->UpdateComboBoxes();
         }
@@ -366,7 +420,7 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
         {
             A->FrameAt(animTimer.Time());
             if (A->animateGrid) animateGrid = true;
-            //toolPanel->Refresh();
+            // toolPanel->Refresh();
         }
     if (animateGrid)
     {
@@ -374,18 +428,27 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
         {
             out->MarkAllForRedraw();
             out->movedViewPort = true;
-            //out->varPanel->Update();
-            //out->varPanel->Refresh();
+            // out->varPanel->Update();
+            // out->varPanel->Refresh();
         }
-        
+
         animateGrid = false;
     }
 
     if (showGrid) grid.Draw(&dc, this);
-    pen.SetWidth(2);
 
     for (auto& C : contours)
     {
+        if (!C->isPathOnly)
+        {
+            pen.SetWidth(2);
+            pen.SetStyle(wxPENSTYLE_SOLID);
+        }
+        else
+        {
+            pen.SetWidth(1);
+            pen.SetStyle(wxPENSTYLE_LONG_DASH);
+        }
         pen.SetColour(C->color);
         dc.SetPen(pen);
         C->Draw(&dc, this);
@@ -393,21 +456,24 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
 
     // Redraw the highlighted contour with thicker pen.
     // If a control point is highlighted, circle it with thin pen first.
-    if (highlightedContour > -1)
+    if (active > -1)
     {
-        pen.SetColour(contours[highlightedContour]->color);
+        auto& C = contours[active];
+        pen.SetColour(C->color);
+        pen.SetStyle(wxPENSTYLE_SOLID);
         dc.SetPen(pen);
 
-        if (highlightedCtrlPoint > -1)
+        if (activePt > -1)
         {
-            dc.DrawCircle(
-                ComplexToScreen(contours[highlightedContour]->GetCtrlPoint(
-                    highlightedCtrlPoint)),
-                CIRCLED_POINT_RADIUS);
+            dc.DrawCircle(ComplexToScreen(C->GetCtrlPoint(activePt)),
+                          CIRCLED_POINT_RADIUS);
         }
+
+        if (C->isPathOnly) pen.SetStyle(wxPENSTYLE_LONG_DASH);
+
         pen.SetWidth(3);
         dc.SetPen(pen);
-        contours[highlightedContour]->Draw(&dc, this);
+        contours[active]->Draw(&dc, this);
     }
     if (showAxes) axes.Draw(&dc);
 }
@@ -432,6 +498,67 @@ void InputPlane::OnContourResCtrl(wxCommandEvent& event)
     res = resCtrl->GetValue();
     RecalcAll();
     Redraw();
+}
+
+void InputPlane::OnMouseMovingIdle(wxMouseEvent& mouse)
+{
+    if (Highlight(mouse.GetPosition())) Redraw();
+
+    for (auto out : outputs)
+    {
+        out->active = active;
+    }
+    if (panning)
+    {
+        Pan(mouse.GetPosition());
+        grid.CalcVisibleGrid();
+        for (auto out : outputs)
+        {
+            out->movedViewPort = true;
+        }
+        Redraw();
+        toolPanel->Update();
+        toolPanel->Refresh();
+    }
+}
+
+void InputPlane::DeSelect()
+{
+    state    = -1;
+    active   = -1;
+    activePt = -1;
+}
+
+void InputPlane::SelectionTool(wxMouseEvent& mouse)
+{
+    wxPoint mousePos(mouse.GetPosition());
+    int i = 0;
+
+    for (i = 0; i < contours.size(); i++)
+    {
+        if (contours[i]->IsPointOnContour(ScreenToComplex(mousePos), this))
+        {
+            active = i;
+            state  = i;
+            break;
+        }
+    }
+    if (i == contours.size())
+    {
+        DeSelect();
+        toolPanel->PopulateAxisTextCtrls();
+    }
+    else
+    {
+        toolPanel->PopulateContourTextCtrls(contours[i].get());
+    }
+}
+
+void InputPlane::wxDClickWorkaround()
+{
+    if (!mouseLeftDown) return;
+    mouseLeftDown = false;
+    SetFocus();
 }
 
 void InputPlane::RecalcAll()
@@ -462,17 +589,11 @@ void InputPlane::RemoveContour(int index)
     for (auto out : outputs)
     {
         out->contours.erase(out->contours.begin() + index);
-        out->highlightedContour   = -1;
-        out->highlightedCtrlPoint = -1;
+        out->active   = -1;
+        out->activePt = -1;
     }
-    highlightedContour   = -1;
-    highlightedCtrlPoint = -1;
-
-    // for (auto& A : animations)
-    //{
-    //    if (A->subjSel == index || A->pathSel == index)
-    //        A->ClearCommands();
-    //}
+    active   = -1;
+    activePt = -1;
 }
 
 std::shared_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)
@@ -494,21 +615,21 @@ std::shared_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)
         break;
     case ID_Rect:
         RectCount++;
-        highlightedCtrlPoint = 1;
+        activePt = 1;
         return std::make_shared<ContourRect>(
             ScreenToComplex(mousePos), colorToDraw,
             "Rectangle " + std::to_string(RectCount));
         break;
     case ID_Polygon:
         PolygonCount++;
-        highlightedCtrlPoint = 1;
+        activePt = 1;
         return std::make_shared<ContourPolygon>(
             ScreenToComplex(mousePos), colorToDraw,
             "Polygon " + std::to_string(PolygonCount));
         break;
     case ID_Line:
         LineCount++;
-        highlightedCtrlPoint = 1;
+        activePt = 1;
         return std::make_shared<ContourLine>(
             ScreenToComplex(mousePos), colorToDraw,
             "Line " + std::to_string(LineCount));
@@ -560,7 +681,7 @@ bool InputPlane::DrawFrame(wxBitmap& image, double t)
 {
 
     // A bit of a hack, because drawing code uses the panel's client size.
-    // Temporary sets the inputplane's client size to match the output image. 
+    // Temporary sets the inputplane's client size to match the output image.
     // Can't use the dc's GetSize() in drawing code because of wxWidgets issues.
     // A better solution would be to directly pass client size info to the
     // drawing functions.
@@ -603,10 +724,7 @@ double InputPlane::GetLongestAnimDur()
     {
         dur = std::max(dur, A->duration_ms / 1000.0);
     }
-	return dur;
+    return dur;
 }
 
-ParsedFunc<cplx>* InputPlane::GetFunction(size_t i)
-{
-    return &outputs[i]->f;
-}
+ParsedFunc<cplx>* InputPlane::GetFunction(size_t i) { return &outputs[i]->f; }

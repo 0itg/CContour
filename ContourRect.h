@@ -9,7 +9,7 @@ class ContourRect : public ContourPolygon
 {
     friend class boost::serialization::access;
 
-  public:
+    public:
     ContourRect() noexcept { closed = true; }
     ContourRect(cplx c, wxColor col = wxColor(255, 255, 255),
                 std::string n = "Rectangle") noexcept;
@@ -22,11 +22,13 @@ class ContourRect : public ContourPolygon
     void Finalize(){};
     // Rotation is disabled, since drawing/editing functions assume a rectangle
     // to be square with the screen. Use a ContourPolygon if rotation is needed.
+    virtual bool RotationEnabled() { return false; }
     virtual void Rotate(double angle, cplx pivot = cplx(INFINITY, INFINITY)) {}
-    // Since rotation is disabled, the function ignores the arg and just scales. 
+    virtual void Rotate(cplx V, cplx pivot = cplx(INFINITY, INFINITY)) {}
+    // Since rotation is disabled, the function ignores the arg and just scales.
     virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY));
 
-  private:
+    private:
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)
     {

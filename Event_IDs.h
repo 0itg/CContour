@@ -8,6 +8,8 @@ enum enum_buttons
     // ID_Show_Variable_Win,
 
     ID_Select,
+    ID_Rotate,
+    ID_Scale,
     ID_Circle,
     ID_Rect,
     ID_Polygon,

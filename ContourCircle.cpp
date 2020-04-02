@@ -57,6 +57,8 @@ cplx ContourCircle::Interpolate(double t)
 
 void ContourCircle::Subdivide(int res)
 {
+    if (isPathOnly) return;
+
     subDiv.clear();
     subDiv.reserve(res);
     for (int i = 0; i <= res; i++)

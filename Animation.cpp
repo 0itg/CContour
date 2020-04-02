@@ -26,5 +26,5 @@ void Animation::FrameAt(int t)
 void Animation::SetPathContour(std::shared_ptr<Contour> C)
 {
     path = C;
-    f = [&](double t) {return path->Interpolate(reverse * t + offset); };
+    f    = [&](double t) { return path->Interpolate(reverse * t + offset); };
 }

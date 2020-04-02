@@ -37,7 +37,7 @@ template <typename T> class Parser
 {
     friend class boost::serialization::access;
 
-  public:
+    public:
     Parser();
     void RecognizeToken(Symbol<T>* sym)
     {
@@ -52,7 +52,7 @@ template <typename T> class Parser
     void Initialize();
     ParsedFunc<T> Parse(std::string str);
 
-  private:
+    private:
     ParsedFunc<T> f;
     std::map<std::string, std::unique_ptr<Symbol<T>>, cmp_length_then_alpha>
         tokenLibrary;
@@ -86,7 +86,7 @@ template <typename T> class ParsedFunc
     friend class boost::serialization::access;
     friend class Parser<T>;
 
-  public:
+    public:
     ParsedFunc(){};
     ParsedFunc(const ParsedFunc&& in) noexcept { *this = std::move(in); }
 
@@ -162,12 +162,15 @@ template <typename T> class ParsedFunc
     std::string str() { return inputText; }
     void ReplaceVariable(std::string varOld, std::string var);
     auto GetVars();
-    auto GetVar(const std::string& tok) { return tokens.find(tok) != tokens.end() ? tokens[tok].get() : nullptr; }
+    auto GetVar(const std::string& tok)
+    {
+        return tokens.find(tok) != tokens.end() ? tokens[tok].get() : nullptr;
+    }
     auto GetVarMap() const;
     void RestoreVarsFromMap(std::map<std::string, T>);
     std::string GetInputText() const { return inputText; }
 
-  private:
+    private:
     // Custom comparator puts longest tokenLibrary first. When tokenizing the
     // input, replacing the longest ones first prevents them being damaged when
     // they contain shorter tokenLibrary.

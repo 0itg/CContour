@@ -35,7 +35,7 @@ enum precedence_list
 template <typename T> class Symbol
 {
 
-  public:
+    public:
     virtual Symbol<T>* Clone() noexcept = 0;
     // Various flags and virtual "members" used by the parser.
     virtual int GetPrecedence() const    = 0;
@@ -58,7 +58,7 @@ template <typename T> class Symbol
     void SetParent(ParsedFunc<T>* p) { parent = p; }
     auto GetParent() { return parent; }
 
-  protected:
+    protected:
     ParsedFunc<T>* parent = nullptr;
 };
 
@@ -66,7 +66,7 @@ template <typename T> class Symbol
 template <typename T> class Dyad : public Symbol<T>
 {
 
-  public:
+    public:
     virtual SymbolNum<T> Apply(SymbolNum<T> t1, SymbolNum<T> t2) const = 0;
     virtual SymbolNum<T> eval() const
     {
@@ -99,7 +99,7 @@ template <typename T> class Dyad : public Symbol<T>
 template <typename T> class Monad : public Symbol<T>
 {
 
-  public:
+    public:
     virtual SymbolNum<T> Apply(SymbolNum<T> t1) const = 0;
     virtual SymbolNum<T> eval() const
     {
@@ -150,7 +150,7 @@ T callByArray(std::function<T(Args...)> f,
 template <typename T, typename... Ts> class SymbolFunc : public Symbol<T>
 {
 
-  public:
+    public:
     virtual SymbolFunc<T, Ts...>* Clone() noexcept
     {
         return new SymbolFunc<T, Ts...>(*this);
@@ -186,14 +186,14 @@ template <typename T, typename... Ts> class SymbolFunc : public Symbol<T>
     virtual int GetPrecedence() const { return sym_func; }
     virtual std::string GetToken() const { return name; }
 
-  private:
+    private:
     std::string name = "f";
 };
 
 // Used for parsing strings. Should never make it to the output queue
 template <typename T> class SymbolLParen : public Symbol<T>
 {
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolLParen)
     virtual int GetPrecedence() const { return sym_lparen; }
     virtual std::string GetToken() const { return "("; }
@@ -203,7 +203,7 @@ template <typename T> class SymbolLParen : public Symbol<T>
 // Used for parsing strings. Should never make it to the output queue
 template <typename T> class SymbolRParen : public Symbol<T>
 {
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolRParen);
     virtual int GetPrecedence() const { return sym_rparen; }
     virtual std::string GetToken() const { return ")"; }
@@ -226,7 +226,7 @@ struct initialize_with_1<typename T, std::void_t<decltype(T{1})>>
 template <typename T> class SymbolNum : public Symbol<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolNum)
     SymbolNum() noexcept : Symbol<T>() {}
     SymbolNum(const T& v) noexcept : val(v) {}
@@ -245,10 +245,10 @@ template <typename T> class SymbolNum : public Symbol<T>
     virtual void SetVal(const T& v) {}
     virtual SymbolNum<T> eval() const { return SymbolNum<T>(this); }
 
-  protected:
+    protected:
     T val = initialize_with_1<T>::value;
 
-  private:
+    private:
     std::string GetToken_() const;
 };
 
@@ -270,7 +270,7 @@ template <> inline std::string SymbolNum<cplx>::GetToken_() const
 // Number but with stored name and value can be set after parsing.
 template <typename T> class SymbolVar : public SymbolNum<T>
 {
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolVar)
     SymbolVar(SymbolVar<T>& S) noexcept : name(S.name)
     {
@@ -283,14 +283,14 @@ template <typename T> class SymbolVar : public SymbolNum<T>
     virtual bool IsVar() const { return true; }
     virtual void SetVal(const T& v) { this->val = v; }
 
-  private:
+    private:
     std::string name;
 };
 
 // Number with name but value can't be changed.
 template <typename T> class SymbolConst : public SymbolNum<T>
 {
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolConst);
     SymbolConst(SymbolConst<T>& S) noexcept : name(S.name)
     {
@@ -302,7 +302,7 @@ template <typename T> class SymbolConst : public SymbolNum<T>
     virtual int GetPrecedence() const { return sym_num; }
     virtual std::string GetToken() const { return name; }
 
-  private:
+    private:
     std::string name;
 };
 
@@ -312,7 +312,7 @@ template <typename T> class SymbolConst : public SymbolNum<T>
 template <typename T> class SymbolComma : public Monad<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolComma)
     // SymbolComma(){};
     virtual int GetPrecedence() const { return sym_comma; }
@@ -323,7 +323,7 @@ template <typename T> class SymbolComma : public Monad<T>
 
 template <typename T> class SymbolError : public SymbolNum<T>
 {
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolError)
     // SymbolError(){};
     virtual int GetPrecedence() const { return -100; }
@@ -333,7 +333,7 @@ template <typename T> class SymbolError : public SymbolNum<T>
 template <typename T> class SymbolAdd : public Dyad<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolAdd)
     virtual int GetPrecedence() const { return sym_add; }
     virtual std::string GetToken() const { return "+"; }
@@ -346,7 +346,7 @@ template <typename T> class SymbolAdd : public Dyad<T>
 template <typename T> class SymbolSub : public Dyad<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolSub)
     virtual int GetPrecedence() const { return sym_sub; }
     virtual std::string GetToken() const { return "-"; }
@@ -359,7 +359,7 @@ template <typename T> class SymbolSub : public Dyad<T>
 template <typename T> class SymbolMul : public Dyad<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolMul)
     virtual int GetPrecedence() const { return sym_mul; }
     virtual std::string GetToken() const { return "*"; }
@@ -372,7 +372,7 @@ template <typename T> class SymbolMul : public Dyad<T>
 template <typename T> class SymbolDiv : public Dyad<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolDiv)
     virtual int GetPrecedence() const { return sym_div; }
     virtual std::string GetToken() const { return "/"; }
@@ -385,7 +385,7 @@ template <typename T> class SymbolDiv : public Dyad<T>
 template <typename T> class SymbolPow : public Dyad<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolPow)
     virtual int GetPrecedence() const { return sym_pow; }
     virtual bool IsLeftAssoc() const { return false; }
@@ -399,7 +399,7 @@ template <typename T> class SymbolPow : public Dyad<T>
 template <typename T> class SymbolNeg : public Monad<T>
 {
 
-  public:
+    public:
     DEF_CLONE_FUNC(SymbolNeg)
     virtual int GetPrecedence() const { return sym_neg; }
     virtual std::string GetToken() const { return "~"; }

@@ -3,7 +3,6 @@
 #include "LinkedCtrls.h"
 #include "OutputPlane.h"
 
-
 // clang-format off
 
 wxBEGIN_EVENT_TABLE(NumCtrlPanel, wxVScrolledWindow)
@@ -12,6 +11,7 @@ EVT_TEXT_ENTER(wxID_ANY, NumCtrlPanel::OnTextEntry)
 EVT_PAINT(ToolPanel::OnPaintEvent)
 EVT_SPIN_UP(wxID_ANY, ToolPanel::OnSpinButtonUp)
 EVT_SPIN_DOWN(wxID_ANY, ToolPanel::OnSpinButtonDown)
+EVT_CHECKBOX(wxID_ANY, ToolPanel::OnCheckBox)
 wxEND_EVENT_TABLE();
 
 wxBEGIN_EVENT_TABLE(VariableEditPanel, wxVScrolledWindow)
@@ -252,7 +252,7 @@ void VariableEditPanel::Populate(ParsedFunc<cplx>& F)
 {
     Freeze();
     ClearPanel();
-    lastFunc = &F;
+    lastFunc   = &F;
     auto sizer = new wxFlexGridSizer(1, 0, 0);
     sizer->SetFlexibleDirection(wxHORIZONTAL);
     wxSizerFlags sizerFlags(1);
@@ -340,7 +340,8 @@ void AnimPanel::AddAnimCtrl(int index)
 void AnimPanel::OnButtonNewAnim(wxCommandEvent& event)
 {
     AddAnimation();
-    history->RecordCommand(std::make_unique<CommandAddAnim>(input->GetAnimation(-1), input));
+    history->RecordCommand(
+        std::make_unique<CommandAddAnim>(input->GetAnimation(-1), input));
 }
 
 void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
@@ -351,7 +352,8 @@ void AnimPanel::OnRemoveAnim(wxCommandEvent& event)
     {
         if (A->GetId() == event.GetId())
         {
-            history->RecordCommand(std::make_unique<CommandRemoveAnim>(index, input));
+            history->RecordCommand(
+                std::make_unique<CommandRemoveAnim>(index, input));
             linkedCtrls[index]->Destroy();
             linkedCtrls.erase(linkedCtrls.begin() + index);
             input->RemoveAnimation(index);

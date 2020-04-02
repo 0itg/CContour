@@ -10,7 +10,7 @@ class ContourParametric : public ContourPolygon
 {
     friend class boost::serialization::access;
 
-  public:
+    public:
     ContourParametric() {}
     ContourParametric(std::string func, int res = 200,
                       wxColor col   = wxColor(0, 0, 0),
@@ -45,7 +45,18 @@ class ContourParametric : public ContourPolygon
     virtual bool IsParametric() { return true; }
     ParsedFunc<cplx>* GetFunction() { return &f; }
 
-  private:
+    // Rotation and scaling are disabled, since the function would no longer
+    // define the curve. The user can instead add a parameter to the function to
+    // rotate or scale as desired.
+    virtual bool RotationEnabled() { return false; }
+    virtual bool ScalingEnabled() { return false; }
+    virtual void Rotate(double angle, cplx pivot = cplx(INFINITY, INFINITY)) {}
+    virtual void Rotate(cplx V, cplx pivot = cplx(INFINITY, INFINITY)) {}
+    virtual void RotateAndScale(cplx V, cplx pivot = cplx(INFINITY, INFINITY))
+    {
+    }
+
+    private:
     double tStart = 0;
     double tEnd   = 1;
     Parser<cplx> parser;

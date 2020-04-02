@@ -4,7 +4,6 @@
 #include <wx/dcgraph.h>
 #include <wx/richtooltip.h>
 
-
 BOOST_CLASS_EXPORT_GUID(OutputPlane, "OutputPlane")
 
 // clang-format off
@@ -57,9 +56,10 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
         Update();
         Refresh();
     }
-    int temp               = in->highlightedContour;
-    in->highlightedContour = highlightedContour;
-    if (temp != highlightedContour)
+    if (active > -1 && in->contours[active]->isPathOnly) active = -1;
+    int temp   = in->active;
+    in->active = active;
+    if (temp != active)
     {
         in->Update();
         in->Refresh();
@@ -94,18 +94,27 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
     }
     pen.SetWidth(2);
 
-    for (auto& C : contours)
+    size_t size = contours.size();
+    for (int i = 0; i < size; i++)
     {
-        pen.SetColour(C->color);
-        dc.SetPen(pen);
-        C->Draw(&dc, this);
+        auto& C = contours[i];
+        if (!inputContours[i]->isPathOnly)
+        {
+            pen.SetColour(C->color);
+            dc.SetPen(pen);
+            C->Draw(&dc, this);
+        }
     }
-    if (highlightedContour > -1)
+    if (active > -1)
     {
-        pen.SetColour(contours[highlightedContour]->color);
-        pen.SetWidth(3);
-        dc.SetPen(pen);
-        contours[highlightedContour]->Draw(&dc, this);
+        auto& C = contours[active];
+        if (!inputContours[active]->isPathOnly)
+        {
+            pen.SetColour(C->color);
+            pen.SetWidth(3);
+            dc.SetPen(pen);
+            C->Draw(&dc, this);
+        }
     }
 
     if (showAxes) axes.Draw(&dc);
@@ -168,7 +177,8 @@ void OutputPlane::EnterFunction(std::string s)
     {
         auto g = parser.Parse(s);
         g.eval();
-        history->RecordCommand(std::make_unique<CommandOutputFuncEntry>(g, this));
+        history->RecordCommand(
+            std::make_unique<CommandOutputFuncEntry>(g, this));
         f = g;
     }
     catch (std::invalid_argument& func)
@@ -187,7 +197,7 @@ void OutputPlane::EnterFunction(std::string s)
 
 void OutputPlane::CopyFunction(ParsedFunc<cplx> g)
 {
-    f = g;
+    f             = g;
     movedViewPort = true;
     varPanel->Populate(f);
     varPanel->Update();
@@ -231,8 +241,7 @@ bool OutputPlane::DrawFrame(wxBitmap& image, double t)
 
     auto& inputContours = in->contours;
     for (int i = 0; i < inputContours.size(); i++)
-        contours[i] =
-            std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
+        contours[i] = std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
 
     if (showGrid) tGrid.Draw(&dc, this);
     pen.SetWidth(2);

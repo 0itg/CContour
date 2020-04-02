@@ -144,6 +144,8 @@ cplx ContourPolygon::Interpolate(double t)
 
 void ContourPolygon::Subdivide(int res)
 {
+    if (isPathOnly) return;
+
     subDiv.clear();
     subDiv.reserve(res + points.size());
     res           = (int)(std::max(points.size(), res - points.size()));

@@ -37,8 +37,7 @@ void LinkedCtrlPointTextCtrl::Add(cplx c)
 
 void LinkedCtrlPointTextCtrl::RecordCommand(cplx c)
 {
-    history->RecordCommand(
-        std::make_unique<CommandContourSetPoint>(src, c, i));
+    history->RecordCommand(std::make_unique<CommandContourSetPoint>(src, c, i));
 }
 
 void LinkedDoubleTextCtrl::WriteLinked()
@@ -65,7 +64,8 @@ LinkedVarTextCtrl::LinkedVarTextCtrl(wxWindow* par, wxStandardID ID,
                                      wxString str, wxPoint defaultPos,
                                      wxSize defSize, int style,
                                      Symbol<cplx>* sym, CommandHistory* ch)
-    : src(sym), LinkedCplxSpinCtrl(par, ID, str, defaultPos, defSize, style), history(ch)
+    : src(sym), LinkedCplxSpinCtrl(par, ID, str, defaultPos, defSize, style),
+      history(ch)
 {
 }
 
@@ -75,7 +75,8 @@ void LinkedVarTextCtrl::WriteLinked()
     try
     {
         cplx val = parser.Parse(textCtrl->GetValue()).eval();
-        history->RecordCommand(std::make_unique<CommandEditVar>(src->GetToken(), val, src->GetParent()));
+        history->RecordCommand(std::make_unique<CommandEditVar>(
+            src->GetToken(), val, src->GetParent()));
         src->SetVal(val);
     }
     catch (std::invalid_argument& func)
@@ -140,6 +141,8 @@ void LinkedParametricFuncCtrl::WriteLinked()
             std::make_unique<CommandParametricFuncEntry>(C, f));
         *src = f;
         TP->Populate();
+        // Need to restructure things a bit, clearly.
+        TP->GetInputPlane()->GetAnimPanel()->UpdateComboBoxes();
     }
     catch (std::invalid_argument& func)
     {
@@ -154,10 +157,11 @@ void LinkedParametricFuncCtrl::ReadLinked()
     textCtrl->ChangeValue(src->GetInputText());
 }
 
-AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, std::shared_ptr<Animation> a)
+AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in,
+                   std::shared_ptr<Animation> a)
     : anim(a), input(in)
 {
-    panel          = new wxPanel(parent);
+    panel       = new wxPanel(parent);
     pathChoices = input->GetContourNames();
     commandChoices.Add("Translate (follow path)");
     commandChoices.Add("Parameterize Variable");
@@ -166,10 +170,11 @@ AnimCtrl::AnimCtrl(wxWindow* parent, InputPlane* in, std::shared_ptr<Animation> 
     commandChoices.Add("Rotate (arg of path)");
     commandChoices.Add("Scale (magnitude of path)");
 
-    auto panelID        = panel->GetId();
-    auto subjectLabel   = new wxStaticText(panel, panelID, "Subject: ");
-    subjectMenu         = new MappedComboBox<int>(panel, panelID, "", wxDefaultPosition,
-                                 wxDefaultSize, pathChoices, wxCB_READONLY);
+    auto panelID      = panel->GetId();
+    auto subjectLabel = new wxStaticText(panel, panelID, "Subject: ");
+    subjectMenu =
+        new MappedComboBox<int>(panel, panelID, "", wxDefaultPosition,
+                                wxDefaultSize, pathChoices, wxCB_READONLY);
     auto commandLabel   = new wxStaticText(panel, panelID, "Command: ");
     commandMenu         = new wxComboBox(panel, panelID, "", wxDefaultPosition,
                                  wxDefaultSize, commandChoices, wxCB_READONLY);
@@ -248,13 +253,13 @@ void AnimCtrl::WriteLinked()
     if (subj > -1 && com > -1 && path > -1 && handle > -1)
     {
         anim->ClearCommands();
-        dur               = dur ? dur : 1;
+        dur = dur ? dur : 1;
 
         auto C           = input->GetContour(subj);
         auto pathContour = input->GetContour(path);
 
-        auto edit = std::make_unique<CommandEditAnim>(anim, 1000 * dur, reverse,
-            offset / dur, bounceCtrl->GetValue(),
+        auto edit = std::make_unique<CommandEditAnim>(
+            anim, 1000 * dur, reverse, offset / dur, bounceCtrl->GetValue(),
             subj, com, path, handle, pathContour);
         edit->exec();
 
@@ -276,7 +281,7 @@ void AnimCtrl::WriteLinked()
                 break;
             case COMMAND_ROT_AND_SCALE:
                 anim->AddCommand(std::make_unique<CommandContourRotateAndScale>(
-                    C.get(), 1, C->GetCtrlPoint(handle-1)));                
+                    C.get(), 1, C->GetCtrlPoint(handle - 1)));
                 break;
             case COMMAND_ROT:
                 anim->AddCommand(std::make_unique<CommandContourRotate>(
@@ -288,9 +293,10 @@ void AnimCtrl::WriteLinked()
                 break;
             case COMMAND_EDIT_VAR:
                 subdivide = false;
-                auto f = input->GetFunction();
+                auto f    = input->GetFunction();
                 if (C && C->IsParametric())
-                    f = reinterpret_cast<ContourParametric*>(C.get())->GetFunction();
+                    f = reinterpret_cast<ContourParametric*>(C.get())
+                            ->GetFunction();
                 anim->AddCommand(std::make_unique<CommandEditVar>(
                     handleMenu->GetString(handle), 0, f));
                 anim->animateGrid = true;
@@ -325,11 +331,11 @@ void AnimCtrl::ReadLinked()
 void AnimCtrl::UpdateCtrl()
 {
     pathChoices = input->GetContourNames();
-    auto sel1      = subjectMenu->GetSelection();
-    auto sel2      = pathMenu->GetSelection();
-    auto sel3      = handleMenu->GetSelection();
-    auto sel4      = durationCtrl->GetCtrlPtr()->GetValue();
-    auto sel5      = bounceCtrl->GetValue();
+    auto sel1   = subjectMenu->GetSelection();
+    auto sel2   = pathMenu->GetSelection();
+    auto sel3   = handleMenu->GetSelection();
+    auto sel4   = durationCtrl->GetCtrlPtr()->GetValue();
+    auto sel5   = bounceCtrl->GetValue();
 
     pathMenu->Set(pathChoices);
     handleMenu->Set(handleChoices);
@@ -337,8 +343,7 @@ void AnimCtrl::UpdateCtrl()
     PopulateSubjectMenu();
     subjectMenu->SetSelection(sel1);
     pathMenu->SetSelection(sel2);
-    if (handleChoices.size() <= sel3)
-        sel3 = -1;
+    if (handleChoices.size() <= sel3) sel3 = -1;
     PopulateHandleMenu();
     handleMenu->SetSelection(sel3);
     durationCtrl->GetCtrlPtr()->SetValue(sel4);
@@ -350,9 +355,9 @@ void AnimCtrl::PopulateHandleMenu()
     handleChoices.Clear();
     if (commandMenu)
     {
-        auto cmd = commandMenu->GetSelection();
+        auto cmd  = commandMenu->GetSelection();
         auto subj = subjectMenu->GetSelection();
-        auto C = input->GetContour(subj);
+        auto C    = input->GetContour(subj);
         switch (cmd)
         {
         case COMMAND_PLACE_AT:
@@ -373,7 +378,8 @@ void AnimCtrl::PopulateHandleMenu()
         {
             auto f = input->GetFunction();
             if (C && subj < std::numeric_limits<int>::max())
-                f = reinterpret_cast<ContourParametric*>(C.get())->GetFunction();
+                f = reinterpret_cast<ContourParametric*>(C.get())
+                        ->GetFunction();
             if (f)
             {
                 auto varMap = f->GetVarMap();
@@ -396,7 +402,7 @@ void AnimCtrl::PopulateSubjectMenu()
     {
         subjectChoices.clear();
         subjectMenu->Map.clear();
-        auto cmd = commandMenu->GetSelection();
+        auto cmd        = commandMenu->GetSelection();
         bool parametric = false;
 
         int i = 0;
@@ -436,4 +442,19 @@ void LinkedRadiusCtrl::RecordCommand(cplx c)
 {
     history->RecordCommand(
         std::make_unique<CommandContourEditRadius>(C, c.real()));
+}
+
+LinkedCheckBox::LinkedCheckBox(wxWindow* parent, const std::string& label,
+                               bool* b, CommandHistory* hist)
+    : src(b), history(hist)
+{
+    chkBox = new wxCheckBox(parent, wxID_ANY, label);
+    chkBox->SetValue(*b);
+}
+
+void LinkedCheckBox::WriteLinked()
+{
+    auto cmd = std::make_unique<CommandSetFlag>(src, chkBox->GetValue());
+    cmd->exec();
+    history->RecordCommand(std::move(cmd));
 }

@@ -14,10 +14,10 @@
 #include <wx/spinctrl.h>
 #include <wx/vscroll.h>
 
-#include <complex>
-#include <string>
-#include <map>
 #include <algorithm>
+#include <complex>
+#include <map>
+#include <string>
 
 typedef std::complex<double> cplx;
 
@@ -38,7 +38,7 @@ template <class T> class ParsedFunc;
 // parameter in the text box and allows the user to change it.
 class LinkedCtrl
 {
-  public:
+    public:
     virtual ~LinkedCtrl(){};
     virtual void WriteLinked()     = 0;
     virtual void ReadLinked()      = 0;
@@ -51,7 +51,7 @@ class LinkedCtrl
 // Base class for LinkedCtrls which contain a wxTextCtrl.
 class LinkedTextCtrl : public LinkedCtrl
 {
-  public:
+    public:
     virtual void WriteLinked() = 0;
     virtual void ReadLinked()  = 0;
     virtual wxWindowID GetId() { return textCtrl->GetId(); }
@@ -69,7 +69,7 @@ class LinkedTextCtrl : public LinkedCtrl
 // Base class for LinkedCtrls which contain a wxSpinCtrlDouble.
 class LinkedSpinCtrlDouble : public LinkedCtrl
 {
-  public:
+    public:
     virtual void WriteLinked() = 0;
     virtual void ReadLinked()  = 0;
     virtual void UpdateCtrl() {}
@@ -90,7 +90,7 @@ class LinkedSpinCtrlDouble : public LinkedCtrl
 // imaginary part.
 class LinkedCplxSpinCtrl : public LinkedCtrl
 {
-  public:
+    public:
     LinkedCplxSpinCtrl(wxWindow* par, wxStandardID ID, wxString str,
                        wxPoint defaultPos, wxSize defSize, int style);
     virtual wxWindowID GetId() { return textCtrl->GetId(); }
@@ -111,14 +111,14 @@ class LinkedCplxSpinCtrl : public LinkedCtrl
     wxSpinButton* reSpin;
     wxSpinButton* imSpin;
 
-  protected:
+    protected:
     virtual void RecordCommand(cplx c) {}
 };
 
 // Links to a single double.
 class LinkedDoubleTextCtrl : public LinkedSpinCtrlDouble
 {
-  public:
+    public:
     LinkedDoubleTextCtrl(wxWindow* par, wxWindowID ID, wxString str,
                          wxPoint defaultPos, wxSize defSize, int style,
                          double* p, double step = 0.1, double init = 0,
@@ -132,7 +132,7 @@ class LinkedDoubleTextCtrl : public LinkedSpinCtrlDouble
     virtual void ReadLinked() { textCtrl->SetValue(*src); }
     virtual double GetVal() { return *src; }
 
-  protected:
+    protected:
     // Override in order to record a command in the history
     virtual void RecordCommand(cplx c) {}
     // Override if the command needs to be modified after entry.
@@ -144,7 +144,7 @@ class LinkedDoubleTextCtrl : public LinkedSpinCtrlDouble
 // and the index of the point in its points vector.
 class LinkedCtrlPointTextCtrl : public LinkedCplxSpinCtrl
 {
-  public:
+    public:
     LinkedCtrlPointTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
                             wxPoint defaultPos, wxSize defSize, int style,
                             Contour* C, size_t index, CommandHistory* ch)
@@ -156,7 +156,7 @@ class LinkedCtrlPointTextCtrl : public LinkedCplxSpinCtrl
     void ReadLinked();
     virtual void Add(cplx c);
 
-  private:
+    private:
     virtual void RecordCommand(cplx c);
     Contour* src;
     size_t i;
@@ -168,7 +168,7 @@ class LinkedCtrlPointTextCtrl : public LinkedCplxSpinCtrl
 // or ParsedFunc.tokens (map).
 class LinkedVarTextCtrl : public LinkedCplxSpinCtrl
 {
-  public:
+    public:
     LinkedVarTextCtrl(wxWindow* par, wxStandardID ID, wxString str,
                       wxPoint defaultPos, wxSize defSize, int style,
                       Symbol<cplx>* sym, CommandHistory* ch);
@@ -177,21 +177,21 @@ class LinkedVarTextCtrl : public LinkedCplxSpinCtrl
 
     virtual void Add(cplx c);
 
-  private:
+    private:
     Symbol<cplx>* src;
     CommandHistory* history;
 };
 
 class LinkedParametricFuncCtrl : public LinkedTextCtrl
 {
-  public:
+    public:
     LinkedParametricFuncCtrl(ToolPanel* par, wxStandardID ID, wxString str,
                              wxPoint defaultPos, wxSize defSize, int style,
                              ContourParametric* cp);
     void WriteLinked();
     void ReadLinked();
 
-  private:
+    private:
     ToolPanel* TP;
     ContourParametric* C;
     ParsedFunc<cplx>* src;
@@ -200,7 +200,7 @@ class LinkedParametricFuncCtrl : public LinkedTextCtrl
 // Specialized LinkedDoubleTextCtrl which records CommandAxesSet on entry
 class LinkedAxisCtrl : public LinkedDoubleTextCtrl
 {
-  public:
+    public:
     LinkedAxisCtrl(wxWindow* par, wxWindowID ID, wxString str,
                    wxPoint defaultPos, wxSize defSize, int style,
                    ComplexPlane* P, double* p, double step = 0.1,
@@ -212,7 +212,7 @@ class LinkedAxisCtrl : public LinkedDoubleTextCtrl
     }
     // void WriteLinked();
 
-  private:
+    private:
     virtual void RecordCommand(cplx c);
     virtual void UpdateCommand(cplx c);
     ComplexPlane* plane;
@@ -222,7 +222,7 @@ class LinkedAxisCtrl : public LinkedDoubleTextCtrl
 // CommandContourEditRadius on entry
 class LinkedRadiusCtrl : public LinkedDoubleTextCtrl
 {
-  public:
+    public:
     LinkedRadiusCtrl(wxWindow* par, wxWindowID ID, wxString str,
                      wxPoint defaultPos, wxSize defSize, int style,
                      ContourCircle* P, CommandHistory* ch, double* p,
@@ -234,7 +234,7 @@ class LinkedRadiusCtrl : public LinkedDoubleTextCtrl
     {
     }
 
-  private:
+    private:
     virtual void RecordCommand(cplx c);
     ContourCircle* C;
     CommandHistory* history;
@@ -242,10 +242,9 @@ class LinkedRadiusCtrl : public LinkedDoubleTextCtrl
 
 // Behaves like a standard wxComboBox, but it maps the output from GetSelection
 // to values in the Map.
-template <typename T>
-class MappedComboBox : public wxComboBox
+template <typename T> class MappedComboBox : public wxComboBox
 {
-public:
+    public:
     using wxComboBox::wxComboBox;
     T GetSelection()
     {
@@ -257,8 +256,10 @@ public:
     }
     void SetSelection(T i)
     {
-        if (std::find_if(Map.begin(), Map.end(), [=](auto&& x) { return x.second == i; }) != Map.end())
-            wxComboBox::SetSelection(Map[i]);
+        if (auto itr = std::find_if(Map.begin(), Map.end(),
+                                    [=](auto&& x) { return x.second == i; });
+            itr != Map.end())
+            wxComboBox::SetSelection(itr->first);
         else
             wxComboBox::SetSelection(-1);
     }
@@ -267,7 +268,7 @@ public:
 
 class AnimCtrl : public LinkedCtrl
 {
-  public:
+    public:
     AnimCtrl(wxWindow* parent, InputPlane* input, std::shared_ptr<Animation> a);
     ~AnimCtrl()
     {
@@ -287,7 +288,7 @@ class AnimCtrl : public LinkedCtrl
     virtual wxWindow* GetCtrlPtr() { return panel; };
     virtual void UpdateCtrl();
 
-  private:
+    private:
     void PopulateHandleMenu();
     void PopulateSubjectMenu();
     wxPanel* panel;
@@ -312,4 +313,27 @@ class AnimCtrl : public LinkedCtrl
     double dur    = 3.0;
     double offset = 0;
     int reverse   = 1; // set to -1 to reverse t;
+};
+
+class LinkedCheckBox : public LinkedCtrl
+{
+    public:
+    LinkedCheckBox(wxWindow* parent, const std::string& label, bool* b,
+                   CommandHistory* hist);
+    virtual void WriteLinked();
+    virtual void ReadLinked() { chkBox->SetValue(*src); }
+    virtual wxWindowID GetId() { return chkBox->GetId(); }
+    virtual bool Destroy()
+    {
+        bool res = chkBox->Destroy();
+        delete this;
+        return res;
+    }
+    virtual wxCheckBox* GetCtrlPtr() { return chkBox; }
+    virtual void UpdateCtrl() {}
+    wxCheckBox* chkBox;
+
+    private:
+    bool* src;
+    CommandHistory* history;
 };

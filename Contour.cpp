@@ -75,10 +75,16 @@ void Contour::PopulateMenu(ToolPanel* TP)
         TP->AddLinkedCtrl(new LinkedCtrlPointTextCtrl(
             panel, wxID_ANY, c, wxDefaultPosition, wxDefaultSize,
             wxTE_PROCESS_ENTER, this, (size_t)i, TP->GetHistoryPtr()));
+
         sizer->Add(TP->GetwxCtrl(i + 1 + std::get<0>(sup)), sizerFlags);
         sizer->Add(TP->GetLinkedCtrl(i + std::get<1>(sup))->GetCtrlPtr(),
                    sizerFlags);
     }
+    auto IsPathChkbox = new LinkedCheckBox(panel, "Hide from output",
+                                           &isPathOnly, TP->GetHistoryPtr());
+    TP->AddLinkedCtrl(IsPathChkbox);
+    sizer->Add(IsPathChkbox->GetCtrlPtr(), sizerFlags);
+
     sizer->AddGrowableCol(0, 1);
     TP->FitInside();
 }
@@ -134,11 +140,12 @@ void Contour::Scale(double factor, cplx pivot)
 
 void Contour::RotateAndScale(cplx V, cplx pivot)
 {
-    if (pivot == cplx(INFINITY, INFINITY))
-        pivot = center;
+    if (pivot == cplx(INFINITY, INFINITY)) pivot = center;
     Translate(0, pivot);
     for (auto& z : points)
         z *= V;
     center *= V;
     Translate(pivot, 0);
 }
+
+void Contour::Rotate(cplx V, cplx pivot) { RotateAndScale(V / abs(V), pivot); }

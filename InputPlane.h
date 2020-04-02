@@ -17,8 +17,7 @@ typedef std::complex<double> cplx;
 class ContourPolygon;
 class OutputPlane;
 class AnimPanel;
-template <class T>
-class ParsedFunc;
+template <class T> class ParsedFunc;
 
 // Left Panel in UI. User draws on the panel, then the points are stored as
 // complex numbers and mapped to the ouput panel under some complex function.
@@ -32,31 +31,33 @@ class InputPlane : public ComplexPlane
     friend class OutputPlane;
     friend class boost::serialization::access;
 
-  public:
+    public:
     InputPlane() {}
     InputPlane(wxWindow* parent, const std::string& n = "Input")
         : ComplexPlane(parent, n), colorPicker(nullptr), grid(this)
     {
         grid.CalcVisibleGrid();
     }
-    //InputPlane(const InputPlane& in);
 
     void OnMouseLeftUpContourTools(wxMouseEvent& mouse);
     void OnMouseLeftUpPaintbrush(wxMouseEvent& mouse);
     void OnMouseLeftUpSelectionTool(wxMouseEvent& mouse);
+    void OnMouseLeftUpRotationTool(wxMouseEvent& mouse);
+    void OnMouseLeftUpScaleTool(wxMouseEvent& mouse);
     void OnMouseRightUp(wxMouseEvent& mouse);
-    // void OnMouseRightDown(wxMouseEvent& mouse);
-    // void OnMouseMiddleDown(wxMouseEvent& mouse);
-    // void OnMouseMiddleUp(wxMouseEvent& mouse);
     void OnMouseWheel(wxMouseEvent& mouse);
     void OnMouseMoving(wxMouseEvent& mouse);
+    void OnMouseMovingRotationTool(wxMouseEvent& mouse);
+    void OnMouseMovingScaleTool(wxMouseEvent& mouse);
     void OnKeyUp(wxKeyEvent& Key);
     void OnPaint(wxPaintEvent& paint);
     void OnColorPicked(wxColourPickerEvent& colorPicked);
     void OnColorRandomizer(wxCommandEvent& event);
     void OnContourResCtrl(wxSpinEvent& event);
     void OnContourResCtrl(wxCommandEvent& event);
+    void OnMouseMovingIdle(wxMouseEvent& mouse);
 
+    void DeSelect();
     int GetState() const { return state; }
     int GetRes() const { return res; }
     void RecalcAll();
@@ -83,11 +84,16 @@ class InputPlane : public ComplexPlane
         else
             animations.insert(animations.begin() + i, A);
     }
-    auto GetAnimation(int i) { return i > -1 ? animations[i] : animations.back(); }
+    auto GetAnimation(int i)
+    {
+        return i > -1 ? animations[i] : animations.back();
+    }
     void RemoveAnimation(int i)
     {
-        if (i > -1) animations.erase(animations.begin() + i);
-        else animations.pop_back();
+        if (i > -1)
+            animations.erase(animations.begin() + i);
+        else
+            animations.pop_back();
     }
     size_t AnimCount() { return animations.size(); }
 
@@ -116,17 +122,21 @@ class InputPlane : public ComplexPlane
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
-
     wxStopWatch animTimer;
+    int CircleCount     = 0;
+    int PolygonCount    = 0;
+    int RectCount       = 0;
+    int LineCount       = 0;
+    int ParametricCount = 0;
 
-  private:
-    int CircleCount                = 0;
-    int PolygonCount               = 0;
-    int RectCount                  = 0;
-    int LineCount                  = 0;
+    private:
+    void SelectionTool(wxMouseEvent& mouse);
+    // Workaround for wxWidgets handling double clicks poorly in modal dialigs
+    void wxDClickWorkaround();
+
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 500;
-    bool animateGrid = false;
+    bool animateGrid               = false;
     Grid grid;
 
     // Pointers to outputs for or sending refresh signals.
@@ -145,7 +155,7 @@ class InputPlane : public ComplexPlane
         ar& boost::serialization::base_object<ComplexPlane>(*this);
         ar& linkGridToAxes;
         ar& res;
-        //resCtrl->SetValue(res);
+        // resCtrl->SetValue(res);
         ar& grid;
         ar& animations;
     }
