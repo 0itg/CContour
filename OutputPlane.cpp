@@ -241,16 +241,24 @@ bool OutputPlane::DrawFrame(wxBitmap& image, double t)
 
     auto& inputContours = in->contours;
     for (int i = 0; i < inputContours.size(); i++)
-        contours[i] = std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
+    {
+        if (!inputContours[i]->isPathOnly)
+            contours[i] = std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
+    }
 
     if (showGrid) tGrid.Draw(&dc, this);
     pen.SetWidth(2);
 
-    for (auto& C : contours)
+    size_t size = contours.size();
+    for (int i = 0; i < size; i++)
     {
-        pen.SetColour(C->color);
-        dc.SetPen(pen);
-        C->Draw(&dc, this);
+        auto& C = contours[i];
+        if (!inputContours[i]->isPathOnly)
+        {
+            pen.SetColour(C->color);
+            dc.SetPen(pen);
+            C->Draw(&dc, this);
+        }
     }
     if (showAxes) axes.Draw(&dc);
 

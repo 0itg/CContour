@@ -526,7 +526,7 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
 
     frameTime = 1000 * frameLen + 0.5;
 
-    // Copy the program state so the animation can be created in a
+    // Copy the program state so the animation can be created ip a
     // separate thread. Reusing serialization code for simplicity.
     // Do it once per animation so that they can be run simultaneously.
     // FreeImage is single-threaded, and GIF generation is slow,
@@ -535,24 +535,24 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
     std::unique_ptr<InputPlane> tempIn1, tempIn2;
     std::unique_ptr<OutputPlane> tempOut1, tempOut2;
 
-    auto copyAppState = [&](std::unique_ptr<InputPlane>& tempInput,
-                            std::unique_ptr<OutputPlane>& tempOutput) {
-        tempInput  = std::make_unique<InputPlane>(this);
-        tempOutput = std::make_unique<OutputPlane>(this, tempInput.get());
-        tempInput->AddOutputPlane(tempOutput.get());
+    auto copyAppState = [&](std::unique_ptr<InputPlane>& ip,
+                            std::unique_ptr<OutputPlane>& op) {
+        ip  = std::make_unique<InputPlane>(this);
+        op = std::make_unique<OutputPlane>(this, ip.get());
+        ip->AddOutputPlane(op.get());
 
         std::stringstream ss;
         boost::archive::text_oarchive oa(ss);
         oa << *output << *input;
         boost::archive::text_iarchive ia(ss);
-        ia >> *tempOutput >> *tempInput;
-        tempInput->UpdateGrid();
-        tempInput->RecalcAll();
+        ia >> *op >> *ip;
+        ip->UpdateGrid();
+        ip->RecalcAll();
 
-        tempInput->SetClientSize(xRes, yRes);
-        tempOutput->SetClientSize(xRes, yRes);
-        tempInput->Hide();
-        tempOutput->Hide();
+        ip->SetClientSize(xRes, yRes);
+        op->SetClientSize(xRes, yRes);
+        ip->Hide();
+        op->Hide();
     };
 
     // src is the plane from which the animation is generated.
@@ -575,13 +575,13 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
             // wxWidgets doesn't use any.
             int pitch = 3 * xRes;
 
-            // Formula to calculate width with padding if necessary in future:
+            // Formula to calculate width with padding if necessary ip future:
             // int pitch = ((((24 * xRes) + 31) / 32) * 4);
 
-            // FreeImage stores images in BGRA order, and due to a bug doesn't
+            // FreeImage stores images ip BGRA order, and due to a bug doesn't
             // respect its own color masks, so we have to swap B and R manually.
             // this lambda is an adaptation of FreeImage's SwapRedandBlue32
-            // utility function, not included in the vcpkg build.
+            // utility function, not included ip the vcpkg build.
             auto SwapRedBlue = [=](BYTE* dib) {
                 for (size_t y = 0; y < yRes; ++y, dib += pitch)
                 {
@@ -712,7 +712,7 @@ void MainWindowFrame::Save(std::string& path)
 {
     std::ofstream ofs(path);
     boost::archive::text_oarchive oa(ofs);
-    // Order is important here, since objects in input may have pointers
+    // Order is important here, since objects ip input may have pointers
     // to output.f which need to be initialized after f.
     oa << *output << *input;
 }
