@@ -89,7 +89,7 @@ public:
         : ToolPanel(parent, ID, pos, size)
     {
         input = in;
-        SetOutputPlane(out);
+        if (out) SetOutputPlane(out);
     }
     void OnTextEntry(wxCommandEvent& event);
 

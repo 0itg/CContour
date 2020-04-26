@@ -1,6 +1,6 @@
 #include "ContourCircle.h"
-#include "LinkedCtrls.h"
 #include "ToolPanel.h"
+#include "LinkedCtrls.h"
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ContourCircle)
 
@@ -37,8 +37,9 @@ CommandContourEditRadius* ContourCircle::CreateActionCommand(cplx c)
 bool ContourCircle::IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                      int pixPrecision)
 {
-    return abs(abs(points[0] - pt) - radius) <
-           canvas->ScreenXToLength(pixPrecision);
+    return abs(abs(points[0] - pt) - radius) < std::max(
+           canvas->ScreenXToLength(pixPrecision),
+           canvas->ScreenYToLength(pixPrecision));
 }
 
 int ContourCircle::OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision)

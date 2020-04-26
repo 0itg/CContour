@@ -1,8 +1,8 @@
 #include "Contour.h"
 #include "ContourPolygon.h"
-#include "LinkedCtrls.h"
 #include "ToolPanel.h"
 #include <numeric>
+#include "LinkedCtrls.h"
 
 void Contour::AddPoint(cplx mousePos)
 {
@@ -89,7 +89,7 @@ void Contour::PopulateMenu(ToolPanel* TP)
     TP->FitInside();
 }
 
-ContourPolygon* Contour::Map(ParsedFunc<cplx>& f)
+Contour* Contour::Map(ParsedFunc<cplx>& f)
 {
     ContourPolygon* C = new ContourPolygon(color, "f(" + name + ")");
     C->Reserve(subDiv.size());

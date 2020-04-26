@@ -101,8 +101,9 @@ public:
     // precisely, but it would be expected from the user.
     virtual void Subdivide(int res) = 0;
 
-    // Creates a Polygon by applying f to the subDiv points.
-    virtual ContourPolygon* Map(ParsedFunc<cplx>& f);
+    // Default function creates a Polygon by applying f to the subDiv points.
+    // Overrides may return a polypmorphic pointer to any type of contour.
+    virtual Contour* Map(ParsedFunc<cplx>& f);
 
     int GetPointCount() { return (int)points.size(); }
     void Reserve(size_t size) { points.reserve(size); }

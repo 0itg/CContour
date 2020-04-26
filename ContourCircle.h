@@ -23,7 +23,7 @@ public:
     // Changes the radius, rather than translating.
     int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
     virtual CommandContourEditRadius* CreateActionCommand(cplx c);
-    bool IsDone() { return true; }
+    bool IsDone() { return radius != 0; }
     bool IsPointOnContour(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     int OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     cplx Interpolate(double t);

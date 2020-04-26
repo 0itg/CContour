@@ -6,7 +6,6 @@
 
 #include <wx/filepicker.h>
 
-#include <FreeImage.h>
 #include <fstream>
 
 #include "ContourParametric.h"
@@ -15,6 +14,10 @@
 #include "InputPlane.h"
 #include "MainWindowFrame.h"
 #include "OutputPlane.h"
+
+// Note: FreeImage causes some memory leak false positives:
+// 1x 104-byte, 1x 16-byte, 30x 48-byte. #1695-1726 if that holds constant.
+#include <FreeImage.h>
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
@@ -27,7 +30,7 @@ EVT_MENU(ID_AnimPanel, MainWindowFrame::OnShowAnimWin)
 EVT_TOOL(ID_Select, MainWindowFrame::OnButtonSelectionTool)
 EVT_TOOL(ID_Rotate, MainWindowFrame::OnButtonRotationTool)
 EVT_TOOL(ID_Scale, MainWindowFrame::OnButtonScaleTool)
-EVT_TOOL_RANGE(ID_Circle, ID_Line, MainWindowFrame::OnToolbarContourSelect)
+EVT_TOOL_RANGE(ID_Circle, ID_Point, MainWindowFrame::OnToolbarContourSelect)
 EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
 EVT_TOOL(ID_Parametric, MainWindowFrame::OnButtonParametricCurve)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
@@ -119,16 +122,18 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolbar->AddTool(ID_Circle, "Circular Contour",
                      wxBitmap(wxT("icons/draw-ellipse.png"), wxBITMAP_TYPE_PNG),
                      wxNullBitmap, wxITEM_RADIO, "Draws a circular contour");
-    toolbar->AddTool(
-        ID_Rect, "Rectangular Contour",
-        wxBitmap(wxT("icons/draw-rectangle.png"), wxBITMAP_TYPE_PNG),
-        wxNullBitmap, wxITEM_RADIO, "Draws a rectangular contour");
+    toolbar->AddTool(ID_Rect, "Rectangular Contour",
+                     wxBitmap(wxT("icons/draw-rectangle.png"), wxBITMAP_TYPE_PNG),
+                     wxNullBitmap, wxITEM_RADIO, "Draws a rectangular contour");
     toolbar->AddTool(ID_Polygon, "Polygonal Contour",
                      wxBitmap(wxT("icons/draw-polygon.png"), wxBITMAP_TYPE_PNG),
                      wxNullBitmap, wxITEM_RADIO, "Draws a polygonal contour");
     toolbar->AddTool(ID_Line, "Line Contour",
                      wxBitmap(wxT("icons/draw-line.png"), wxBITMAP_TYPE_PNG),
                      wxNullBitmap, wxITEM_RADIO, "Draws a straight line");
+    toolbar->AddTool(ID_Point, "Point",
+                     wxBitmap(wxT("icons/draw-point.png"), wxBITMAP_TYPE_PNG),
+                     wxNullBitmap, wxITEM_RADIO, "Draws a point");
 
     // Paintbrush recolors the highlighted contour with the current color.
 
@@ -302,6 +307,13 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                                .LeftDockable(false)
                                .FloatingSize(1200, 200));
     aui.Update();
+}
+
+MainWindowFrame::~MainWindowFrame()
+{
+    aui.UnInit();
+    for (auto& T : threads)
+        T.join();
 }
 
 inline void MainWindowFrame::OnExit(wxCommandEvent& event) { Close(true); }
@@ -748,6 +760,7 @@ void MainWindowFrame::RefreshAll()
     output->Update();
     output->Refresh();
     output->RefreshFuncText();
+    output->CalcZerosAndPoles();
     output->movedViewPort = true;
     for (auto TP : std::initializer_list<ToolPanel*>{numCtrlPanel, varEditPanel,
                                                      animPanel})

@@ -1,8 +1,7 @@
-#include "LinkedCtrls.h"
 #include "ContourParametric.h"
 #include "InputPlane.h"
 #include "ToolPanel.h"
-
+#include "LinkedCtrls.h"
 #include <wx/richtooltip.h>
 
 void LinkedCtrlPointTextCtrl::WriteLinked()

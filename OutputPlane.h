@@ -4,6 +4,7 @@
 #include "Grid.h"
 #include "Parser.h"
 #include "ToolPanel.h"
+#include "ContourPoint.h"
 
 #include <complex>
 #include <wx/spinctrl.h>
@@ -17,6 +18,7 @@
 
 class InputPlane;
 class ContourPolygon;
+class ContourPoint;
 class TransformedGrid;
 
 // Right Panel in UI. Displays the mapping of input point sets under
@@ -35,7 +37,7 @@ public:
                 const std::string& name = "Output");
 
     void OnMouseLeftUp(wxMouseEvent& mouse);
-    // void OnMouseRightUp(wxMouseEvent& mouse);
+    //void OnMouseRightUp(wxMouseEvent& mouse);
     // void OnMouseRightDown(wxMouseEvent& mouse);
     void OnMouseMoving(wxMouseEvent& mouse);
     void OnPaint(wxPaintEvent& paint);
@@ -59,6 +61,8 @@ public:
     void RefreshFuncText() { funcInput->SetValue(f.GetInputText()); }
     void SetVarPanel(VariableEditPanel* var) { varPanel = var; }
 
+    void CalcZerosAndPoles();
+
     // t = -1 means don't use the parameter.
     bool DrawFrame(wxBitmap& image, double t = -1);
 
@@ -73,6 +77,8 @@ private:
     InputPlane* in;
     wxTextCtrl* funcInput;
     VariableEditPanel* varPanel;
+
+    std::vector<std::unique_ptr<ContourPoint>> zerosAndPoles;
 
     template <class Archive>
     void serialize(Archive& ar, const unsigned int version)

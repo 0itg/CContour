@@ -1,5 +1,7 @@
 #include "OutputPlane.h"
 #include "InputPlane.h"
+#include "ContourPoint.h"
+#include "zf.h"
 
 #include <wx/dcgraph.h>
 #include <wx/richtooltip.h>
@@ -32,6 +34,12 @@ void OutputPlane::OnMouseLeftUp(wxMouseEvent& mouse)
 {
     if (panning) state = STATE_IDLE;
 }
+
+//void OutputPlane::OnMouseRightUp(wxMouseEvent& mouse)
+//{
+//    ComplexPlane::OnMouseRightUp(mouse);
+//    CalcZerosAndPoles();
+//}
 
 void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
 {
@@ -88,7 +96,7 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
         if (inputContours[i]->markedForRedraw)
         {
             contours[i] =
-                std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
+                std::unique_ptr<Contour>(inputContours[i]->Map(f));
             inputContours[i]->markedForRedraw = false;
         }
     }
@@ -138,6 +146,7 @@ void OutputPlane::OnFunctionEntry(wxCommandEvent& event)
 {
     EnterFunction(funcInput->GetLineText(0));
     in->GetAnimPanel()->UpdateComboBoxes();
+    CalcZerosAndPoles();
 }
 
 void OutputPlane::OnMouseWheel(wxMouseEvent& event)
@@ -145,6 +154,7 @@ void OutputPlane::OnMouseWheel(wxMouseEvent& event)
     history->RecordCommand(std::make_unique<CommandAxesSet>(this));
     ComplexPlane::OnMouseWheel(event);
     history->UpdateLastCommand();
+    //CalcZerosAndPoles();
 }
 
 // Override necessary to make sure animations play smoothly while
@@ -214,8 +224,41 @@ void OutputPlane::MarkAllForRedraw()
     contours.resize(inputContours.size());
     for (int i = 0; i < contours.size(); i++)
     {
-        contours[i] = std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
+        contours[i] = std::unique_ptr<Contour>(inputContours[i]->Map(f));
     }
+}
+
+void OutputPlane::CalcZerosAndPoles()
+{
+    zerosAndPoles.clear();
+    cplx UL = cplx(in->axes.realMin, in->axes.imagMax);
+    cplx LR = cplx(in->axes.realMax, in->axes.imagMin);
+    // Solver does not handle branch points at the moment. TODO: Fix that.
+    try
+    {
+        auto points = zf::solve<cplx>(UL, LR, 1e-16, f);
+        for (auto& P : points)
+        {
+            std::string name;
+            if (P.second > 0)
+                name = "Zero, order " + std::to_string(P.second);
+            else if (P.second < 0)
+                name = "Pole, order " + std::to_string(P.second);
+            else
+                name = "Point";
+            zerosAndPoles.push_back(std::make_unique<ContourPoint>(P.first,
+                wxColor(0,0,0), name, P.second));
+        }
+    }
+    catch (...)
+    {
+        wxRichToolTip errormsg(wxT("Zero Finder aborted"),
+            "Zero Finder exceeded memory limit. Try looking at a smaller region.");
+        errormsg.ShowFor(statBar);
+    }
+
+    in->Refresh();
+    in->Update();
 }
 
 bool OutputPlane::DrawFrame(wxBitmap& image, double t)
@@ -243,7 +286,7 @@ bool OutputPlane::DrawFrame(wxBitmap& image, double t)
     for (int i = 0; i < inputContours.size(); i++)
     {
         if (!inputContours[i]->isPathOnly)
-            contours[i] = std::unique_ptr<ContourPolygon>(inputContours[i]->Map(f));
+            contours[i] = std::unique_ptr<Contour>(inputContours[i]->Map(f));
     }
 
     if (showGrid) tGrid.Draw(&dc, this);
