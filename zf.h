@@ -1000,7 +1000,7 @@ namespace zf
 		data_t limits[4] = {real(ULcorner), imag(ULcorner),
 							real(LRcorner), imag(LRcorner)};
 		bool prec_to_low;
-		bool increased_prec;
+		bool increased_prec = false;
 		do
 		{
 			prec_to_low = false;
