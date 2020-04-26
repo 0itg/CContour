@@ -18,7 +18,7 @@ public:
     void Draw(wxDC* dc, ComplexPlane* canvas);
     void RemovePoint(int index);
     void SetCtrlPoint(int ptIndex, cplx mousePos);
-    bool IsDone() { return true; }
+    bool IsDone() { return GetCtrlPoint(0) != GetCtrlPoint(2); }
     void Finalize(){};
     // Rotation is disabled, since drawing/editing functions assume a rectangle
     // to be square with the screen. Use a ContourPolygon if rotation is needed.

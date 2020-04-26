@@ -1,7 +1,7 @@
 #include "ToolPanel.h"
 #include "InputPlane.h"
-#include "LinkedCtrls.h"
 #include "OutputPlane.h"
+#include "LinkedCtrls.h"
 
 // clang-format off
 
@@ -246,6 +246,7 @@ void VariableEditPanel::RefreshLinked()
     output->Update();
     output->Refresh();
     output->movedViewPort = true;
+    output->CalcZerosAndPoles();
 }
 
 void VariableEditPanel::Populate(ParsedFunc<cplx>& F)

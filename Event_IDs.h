@@ -14,6 +14,7 @@ enum enum_buttons
     ID_Rect,
     ID_Polygon,
     ID_Line,
+    ID_Point,
     ID_Paintbrush,
 
     ID_Parametric,

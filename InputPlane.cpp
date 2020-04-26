@@ -1,6 +1,7 @@
 #include "InputPlane.h"
 #include "ContourCircle.h"
 #include "ContourRect.h"
+#include "ContourPoint.h"
 #include "OutputPlane.h"
 
 #include <wx/dcgraph.h>
@@ -53,17 +54,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
         // If the contour is closed, finalize and deselect it
         if (contours[state]->IsDone())
         {
-            ReleaseMouseIfAble();
-            contours[state]->Finalize();
-
-            history->UpdateLastCommand(ScreenToComplex(mouse.GetPosition()));
-            toolPanel->PopulateContourTextCtrls(contours[state].get());
-
-            // For now recalculate all subdivided points.
-            // Later, could recalculate only the affected portion.
-            contours[state]->Subdivide(res);
-
-            DeSelect();
+            FinalizeContour(mouse);
         }
         // If not, user must be drawing a contour with multiple control points,
         // so move on to the next one
@@ -90,16 +81,16 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
             bool snap = false;
 
             // Snap to control point if Ctrl key is down
-            if (activePt > 0 && mouse.ControlDown())
-            {
-                snap = true;
-                c    = contours[active]->GetCtrlPoint(activePt);
-            }
+            //if (activePt > 0 && mouse.ControlDown())
+            //{
+            //    snap = true;
+            //    c    = contours[active]->GetCtrlPoint(activePt);
+            //}
             contours.push_back(CreateContour(pt));
             history->RecordCommand(
                 std::make_unique<CommandAddContour>(this, contours.back()));
 
-            if (snap) contours.back()->SetCtrlPoint(0, c);
+            //if (snap) contours.back()->SetCtrlPoint(0, c);
 
             contours.back()->Subdivide(res);
             state  = contours.size() - 1;
@@ -113,6 +104,8 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
                 // make space for transformed contour later on
                 out->contours.push_back(nullptr);
             }
+
+            if (contours.back()->IsDone()) FinalizeContour(mouse);
         }
         // If not, then make the highlighted contour active.
         else
@@ -347,6 +340,8 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
         Redraw();
     }
     ComplexPlane::OnMouseRightUp(mouse);
+    for (auto out : outputs)
+        out->CalcZerosAndPoles();
 }
 
 void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
@@ -365,6 +360,7 @@ void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
         for (auto out : outputs)
         {
             out->movedViewPort = true;
+            out->CalcZerosAndPoles();
         }
         grid.CalcVisibleGrid();
         Redraw();
@@ -436,6 +432,12 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
     }
 
     if (showGrid) grid.Draw(&dc, this);
+
+    for (auto out : outputs)
+    {
+        for (auto& P : out->zerosAndPoles)
+            P->Draw(&dc, this);
+    }
 
     for (auto& C : contours)
     {
@@ -589,6 +591,21 @@ void InputPlane::RemoveContour(int index)
     activePt = -1;
 }
 
+void InputPlane::FinalizeContour(wxMouseEvent& mouse)
+{
+    ReleaseMouseIfAble();
+    contours[state]->Finalize();
+
+    history->UpdateLastCommand(ScreenToComplex(mouse.GetPosition()));
+    toolPanel->PopulateContourTextCtrls(contours[state].get());
+
+    // For now recalculate all subdivided points.
+    // Later, could recalculate only the affected portion.
+    contours[state]->Subdivide(res);
+
+    DeSelect();
+}
+
 std::shared_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)
 {
     wxColor colorToDraw = color;
@@ -626,6 +643,13 @@ std::shared_ptr<Contour> InputPlane::CreateContour(wxPoint mousePos)
         return std::make_shared<ContourLine>(
             ScreenToComplex(mousePos), colorToDraw,
             "Line " + std::to_string(LineCount));
+        break;
+    case ID_Point:
+        PointCount++;
+        activePt = 1;
+        return std::make_shared<ContourPoint>(
+            ScreenToComplex(mousePos), colorToDraw,
+            "Point " + std::to_string(PointCount));
         break;
     }
     // Default in case we get a bad ID somehow
@@ -696,6 +720,11 @@ bool InputPlane::DrawFrame(wxBitmap& image, double t)
             A->FrameAt(t * 1000);
 
     if (showGrid) grid.Draw(&dc, this);
+    for (auto out : outputs)
+    {
+        for (auto& P : out->zerosAndPoles)
+            P->Draw(&dc, this);
+    }
     pen.SetWidth(2);
 
     for (auto& C : contours)

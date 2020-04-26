@@ -19,31 +19,34 @@ ContourPolygon::ContourPolygon(wxColor col, std::string n) noexcept
 
 void ContourPolygon::Draw(wxDC* dc, ComplexPlane* canvas)
 {
-    // Create a vector of screen points from the mathematical ones.
-    std::vector<wxPoint> screenPoints;
-    screenPoints.resize(points.size());
-    std::transform(points.begin(), points.end(), screenPoints.begin(),
-                   [canvas](cplx z) { return canvas->ComplexToScreen(z); });
-    auto screenW = abs(
-        canvas->LengthXToScreen(canvas->axes.realMax - canvas->axes.realMin));
-    auto screenH = abs(
-        canvas->LengthYToScreen(canvas->axes.imagMax - canvas->axes.imagMin));
-
-    for (auto pt = screenPoints.begin(); pt != screenPoints.end() - 1; pt++)
+    if (GetPointCount() > 1)
     {
-        auto p1 = *pt;
-        auto p2 = *(pt + 1);
-        // If canvas->cullLargeSegments and the distance between two points is
-        // greater than the distance across the screen, assume it really should
-        // be a discontinuity and skip it.
-        if (!canvas->cullLargeSegments ||
-            ((abs(p2.x - p1.x) < screenW) && (abs(p2.y - p1.y) < screenH)))
-            DrawClippedLine(p1, p2, dc, canvas);
+        // Create a vector of screen points from the mathematical ones.
+        std::vector<wxPoint> screenPoints;
+        screenPoints.resize(points.size());
+        std::transform(points.begin(), points.end(), screenPoints.begin(),
+            [canvas](cplx z) { return canvas->ComplexToScreen(z); });
+        auto screenW = abs(
+            canvas->LengthXToScreen(canvas->axes.realMax - canvas->axes.realMin));
+        auto screenH = abs(
+            canvas->LengthYToScreen(canvas->axes.imagMax - canvas->axes.imagMin));
+
+        for (auto pt = screenPoints.begin(); pt != screenPoints.end() - 1; pt++)
+        {
+            auto p1 = *pt;
+            auto p2 = *(pt + 1);
+            // If canvas->cullLargeSegments and the distance between two points is
+            // greater than the distance across the screen, assume it really should
+            // be a discontinuity and skip it.
+            if (!canvas->cullLargeSegments ||
+                ((abs(p2.x - p1.x) < screenW) && (abs(p2.y - p1.y) < screenH)))
+                DrawClippedLine(p1, p2, dc, canvas);
+        }
+        if (closed)
+            DrawClippedLine(screenPoints.back(), screenPoints.front(), dc, canvas);
+        /*if (closed) dc->DrawPolygon(screenPoints.size(), &screenPoints.front());
+        else dc->DrawLines(screenPoints.size(), &screenPoints.front());*/
     }
-    if (closed)
-        DrawClippedLine(screenPoints.back(), screenPoints.front(), dc, canvas);
-    /*if (closed) dc->DrawPolygon(screenPoints.size(), &screenPoints.front());
-    else dc->DrawLines(screenPoints.size(), &screenPoints.front());*/
 }
 
 int ContourPolygon::ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked)
@@ -60,7 +63,8 @@ CommandContourTranslate* ContourPolygon::CreateActionCommand(cplx c)
 inline bool ContourPolygon::IsDone()
 {
     if (closed) return true;
-    return abs(points[points.size() - 1] - points[0]) < 0.3;
+    return GetPointCount() > 2
+        && (abs(points[points.size() - 1] - points[0]) < 0.3);
 }
 
 bool ContourPolygon::IsPointOnContour(cplx pt, ComplexPlane* canvas,
@@ -88,6 +92,7 @@ bool ContourPolygon::IsPointOnContour(cplx pt, ComplexPlane* canvas,
         else
             return false;
     }
+    return false;
 }
 
 inline void ContourPolygon::Finalize()

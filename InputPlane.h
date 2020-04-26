@@ -67,6 +67,7 @@ public:
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
     void RemoveContour(int index);
+    void FinalizeContour(wxMouseEvent& mouse);
 
     std::shared_ptr<Contour> CreateContour(wxPoint mousePos);
 
@@ -126,6 +127,7 @@ public:
     int PolygonCount    = 0;
     int RectCount       = 0;
     int LineCount       = 0;
+    int PointCount      = 0;
     int ParametricCount = 0;
 
 private:

@@ -26,7 +26,7 @@ public:
         return ACTION_TRANSLATE;
     };
     virtual CommandContourTranslate* CreateActionCommand(cplx c);
-    virtual bool IsDone() { return true; };
+    virtual bool IsDone() { return GetCtrlPoint(0) != GetCtrlPoint(1); };
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                   int pixPrecision = 3);
     virtual cplx Interpolate(double t);

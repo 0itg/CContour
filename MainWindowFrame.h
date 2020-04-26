@@ -18,12 +18,7 @@ public:
     MainWindowFrame(const wxString& title, const wxPoint& pos,
                     const wxSize& size,
                     const long style = wxDEFAULT_FRAME_STYLE);
-    ~MainWindowFrame()
-    {
-        aui.UnInit();
-        for (auto& T : threads)
-            T.join();
-    }
+    ~MainWindowFrame();
 
     CommandHistory history;
 

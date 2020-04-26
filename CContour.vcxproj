@@ -70,8 +70,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Visual Leak Detector\include;</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;C:\Program Files (x86)\Visual Leak Detector\lib\Win64;</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(IncludePath)</IncludePath>
@@ -96,13 +96,16 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/experimental:external /external:anglebrackets %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -171,6 +174,7 @@
     <ClCompile Include="Contour.cpp" />
     <ClCompile Include="ContourLine.cpp" />
     <ClCompile Include="ContourParametric.cpp" />
+    <ClCompile Include="ContourPoint.cpp" />
     <ClCompile Include="DialogCreateParametricCurve.cpp" />
     <ClCompile Include="DialogExportImage.cpp" />
     <ClCompile Include="Grid.cpp" />
@@ -191,6 +195,7 @@
     <ClInclude Include="Contour.h" />
     <ClInclude Include="ContourLine.h" />
     <ClInclude Include="ContourParametric.h" />
+    <ClInclude Include="ContourPoint.h" />
     <ClInclude Include="DialogCreateParametricCurve.h" />
     <ClInclude Include="Event_IDs.h" />
     <ClInclude Include="DialogExportImage.h" />
@@ -207,6 +212,7 @@
     <ClInclude Include="ToolPanel.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="zeta.h" />
+    <ClInclude Include="zf.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icons\axis.png">
