@@ -16,12 +16,13 @@ public:
         return new ContourPoint(*this);
     };
     virtual void Draw(wxDC* dc, ComplexPlane* canvas);
+    virtual void DrawLabel(wxDC* dc, ComplexPlane* canvas);
     // I think this is impossible to activate in practice.
     virtual int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
     virtual CommandContourTranslate* CreateActionCommand(cplx c);
     virtual bool IsDone() { return true; };
     // Does nothing. Can't subdivide a single point.
-    virtual void Subdivide(int res) {}
+    virtual void Subdivide(int res) { markedForRedraw = true; }
     // Always returns the point's location. Nothing to interpolate.
     virtual cplx Interpolate(double t) { return points[0]; }
     // Only one point. Can't add more.
@@ -29,7 +30,7 @@ public:
     virtual bool RotationEnabled() { return false; }
     virtual bool ScalingEnabled() { return false; }
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
-        int pixPrecision = 3);
+        int pixPrecision = 4);
     virtual Contour* Map(ParsedFunc<cplx>& f);
     static constexpr int POINT_RADIUS = 3;
 

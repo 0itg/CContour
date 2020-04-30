@@ -180,6 +180,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
     }
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
+    mouse.Skip();
 }
 
 void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
@@ -252,6 +253,7 @@ void InputPlane::OnMouseMovingRotationTool(wxMouseEvent& mouse)
         OnMouseMovingIdle(mouse);
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
+    mouse.Skip();
 }
 
 void InputPlane::OnMouseLeftUpScaleTool(wxMouseEvent& mouse)
@@ -304,6 +306,7 @@ void InputPlane::OnMouseMovingScaleTool(wxMouseEvent& mouse)
         OnMouseMovingIdle(mouse);
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
+    mouse.Skip();
 }
 
 void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
@@ -412,20 +415,21 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
     dc.SetBrush(brush);
 
     if (animating)
+    {
         for (auto& A : animations)
         {
             A->FrameAt(animTimer.Time());
             if (A->animateGrid) animateGrid = true;
-            // toolPanel->Refresh();
         }
+        if (showZeros)
+            for (auto out : outputs) out->CalcZerosAndPoles();
+    }
     if (animateGrid)
     {
         for (auto out : outputs)
         {
             out->MarkAllForRedraw();
             out->movedViewPort = true;
-            // out->varPanel->Update();
-            // out->varPanel->Refresh();
         }
 
         animateGrid = false;
@@ -433,10 +437,18 @@ void InputPlane::OnPaint(wxPaintEvent& paint)
 
     if (showGrid) grid.Draw(&dc, this);
 
-    for (auto out : outputs)
+    if (showZeros)
     {
-        for (auto& P : out->zerosAndPoles)
-            P->Draw(&dc, this);
+        pen.SetWidth(2);
+        pen.SetColour(*wxBLACK);
+        dc.SetPen(pen);
+        for (auto out : outputs)
+        {
+            for (auto& P : out->zerosAndPoles)
+                P->Draw(&dc, this);
+            if (drawTooltip && mouseOnZero)
+                mouseOnZero->DrawLabel(&dc, this);
+        }
     }
 
     for (auto& C : contours)
@@ -509,6 +521,27 @@ void InputPlane::OnMouseMovingIdle(wxMouseEvent& mouse)
     for (auto out : outputs)
     {
         out->active = active;
+
+        // Draws tooltip showing order and location of any zero/pole under
+        // the cursor, or closes the last tooltip if none.
+        drawTooltip = false;
+        ContourPoint* mouseOnZeroTemp = nullptr;
+        for (auto& Z : out->zerosAndPoles)
+        {
+            if (Z->IsPointOnContour(
+                ScreenToComplex(mouse.GetPosition()), this))
+            {
+                mouseOnZeroTemp = Z.get();
+                Redraw();
+            }
+        }
+        if (!mouseOnZeroTemp && tooltip)
+        {
+            tooltip->Close();
+        }
+        else if (mouseOnZero != mouseOnZeroTemp)
+                drawTooltip = true;
+        mouseOnZero = mouseOnZeroTemp;
     }
     if (panning)
     {
@@ -720,10 +753,20 @@ bool InputPlane::DrawFrame(wxBitmap& image, double t)
             A->FrameAt(t * 1000);
 
     if (showGrid) grid.Draw(&dc, this);
-    for (auto out : outputs)
+
+    if (showZeros)
     {
-        for (auto& P : out->zerosAndPoles)
-            P->Draw(&dc, this);
+        pen.SetWidth(2);
+        pen.SetColour(*wxBLACK);
+        dc.SetPen(pen);
+        for (auto out : outputs)
+        {
+            out->CalcZerosAndPoles();
+            for (auto& P : out->zerosAndPoles)
+            {
+                P->Draw(&dc, this);
+            }
+        }
     }
     pen.SetWidth(2);
 

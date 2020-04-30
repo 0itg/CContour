@@ -43,6 +43,14 @@ void load(Archive& ar, wxColour& c, unsigned int version)
 }
 BOOST_SERIALIZATION_SPLIT_FREE(wxColour)
 
+template <typename T>
+std::string to_string_X_digits(T num, int digits)
+{
+    std::ostringstream oss;
+    oss << std::setprecision(digits) << std::noshowpoint << num;
+    return oss.str();
+}
+
 // Serialization for wxPoint
 namespace boost
 {

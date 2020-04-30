@@ -11,6 +11,7 @@
 #include <wx/dcmemory.h>
 #include <wx/display.h>
 #include <wx/spinctrl.h>
+#include <wx/tipwin.h>
 
 #include <complex>
 #include <functional>
@@ -178,7 +179,7 @@ public:
     Axes axes;
     bool movedViewPort     = true;
     bool cullLargeSegments = false;
-
+    wxTipWindow* tooltip = nullptr;
 protected:
     std::string name;
     std::vector<std::shared_ptr<Contour>> contours;
