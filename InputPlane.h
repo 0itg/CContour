@@ -115,6 +115,8 @@ public:
     // but whatever.
     ParsedFunc<cplx>* GetFunction(size_t outputIndex = 0);
 
+    void OnShowVarious(wxCommandEvent& event);
+
     // If true, when axes step values change, grid step values
     // change accordingly
     bool linkGridToAxes                  = true;
@@ -126,12 +128,19 @@ public:
     const int COLOR_SIMILARITY_THRESHOLD = 96;
 
     wxStopWatch animTimer;
-    int CircleCount     = 0;
-    int PolygonCount    = 0;
-    int RectCount       = 0;
-    int LineCount       = 0;
-    int PointCount      = 0;
-    int ParametricCount = 0;
+    union
+    {
+        int contourCounts[6] = { 0,0,0,0,0,0 };
+        struct
+        {
+            int CircleCount;
+            int PolygonCount;
+            int RectCount;
+            int LineCount;
+            int PointCount;
+            int ParametricCount;
+        };
+    };
 
 private:
     void DeSelect();
@@ -140,7 +149,7 @@ private:
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 500;
     bool animateGrid               = false;
-    bool showZeros                 = true;
+    bool showZeros = true;
     Grid grid;
 
     ContourPoint* mouseOnZero = nullptr;
@@ -161,9 +170,9 @@ private:
         ar& boost::serialization::base_object<ComplexPlane>(*this);
         ar& linkGridToAxes;
         ar& res;
-        // resCtrl->SetValue(res);
         ar& grid;
         ar& animations;
+        ar& contourCounts;
     }
     wxDECLARE_EVENT_TABLE();
 };

@@ -21,7 +21,6 @@
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
-//EVT_MENU(ID_Hello, MainWindowFrame::OnHello)
 EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
 EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
 EVT_MENU(ID_NumCtrlPanel, MainWindowFrame::OnShowNumCtrlWin)
@@ -35,7 +34,7 @@ EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
 EVT_TOOL(ID_Parametric, MainWindowFrame::OnButtonParametricCurve)
 EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
 EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainWindowFrame::OnColorPicked)
-EVT_TOOL_RANGE(ID_Show_Axes,ID_Show_Grid, MainWindowFrame::OnShowAxes_ShowGrid)
+EVT_TOOL_RANGE(ID_Show_Axes,ID_Show_Zeros, MainWindowFrame::OnShowVarious)
 EVT_SPINCTRL(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
 EVT_TEXT_ENTER(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
 EVT_SPINCTRL(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
@@ -215,6 +214,13 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
                               wxTE_PROCESS_ENTER, 20, 10000, output->GetRes());
     toolbar->AddControl(gResCtrl);
 
+    toolbar->AddTool(ID_Show_Zeros, "Calculate zeros/poles",
+        wxBitmap(wxT("icons/zero-finder.png"), wxBITMAP_TYPE_PNG),
+        wxNullBitmap, wxITEM_CHECK, "Automatically calculate zeros and poles. "
+                        "Warning: Algorithm does not handle branch points, and "
+                        "May produce spurious zeros/poles near them");
+    toolbar->ToggleTool(ID_Show_Zeros, true);
+
     toolbar->AddSeparator();
 
     // Function entry. The user enters a function of z, which is
@@ -225,7 +231,7 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     toolbar->AddControl(fnText);
     auto funcEntry = new wxTextCtrl(
         toolbar, ID_Function_Entry, wxString("z*z"), wxDefaultPosition,
-        wxSize(toolbar->GetSize().x / 4, wxDefaultSize.y), wxTE_PROCESS_ENTER);
+        wxSize(toolbar->GetSize().x / 5, wxDefaultSize.y), wxTE_PROCESS_ENTER);
     toolbar->AddControl(funcEntry);
     toolbar->AddSeparator();
 
@@ -412,10 +418,10 @@ inline void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event)
     input->OnContourResCtrl(event);
 }
 
-inline void MainWindowFrame::OnShowAxes_ShowGrid(wxCommandEvent& event)
+inline void MainWindowFrame::OnShowVarious(wxCommandEvent& event)
 {
-    input->OnShowAxes_ShowGrid(event);
-    output->OnShowAxes_ShowGrid(event);
+    input->OnShowVarious(event);
+    output->OnShowVarious(event);
 }
 
 inline void MainWindowFrame::OnShowNumCtrlWin(wxCommandEvent& event)

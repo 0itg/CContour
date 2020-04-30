@@ -6,20 +6,11 @@
 ComplexPlane::ComplexPlane(wxWindow* parent, const std::string& n)
     : axes(this), wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                           wxFULL_REPAINT_ON_RESIZE),
-      resCtrl(nullptr), statBar(nullptr), toolPanel(nullptr), name(n)
+      resCtrl(nullptr), statBar(nullptr), toolPanel(nullptr), name(n),
+        history(nullptr), toolbar(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
-
-// ComplexPlane::ComplexPlane(const ComplexPlane& P) :
-// ComplexPlane(P.GetParent(), P.GetName_())
-//{
-//    for (auto C : P.contours)
-//    {
-//        contours.push_back(std::shared_ptr<Contour>(C->Clone()));
-//    }
-//    axes.CopySettings(P.axes);
-//}
 
 cplx ComplexPlane::ScreenToComplex(wxPoint P)
 {
@@ -99,7 +90,7 @@ void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse)
     statBar->SetStatusText("", 1);
 }
 
-void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
+void ComplexPlane::OnShowVarious(wxCommandEvent& event)
 {
     switch (event.GetId())
     {
@@ -108,6 +99,7 @@ void ComplexPlane::OnShowAxes_ShowGrid(wxCommandEvent& event)
         break;
     case ID_Show_Grid:
         showGrid = !showGrid;
+        break;
     }
     Update();
     Refresh();
@@ -280,9 +272,7 @@ void Axes::Draw(wxDC* dc)
 
         if (count % LABEL_SPACING == 0 && count != 0)
         {
-            std::ostringstream oss;
-            oss << std::setprecision(4) << std::noshowpoint << cMark.real();
-            std::string label = oss.str();
+            auto label = to_string_X_digits(cMark.real(), 4);
             dc->DrawText(label, mark.x - parent->GetTextExtent(label).x / 2,
                          mark.y + TICK_WIDTH / 2 + 1);
         }
@@ -298,9 +288,7 @@ void Axes::Draw(wxDC* dc)
         count++;
         cMark += imStep * 1i;
         mark = parent->ComplexToScreen(cMark);
-        std::ostringstream oss;
-        oss << std::setprecision(4) << std::noshowpoint << cMark.imag() << 'i';
-        std::string label = oss.str();
+        auto label = to_string_X_digits(cMark.imag(), 4) + 'i';
         wxSize textOffset = dc->GetTextExtent(label);
 
         int textLeftEdge  = textOffset.x + TICK_WIDTH;
@@ -342,11 +330,3 @@ void Axes::RecalcSteps()
         imStep /= 2;
     }
 }
-
-// void Axes::CopySettings(const Axes& A)
-//{
-//    for (int i = 0; i < 4; i++)
-//        c[i] = A.c[i];
-//    reStep = A.reStep;
-//    imStep = A.imStep;
-//}

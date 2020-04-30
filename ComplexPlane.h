@@ -114,7 +114,7 @@ public:
     void OnMouseRightDown(wxMouseEvent& mouse);
     void OnMouseCapLost(wxMouseCaptureLostEvent& mouse);
     void OnMouseLeaving(wxMouseEvent& mouse);
-    void OnShowAxes_ShowGrid(wxCommandEvent& event);
+    virtual void OnShowVarious(wxCommandEvent& event);
     void ShowAxisControls();
 
     void RefreshShowAxes_ShowGrid();

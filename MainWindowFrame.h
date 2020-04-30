@@ -52,7 +52,7 @@ private:
     void OnGridResCtrl(wxCommandEvent& event);
     void OnContourResCtrl(wxSpinEvent& event);
     void OnContourResCtrl(wxCommandEvent& event);
-    void OnShowAxes_ShowGrid(wxCommandEvent& event);
+    void OnShowVarious(wxCommandEvent& event);
     void OnShowNumCtrlWin(wxCommandEvent& event);
     void OnShowVarWin(wxCommandEvent& event);
     void OnShowAnimWin(wxCommandEvent& event);

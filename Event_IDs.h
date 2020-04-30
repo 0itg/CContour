@@ -23,6 +23,7 @@ enum enum_buttons
     ID_Color_Picker,
     ID_Show_Axes,
     ID_Show_Grid,
+    ID_Show_Zeros,
 
     ID_Play,
     ID_Pause,

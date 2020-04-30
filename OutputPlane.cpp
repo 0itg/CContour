@@ -231,6 +231,7 @@ void OutputPlane::MarkAllForRedraw()
 
 void OutputPlane::CalcZerosAndPoles()
 {
+    if (!in->showZeros) return;
     //atomic_bool_setter busy(calculating_zeros);
     zerosAndPoles.clear();
     in->mouseOnZero = nullptr;
@@ -259,6 +260,7 @@ void OutputPlane::CalcZerosAndPoles()
         wxRichToolTip errormsg(wxT("Zero Finder aborted"),
             "Zero Finder exceeded memory limit. Try looking at a smaller region.");
         in->showZeros = false;
+        toolbar->ToggleTool(ID_Show_Zeros, false);
         errormsg.ShowFor(statBar);
     }
 }
