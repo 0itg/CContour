@@ -7,6 +7,7 @@
 #include "ContourPoint.h"
 
 #include <complex>
+//#include <atomic>
 #include <wx/spinctrl.h>
 
 #include <boost/archive/text_iarchive.hpp>
@@ -70,6 +71,7 @@ public:
 
     ParsedFunc<cplx> f;
 
+    //std::atomic_bool calculating_zeros;
 private:
     Parser<cplx> parser;
     TransformedGrid tGrid;
@@ -90,3 +92,12 @@ private:
     }
     wxDECLARE_EVENT_TABLE();
 };
+
+//class atomic_bool_setter
+//{
+//public:
+//    atomic_bool_setter(std::atomic_bool& a) : b(a) { b.store(true); }
+//    ~atomic_bool_setter() { b.store(false); }
+//private:
+//    std::atomic_bool& b;
+//};

@@ -72,6 +72,7 @@ void OutputPlane::OnMouseMoving(wxMouseEvent& mouse)
         in->Update();
         in->Refresh();
     }
+    mouse.Skip();
 }
 
 void OutputPlane::OnPaint(wxPaintEvent& paint)
@@ -230,7 +231,9 @@ void OutputPlane::MarkAllForRedraw()
 
 void OutputPlane::CalcZerosAndPoles()
 {
+    //atomic_bool_setter busy(calculating_zeros);
     zerosAndPoles.clear();
+    in->mouseOnZero = nullptr;
     cplx UL = cplx(in->axes.realMin, in->axes.imagMax);
     cplx LR = cplx(in->axes.realMax, in->axes.imagMin);
     // Solver does not handle branch points at the moment. TODO: Fix that.
@@ -249,16 +252,15 @@ void OutputPlane::CalcZerosAndPoles()
             zerosAndPoles.push_back(std::make_unique<ContourPoint>(P.first,
                 wxColor(0,0,0), name, P.second));
         }
+        if (!in->animating) in->Refresh();
     }
     catch (...)
     {
         wxRichToolTip errormsg(wxT("Zero Finder aborted"),
             "Zero Finder exceeded memory limit. Try looking at a smaller region.");
+        in->showZeros = false;
         errormsg.ShowFor(statBar);
     }
-
-    in->Refresh();
-    in->Update();
 }
 
 bool OutputPlane::DrawFrame(wxBitmap& image, double t)

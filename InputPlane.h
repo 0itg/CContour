@@ -11,10 +11,12 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <wx/clrpicker.h>
+#include <wx/tipwin.h>
 
 typedef std::complex<double> cplx;
 
 class ContourPolygon;
+class ContourPoint;
 class OutputPlane;
 class AnimPanel;
 template <class T> class ParsedFunc;
@@ -118,6 +120,7 @@ public:
     bool linkGridToAxes                  = true;
     bool randomizeColor                  = true;
     bool animating                       = false;
+    bool drawTooltip                     = false;
     wxColor color                        = wxColor(0, 0, 200);
     const wxColor BGcolor                = *wxWHITE;
     const int COLOR_SIMILARITY_THRESHOLD = 96;
@@ -137,7 +140,10 @@ private:
     const int CIRCLED_POINT_RADIUS = 7;
     int res                        = 500;
     bool animateGrid               = false;
+    bool showZeros                 = true;
     Grid grid;
+
+    ContourPoint* mouseOnZero = nullptr;
 
     // Pointers to outputs for or sending refresh signals.
     // App only uses one output for now, but more might be nice later.
