@@ -25,24 +25,6 @@ EVT_MOUSE_CAPTURE_LOST(ComplexPlane::OnMouseCapLost)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-// InputPlane::InputPlane(const InputPlane& in) : ComplexPlane(in)
-//{
-//    grid.hStep = in.grid.hStep;
-//    grid.vStep = in.grid.vStep;
-//    grid.CalcVisibleGrid();
-//    color = in.color;
-//    //BGcolor = in.BGcolor;
-//    CircleCount  = in.CircleCount;
-//    PolygonCount = in.PolygonCount;
-//    RectCount    = in.RectCount;
-//    LineCount    = in.LineCount;
-//    res = in.res;
-//    for (auto out : in.outputs)
-//    {
-//        outputs.push_back(out);
-//    }
-//}
-
 void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 {
     wxDClickWorkaround()
@@ -340,11 +322,11 @@ void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
             animPanel->UpdateComboBoxes();
         }
         state = nextState;
-        Redraw();
     }
     ComplexPlane::OnMouseRightUp(mouse);
     for (auto out : outputs)
         out->CalcZerosAndPoles();
+    Redraw();
 }
 
 void InputPlane::OnMouseWheel(wxMouseEvent& mouse)
@@ -516,7 +498,8 @@ void InputPlane::OnContourResCtrl(wxCommandEvent& event)
 
 void InputPlane::OnMouseMovingIdle(wxMouseEvent& mouse)
 {
-    if (Highlight(mouse.GetPosition())) Redraw();
+    bool callRedraw = false;
+    if (Highlight(mouse.GetPosition())) callRedraw = true;
 
     for (auto out : outputs)
     {
@@ -532,9 +515,11 @@ void InputPlane::OnMouseMovingIdle(wxMouseEvent& mouse)
                 ScreenToComplex(mouse.GetPosition()), this))
             {
                 mouseOnZeroTemp = Z.get();
-                Redraw();
+                callRedraw = true;
             }
         }
+        // wxWidgets' tooltip bounding rectangle doesn't work correctly,
+        // but we can close the tooltip manually.
         if (!mouseOnZeroTemp && tooltip)
         {
             tooltip->Close();
@@ -551,10 +536,12 @@ void InputPlane::OnMouseMovingIdle(wxMouseEvent& mouse)
         {
             out->movedViewPort = true;
         }
-        Redraw();
+        callRedraw = true;
         toolPanel->Update();
         toolPanel->Refresh();
     }
+    if (callRedraw) Redraw();
+    lastMousePos = ScreenToComplex(mouse.GetPosition());
 }
 
 void InputPlane::DeSelect()
@@ -793,3 +780,13 @@ double InputPlane::GetLongestAnimDur()
 }
 
 ParsedFunc<cplx>* InputPlane::GetFunction(size_t i) { return &outputs[i]->f; }
+
+void InputPlane::OnShowVarious(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_Show_Zeros)
+    {
+        showZeros = !showZeros;
+        for (auto out : outputs) out->CalcZerosAndPoles();
+    }
+    ComplexPlane::OnShowVarious(event);
+}
