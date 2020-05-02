@@ -115,7 +115,9 @@ public:
     // but whatever.
     ParsedFunc<cplx>* GetFunction(size_t outputIndex = 0);
 
-    void OnShowVarious(wxCommandEvent& event);
+    void OnShowAxes_Grid_Zeros(wxCommandEvent& event);
+
+    Grid* GetGrid() { return &grid; }
 
     // If true, when axes step values change, grid step values
     // change accordingly

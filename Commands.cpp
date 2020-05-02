@@ -131,8 +131,8 @@ void CommandAxesSet::SetPositionParam(cplx c)
         newBounds[i] = subject->c[i];
 }
 
-CommandAxesReset::CommandAxesReset(ComplexPlane* par, Grid* g)
-    : subject(&par->axes), parent(par), grid(g)
+CommandAxesReset::CommandAxesReset(ComplexPlane* par)
+    : subject(&par->axes), parent(par), grid(par->GetGrid())
 {
     for (int i = 0; i < 4; i++)
         oldBounds[i] = subject->c[i];

@@ -49,7 +49,7 @@ public:
     {
         RecognizeToken(new SymbolFunc<T, Args...>(f, name));
     }
-    void Initialize();
+    void constexpr Initialize();
     ParsedFunc<T> Parse(std::string str);
 
 private:
@@ -533,7 +533,19 @@ inline void ParsedFunc<T>::RestoreVarsFromMap(std::map<std::string, T> varMap)
     }
 }
 
-template <typename T> inline void Parser<T>::Initialize()
+// value = true if T can be initialized with {0,1} and has an overload of
+// std::imag(). False otherwise.
+template <class, class = void> struct is_complex
+{
+    static constexpr bool value{false};
+};
+template <class T>
+struct is_complex<typename T, std::void_t<decltype(std::imag(T{ 0, 1 })) >>
+{
+    static constexpr bool value{true};
+};
+
+template <typename T> inline constexpr void Parser<T>::Initialize()
 {
     RecognizeToken(new SymbolAdd<T>);
     RecognizeToken(new SymbolSub<T>);
@@ -547,55 +559,51 @@ template <typename T> inline void Parser<T>::Initialize()
     RecognizeToken(new SymbolConst<T>("pi", M_PI));
     RecognizeToken(new SymbolConst<T>("e", exp(1)));
 
-    RecognizeFunc((std::function<T(T)>)[](T z) { return exp(z); }, "exp");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return log(z); }, "log");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return sqrt(z); }, "sqrt");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return sin(z); }, "sin");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return cos(z); }, "cos");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return tan(z); }, "tan");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return sinh(z); }, "sinh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return cosh(z); }, "cosh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return tanh(z); }, "tanh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return asin(z); }, "asin");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return acos(z); }, "acos");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return atan(z); }, "atan");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return zeta(z); }, "zeta");
-}
+    // is_complex specifically checks that 2-value construction works
+    // and std::imag() accepts type T.
+    if constexpr (is_complex<T>::value)
+    {
+        RecognizeToken(new SymbolConst<T>("i", { 0, 1 }));
+    }
 
-template <> inline void Parser<typename std::complex<double>>::Initialize()
-{
-    typedef typename std::complex<double> T;
-    RecognizeToken(new SymbolAdd<T>);
-    RecognizeToken(new SymbolSub<T>);
-    RecognizeToken(new SymbolMul<T>);
-    RecognizeToken(new SymbolDiv<T>);
-    RecognizeToken(new SymbolPow<T>);
-    RecognizeToken(new SymbolNeg<T>);
-    RecognizeToken(new SymbolLParen<T>);
-    RecognizeToken(new SymbolRParen<T>);
-    RecognizeToken(new SymbolComma<T>);
-    RecognizeToken(new SymbolConst<T>("pi", M_PI));
-    RecognizeToken(new SymbolConst<T>("e", exp(1)));
-    RecognizeToken(new SymbolConst<T>("i", T(0, 1)));
+    // Standard math functions
 
-    RecognizeFunc((std::function<T(T)>)[](T z) { return exp(z); }, "exp");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return log(z); }, "log");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return sqrt(z); }, "sqrt");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return conj(z); }, "conj");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return sin(z); }, "sin");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return cos(z); }, "cos");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return tan(z); }, "tan");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return sinh(z); }, "sinh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return cosh(z); }, "cosh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return tanh(z); }, "tanh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return asin(z); }, "asin");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return acos(z); }, "acos");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return atan(z); }, "atan");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return asinh(z); }, "asinh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return acosh(z); }, "acosh");
-    RecognizeFunc((std::function<T(T)>)[](T z) { return atanh(z); }, "atanh");
+    typedef std::function<T(T)> fn;
+
+    RecognizeFunc((fn)[](T z) { return exp(z); }, "exp");
+    RecognizeFunc((fn)[](T z) { return log(z); }, "log");
+    RecognizeFunc((fn)[](T z) { return sqrt(z); }, "sqrt");
+    RecognizeFunc((fn)[](T z) { return sin(z); }, "sin");
+    RecognizeFunc((fn)[](T z) { return cos(z); }, "cos");
+    RecognizeFunc((fn)[](T z) { return tan(z); }, "tan");
+    RecognizeFunc((fn)[](T z) { return sinh(z); }, "sinh");
+    RecognizeFunc((fn)[](T z) { return cosh(z); }, "cosh");
+    RecognizeFunc((fn)[](T z) { return tanh(z); }, "tanh");
+    RecognizeFunc((fn)[](T z) { return asin(z); }, "asin");
+    RecognizeFunc((fn)[](T z) { return acos(z); }, "acos");
+    RecognizeFunc((fn)[](T z) { return atan(z); }, "atan");
+    RecognizeFunc((fn)[](T z) { return asinh(z); }, "asinh");
+    RecognizeFunc((fn)[](T z) { return acosh(z); }, "acosh");
+    RecognizeFunc((fn)[](T z) { return atanh(z); }, "atanh");
+
+    // Derived functions for convenience
+
+    RecognizeFunc((fn)[](T z) { return  1.0 / cos(z); }, "sec");
+    RecognizeFunc((fn)[](T z) { return  1.0 / sin(z); }, "csc");
+    RecognizeFunc((fn)[](T z) { return  cos(z) / sin(z); }, "cot");
+    RecognizeFunc((fn)[](T z) { return  1.0 / cosh(z); }, "sech");
+    RecognizeFunc((fn)[](T z) { return  1.0 / sinh(z); }, "csch");
+    RecognizeFunc((fn)[](T z) { return  cosh(z) / sinh(z); }, "coth");
+    RecognizeFunc((fn)[](T z) { return  acos(1.0 / z); }, "asec");
+    RecognizeFunc((fn)[](T z) { return  asin(1.0 / z); }, "acsc");
+    RecognizeFunc((fn)[](T z) { return  atan(1.0 / z); }, "acot");
+    RecognizeFunc((fn)[](T z) { return  acosh(1.0 / z); }, "asech");
+    RecognizeFunc((fn)[](T z) { return  asinh(1.0 / z); }, "acsch");
+    RecognizeFunc((fn)[](T z) { return  atanh(1.0 / z); }, "acoth");
+
+    // Special functions
+
+    // Zeta implementation isn't very good. Diverges when too far away from
+    // the real line. Around the critical strip, that's about += 50i;
     RecognizeFunc((std::function<T(T)>)[](T z) { return zeta(z); }, "zeta");
 }

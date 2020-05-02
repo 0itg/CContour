@@ -20,40 +20,41 @@
 #include <FreeImage.h>
 
 // clang-format off
-wxBEGIN_EVENT_TABLE(MainWindowFrame, wxFrame)
-EVT_MENU(wxID_EXIT, MainWindowFrame::OnExit)
-EVT_MENU(wxID_ABOUT, MainWindowFrame::OnAbout)
-EVT_MENU(ID_NumCtrlPanel, MainWindowFrame::OnShowNumCtrlWin)
-EVT_MENU(ID_VarEditPanel, MainWindowFrame::OnShowVarWin)
-EVT_MENU(ID_AnimPanel, MainWindowFrame::OnShowAnimWin)
-EVT_TOOL(ID_Select, MainWindowFrame::OnButtonSelectionTool)
-EVT_TOOL(ID_Rotate, MainWindowFrame::OnButtonRotationTool)
-EVT_TOOL(ID_Scale, MainWindowFrame::OnButtonScaleTool)
-EVT_TOOL_RANGE(ID_Circle, ID_Point, MainWindowFrame::OnToolbarContourSelect)
-EVT_TOOL(ID_Paintbrush, MainWindowFrame::OnButtonPaintbrush)
-EVT_TOOL(ID_Parametric, MainWindowFrame::OnButtonParametricCurve)
-EVT_TOOL(ID_Color_Randomizer, MainWindowFrame::OnButtonColorRandomizer)
-EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainWindowFrame::OnColorPicked)
-EVT_TOOL_RANGE(ID_Show_Axes,ID_Show_Zeros, MainWindowFrame::OnShowVarious)
-EVT_SPINCTRL(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
-EVT_TEXT_ENTER(ID_GridResCtrl, MainWindowFrame::OnGridResCtrl)
-EVT_SPINCTRL(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
-EVT_TEXT_ENTER(ID_ContourResCtrl, MainWindowFrame::OnContourResCtrl)
-EVT_TEXT_ENTER(ID_Function_Entry, MainWindowFrame::OnFunctionEntry)
-EVT_TOOL(ID_Play, MainWindowFrame::OnPlayButton)
-EVT_TOOL(ID_Pause, MainWindowFrame::OnPauseButton)
-EVT_MENU(wxID_OPEN, MainWindowFrame::OnOpen)
-EVT_MENU(wxID_SAVE, MainWindowFrame::OnSave)
-EVT_MENU(wxID_SAVEAS, MainWindowFrame::OnSaveAs)
-EVT_MENU(ID_Export_Anim, MainWindowFrame::OnExportAnimatedGif)
-EVT_MENU(ID_Export_Image, MainWindowFrame::OnExportImage)
-EVT_MENU(wxID_UNDO, MainWindowFrame::OnUndo)
-EVT_MENU(wxID_REDO, MainWindowFrame::OnRedo)
-EVT_AUI_PANE_CLOSE(MainWindowFrame::OnAuiPaneClose)
+wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
+EVT_MENU(wxID_EXIT, MainFrame::OnExit)
+EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
+EVT_MENU_RANGE(ID_ResetInputAxes, ID_ResetOutputAxes, MainFrame::OnResetAxes)
+EVT_MENU(ID_NumCtrlPanel, MainFrame::OnShowNumCtrlWin)
+EVT_MENU(ID_VarEditPanel, MainFrame::OnShowVarWin)
+EVT_MENU(ID_AnimPanel, MainFrame::OnShowAnimWin)
+EVT_TOOL(ID_Select, MainFrame::OnButtonSelectionTool)
+EVT_TOOL(ID_Rotate, MainFrame::OnButtonRotationTool)
+EVT_TOOL(ID_Scale, MainFrame::OnButtonScaleTool)
+EVT_TOOL_RANGE(ID_Circle, ID_Point, MainFrame::OnToolbarContourSelect)
+EVT_TOOL(ID_Paintbrush, MainFrame::OnButtonPaintbrush)
+EVT_TOOL(ID_Parametric, MainFrame::OnButtonParametricCurve)
+EVT_TOOL(ID_Color_Randomizer, MainFrame::OnButtonColorRandomizer)
+EVT_COLOURPICKER_CHANGED(ID_Color_Picker, MainFrame::OnColorPicked)
+EVT_TOOL_RANGE(ID_Show_Axes,ID_Show_Zeros, MainFrame::OnShowAxes_Grid_Zeros)
+EVT_SPINCTRL(ID_GridResCtrl, MainFrame::OnGridResCtrl)
+EVT_TEXT_ENTER(ID_GridResCtrl, MainFrame::OnGridResCtrl)
+EVT_SPINCTRL(ID_ContourResCtrl, MainFrame::OnContourResCtrl)
+EVT_TEXT_ENTER(ID_ContourResCtrl, MainFrame::OnContourResCtrl)
+EVT_TEXT_ENTER(ID_Function_Entry, MainFrame::OnFunctionEntry)
+EVT_TOOL(ID_Play, MainFrame::OnPlayButton)
+EVT_TOOL(ID_Pause, MainFrame::OnPauseButton)
+EVT_MENU(wxID_OPEN, MainFrame::OnOpen)
+EVT_MENU(wxID_SAVE, MainFrame::OnSave)
+EVT_MENU(wxID_SAVEAS, MainFrame::OnSaveAs)
+EVT_MENU(ID_Export_Anim, MainFrame::OnExportAnimatedGif)
+EVT_MENU(ID_Export_Image, MainFrame::OnExportImage)
+EVT_MENU(wxID_UNDO, MainFrame::OnUndo)
+EVT_MENU(wxID_REDO, MainFrame::OnRedo)
+EVT_AUI_PANE_CLOSE(MainFrame::OnAuiPaneClose)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
+MainFrame::MainFrame(const wxString& title, const wxPoint& pos,
                                  const wxSize& size, const long style)
     : wxFrame(NULL, wxID_ANY, title, pos, size, style)
 {
@@ -66,8 +67,8 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     menuFile->Append(wxID_OPEN);
     menuFile->Append(wxID_SAVE);
     menuFile->Append(wxID_SAVEAS);
-    menuFile->Append(ID_Export_Image, "Export Image...");
-    menuFile->Append(ID_Export_Anim, "Export Animation...");
+    menuFile->Append(ID_Export_Image, "Export &Image...\tCtrl+I");
+    menuFile->Append(ID_Export_Anim, "Export Animation...\tCtrl+A");
     menuFile->Append(wxID_EXIT);
 
     menuEdit = new wxMenu;
@@ -80,6 +81,8 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     history.SetMenu(menuEdit);
 
     menuWindow = new wxMenu;
+    menuWindow->Append(ID_ResetInputAxes, "&Reset Input Axes\tCtrl+R");
+    menuWindow->Append(ID_ResetOutputAxes, "&Reset Output Axes\tCtrl+Shift+R");
     menuWindow->AppendCheckItem(ID_NumCtrlPanel, "&Numerical Controls");
     menuWindow->AppendCheckItem(ID_VarEditPanel, "&Variables");
     menuWindow->AppendCheckItem(ID_AnimPanel, "&Animation Controls");
@@ -315,63 +318,63 @@ MainWindowFrame::MainWindowFrame(const wxString& title, const wxPoint& pos,
     aui.Update();
 }
 
-MainWindowFrame::~MainWindowFrame()
+MainFrame::~MainFrame()
 {
     aui.UnInit();
     for (auto& T : threads)
         T.join();
 }
 
-inline void MainWindowFrame::OnExit(wxCommandEvent& event) { Close(true); }
+inline void MainFrame::OnExit(wxCommandEvent& event) { Close(true); }
 
-inline void MainWindowFrame::OnAbout(wxCommandEvent& event)
+inline void MainFrame::OnAbout(wxCommandEvent& event)
 {
     wxMessageBox("Lorem Ipsum", "Complex Contour Visualizer",
                  wxOK | wxICON_INFORMATION);
 }
 
-inline void MainWindowFrame::OnButtonSelectionTool(wxCommandEvent& event)
+inline void MainFrame::OnButtonSelectionTool(wxCommandEvent& event)
 {
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpSelectionTool, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMovingIdle, input);
 }
 
-void MainWindowFrame::OnButtonRotationTool(wxCommandEvent& event)
+void MainFrame::OnButtonRotationTool(wxCommandEvent& event)
 {
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpRotationTool, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMovingRotationTool, input);
 }
 
-void MainWindowFrame::OnButtonScaleTool(wxCommandEvent& event)
+void MainFrame::OnButtonScaleTool(wxCommandEvent& event)
 {
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpScaleTool, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMovingScaleTool, input);
 }
 
-inline void MainWindowFrame::OnToolbarContourSelect(wxCommandEvent& event)
+inline void MainFrame::OnToolbarContourSelect(wxCommandEvent& event)
 {
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpContourTools, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMoving, input);
     input->SetContourType(event.GetId());
 }
 
-inline void MainWindowFrame::OnColorPicked(wxColourPickerEvent& col)
+inline void MainFrame::OnColorPicked(wxColourPickerEvent& col)
 {
     input->OnColorPicked(col);
 }
 
-inline void MainWindowFrame::OnButtonColorRandomizer(wxCommandEvent& event)
+inline void MainFrame::OnButtonColorRandomizer(wxCommandEvent& event)
 {
     input->OnColorRandomizer(event);
 }
 
-inline void MainWindowFrame::OnButtonPaintbrush(wxCommandEvent& event)
+inline void MainFrame::OnButtonPaintbrush(wxCommandEvent& event)
 {
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMoving, input);
 }
 
-void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
+void MainFrame::OnButtonParametricCurve(wxCommandEvent& event)
 {
     DialogCreateParametricCurve ParCreate(
         this, "Parametric Curve " + std::to_string(++input->ParametricCount));
@@ -393,62 +396,80 @@ void MainWindowFrame::OnButtonParametricCurve(wxCommandEvent& event)
     }
 }
 
-inline void MainWindowFrame::OnFunctionEntry(wxCommandEvent& event)
+inline void MainFrame::OnFunctionEntry(wxCommandEvent& event)
 {
     output->OnFunctionEntry(event);
 }
 
-inline void MainWindowFrame::OnGridResCtrl(wxSpinEvent& event)
+inline void MainFrame::OnGridResCtrl(wxSpinEvent& event)
 {
     output->OnGridResCtrl(event);
 }
 
-inline void MainWindowFrame::OnGridResCtrl(wxCommandEvent& event)
+inline void MainFrame::OnGridResCtrl(wxCommandEvent& event)
 {
     output->OnGridResCtrl(event);
 }
 
-inline void MainWindowFrame::OnContourResCtrl(wxSpinEvent& event)
+inline void MainFrame::OnContourResCtrl(wxSpinEvent& event)
 {
     input->OnContourResCtrl(event);
 }
 
-inline void MainWindowFrame::OnContourResCtrl(wxCommandEvent& event)
+inline void MainFrame::OnContourResCtrl(wxCommandEvent& event)
 {
     input->OnContourResCtrl(event);
 }
 
-inline void MainWindowFrame::OnShowVarious(wxCommandEvent& event)
+inline void MainFrame::OnShowAxes_Grid_Zeros(wxCommandEvent& event)
 {
-    input->OnShowVarious(event);
-    output->OnShowVarious(event);
+    input->OnShowAxes_Grid_Zeros(event);
+    output->OnShowAxes_Grid_Zeros(event);
 }
 
-inline void MainWindowFrame::OnShowNumCtrlWin(wxCommandEvent& event)
+void MainFrame::OnResetAxes(wxCommandEvent& event)
+{
+    ComplexPlane* subject;
+    switch (event.GetId())
+    {
+    case ID_ResetInputAxes:
+        subject = input;
+        break;
+    case ID_ResetOutputAxes:
+        subject = output;
+    }
+
+    auto cmd = std::make_unique<CommandAxesReset>(subject);
+    cmd->exec();
+    history.RecordCommand(std::move(cmd));
+    RefreshAll();
+}
+
+inline void MainFrame::OnShowNumCtrlWin(wxCommandEvent& event)
 {
     aui.GetPane(numCtrlPanel).Show(event.IsChecked());
     aui.Update();
 }
 
-inline void MainWindowFrame::OnShowVarWin(wxCommandEvent& event)
+inline void MainFrame::OnShowVarWin(wxCommandEvent& event)
 {
     aui.GetPane(varEditPanel).Show(event.IsChecked());
     aui.Update();
 }
 
-void MainWindowFrame::OnShowAnimWin(wxCommandEvent& event)
+void MainFrame::OnShowAnimWin(wxCommandEvent& event)
 {
     aui.GetPane(animPanel).Show(event.IsChecked());
     aui.Update();
 }
 
-inline void MainWindowFrame::OnAuiPaneClose(wxAuiManagerEvent& event)
+inline void MainFrame::OnAuiPaneClose(wxAuiManagerEvent& event)
 {
     menuWindow->Check(event.pane->window->GetId(), false);
     menuWindow->UpdateUI();
 }
 
-void MainWindowFrame::OnOpen(wxCommandEvent& event)
+void MainFrame::OnOpen(wxCommandEvent& event)
 {
     wxFileDialog open(this, "Open...", "", "", "TXT files (*.txt)|*.txt",
                       wxFD_OPEN);
@@ -460,7 +481,7 @@ void MainWindowFrame::OnOpen(wxCommandEvent& event)
     }
 }
 
-void MainWindowFrame::OnSave(wxCommandEvent& event)
+void MainFrame::OnSave(wxCommandEvent& event)
 {
     if (saveFilePath != "")
         Save(saveFilePath);
@@ -471,7 +492,7 @@ void MainWindowFrame::OnSave(wxCommandEvent& event)
     }
 }
 
-void MainWindowFrame::OnSaveAs(wxCommandEvent& event)
+void MainFrame::OnSaveAs(wxCommandEvent& event)
 {
     wxFileDialog save(this, "Save as...", "", "contour_graph.txt",
                       "TXT files (*.txt)|*.txt",
@@ -484,14 +505,14 @@ void MainWindowFrame::OnSaveAs(wxCommandEvent& event)
     }
 }
 
-void MainWindowFrame::OnPlayButton(wxCommandEvent& event)
+void MainFrame::OnPlayButton(wxCommandEvent& event)
 {
     input->animating = true;
     input->animTimer.Start(1000);
-    Bind(wxEVT_IDLE, &MainWindowFrame::AnimOnIdle, this);
+    Bind(wxEVT_IDLE, &MainFrame::AnimOnIdle, this);
 }
 
-void MainWindowFrame::OnPauseButton(wxCommandEvent& event)
+void MainFrame::OnPauseButton(wxCommandEvent& event)
 {
     input->animating     = false;
     input->movedViewPort = true;
@@ -500,19 +521,19 @@ void MainWindowFrame::OnPauseButton(wxCommandEvent& event)
     numCtrlPanel->Refresh();
 }
 
-void MainWindowFrame::OnUndo(wxCommandEvent& event)
+void MainFrame::OnUndo(wxCommandEvent& event)
 {
     history.undo();
     RefreshAll();
 }
 
-void MainWindowFrame::OnRedo(wxCommandEvent& event)
+void MainFrame::OnRedo(wxCommandEvent& event)
 {
     history.redo();
     RefreshAll();
 }
 
-void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
+void MainFrame::OnExportAnimatedGif(wxCommandEvent& event)
 {
     DialogExportImage Export(this, saveFileName, saveFilePath, input, true);
 
@@ -652,7 +673,7 @@ void MainWindowFrame::OnExportAnimatedGif(wxCommandEvent& event)
     }
 }
 
-void MainWindowFrame::OnExportImage(wxCommandEvent& event)
+void MainFrame::OnExportImage(wxCommandEvent& event)
 {
     std::string exportPath;
     DialogExportImage Export(this, saveFileName, saveFilePath, input, false);
@@ -721,12 +742,12 @@ void MainWindowFrame::OnExportImage(wxCommandEvent& event)
     }
 }
 
-void MainWindowFrame::AnimOnIdle(wxIdleEvent& idle)
+void MainFrame::AnimOnIdle(wxIdleEvent& idle)
 {
     if (input->animating) { input->Redraw(); }
 }
 
-void MainWindowFrame::Save(std::string& path)
+void MainFrame::Save(std::string& path)
 {
     std::ofstream ofs(path);
     boost::archive::text_oarchive oa(ofs);
@@ -735,7 +756,7 @@ void MainWindowFrame::Save(std::string& path)
     oa << *output << *input;
 }
 
-void MainWindowFrame::Load(std::string& path)
+void MainFrame::Load(std::string& path)
 {
     input->PrepareForLoadFromFile();
     output->PrepareForLoadFromFile();
@@ -757,7 +778,7 @@ void MainWindowFrame::Load(std::string& path)
     history.Clear();
 }
 
-void MainWindowFrame::RefreshAll()
+void MainFrame::RefreshAll()
 {
     input->Update();
     input->Refresh();

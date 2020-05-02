@@ -114,7 +114,7 @@ public:
     void OnMouseRightDown(wxMouseEvent& mouse);
     void OnMouseCapLost(wxMouseCaptureLostEvent& mouse);
     void OnMouseLeaving(wxMouseEvent& mouse);
-    virtual void OnShowVarious(wxCommandEvent& event);
+    virtual void OnShowAxes_Grid_Zeros(wxCommandEvent& event);
     void ShowAxisControls();
 
     void RefreshShowAxes_ShowGrid();
@@ -160,6 +160,7 @@ public:
     std::map<std::string, int> GetParametricContours(bool parametric = true);
 
     size_t GetContourCount() { return contours.size(); }
+    virtual Grid* GetGrid() { return nullptr; }
 
     std::shared_ptr<Contour> GetContour(int index)
     {

@@ -4,8 +4,6 @@ enum enum_buttons
 {
     ID_Toolbar,
     ID_Window,
-    // ID_Show_Numerical_Ctrl_Win,
-    // ID_Show_Variable_Win,
 
     ID_Select,
     ID_Rotate,
@@ -35,6 +33,9 @@ enum enum_buttons
     ID_VarEditPanel,
     ID_AnimPanel,
     ID_New_Anim,
+
+    ID_ResetInputAxes,
+    ID_ResetOutputAxes,
 
     ID_Export_Anim,
     ID_Export_Image,

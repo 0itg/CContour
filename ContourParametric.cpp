@@ -110,6 +110,11 @@ void ContourParametric::PopulateMenu(ToolPanel* TP)
         sizer->Add(vTextBox->GetCtrlPtr(), sizerFlags);
     }
 
+    auto IsPathChkbox = new LinkedCheckBox(panel, "Hide from output",
+        &isPathOnly, TP->GetHistoryPtr());
+    TP->AddLinkedCtrl(IsPathChkbox);
+    sizer->Add(IsPathChkbox->GetCtrlPtr(), sizerFlags);
+
     sizer->AddGrowableCol(0, 1);
     panel->SetVirtualSize(sizer->GetSize());
     panel->Layout();
