@@ -90,7 +90,7 @@ void ComplexPlane::OnMouseLeaving(wxMouseEvent& mouse)
     statBar->SetStatusText("", 1);
 }
 
-void ComplexPlane::OnShowVarious(wxCommandEvent& event)
+void ComplexPlane::OnShowAxes_Grid_Zeros(wxCommandEvent& event)
 {
     switch (event.GetId())
     {

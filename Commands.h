@@ -497,7 +497,7 @@ class CommandAxesReset : public Command
 
 public:
     CommandAxesReset() = default;
-    CommandAxesReset(ComplexPlane* par, Grid* grid = nullptr);
+    CommandAxesReset(ComplexPlane* par);
 
     void exec();
     void undo();

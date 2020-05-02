@@ -68,6 +68,7 @@ public:
     bool DrawFrame(wxBitmap& image, double t = -1);
 
     int GetRes();
+    Grid* GetGrid() { return &tGrid; }
 
     ParsedFunc<cplx> f;
 

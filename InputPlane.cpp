@@ -781,12 +781,12 @@ double InputPlane::GetLongestAnimDur()
 
 ParsedFunc<cplx>* InputPlane::GetFunction(size_t i) { return &outputs[i]->f; }
 
-void InputPlane::OnShowVarious(wxCommandEvent& event)
+void InputPlane::OnShowAxes_Grid_Zeros(wxCommandEvent& event)
 {
     if (event.GetId() == ID_Show_Zeros)
     {
         showZeros = !showZeros;
         for (auto out : outputs) out->CalcZerosAndPoles();
     }
-    ComplexPlane::OnShowVarious(event);
+    ComplexPlane::OnShowAxes_Grid_Zeros(event);
 }

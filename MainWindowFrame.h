@@ -12,13 +12,13 @@ class VariableEditPanel;
 class AnimPanel;
 class CommandHistory;
 
-class MainWindowFrame : public wxFrame
+class MainFrame : public wxFrame
 {
 public:
-    MainWindowFrame(const wxString& title, const wxPoint& pos,
+    MainFrame(const wxString& title, const wxPoint& pos,
                     const wxSize& size,
                     const long style = wxDEFAULT_FRAME_STYLE);
-    ~MainWindowFrame();
+    ~MainFrame();
 
     CommandHistory history;
 
@@ -52,7 +52,8 @@ private:
     void OnGridResCtrl(wxCommandEvent& event);
     void OnContourResCtrl(wxSpinEvent& event);
     void OnContourResCtrl(wxCommandEvent& event);
-    void OnShowVarious(wxCommandEvent& event);
+    void OnShowAxes_Grid_Zeros(wxCommandEvent& event);
+    void OnResetAxes(wxCommandEvent& event);
     void OnShowNumCtrlWin(wxCommandEvent& event);
     void OnShowVarWin(wxCommandEvent& event);
     void OnShowAnimWin(wxCommandEvent& event);
