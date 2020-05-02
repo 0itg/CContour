@@ -59,8 +59,8 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
         // User can still create a new one with Ctrl-click
         if (active < 0 || mouse.ControlDown())
         {
-            cplx c;
-            bool snap = false;
+            //cplx c;
+            //bool snap = false;
 
             // Snap to control point if Ctrl key is down
             //if (activePt > 0 && mouse.ControlDown())
@@ -74,7 +74,7 @@ void InputPlane::OnMouseLeftUpContourTools(wxMouseEvent& mouse)
 
             //if (snap) contours.back()->SetCtrlPoint(0, c);
 
-            contours.back()->Subdivide(res);
+            contours.back()->markedForRedraw = true;
             state  = contours.size() - 1;
             active = state;
             toolPanel->PopulateContourTextCtrls(contours[state].get());
@@ -134,7 +134,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         {
             if (contours[state]->ActionNoCtrlPoint(mousePos, lastMousePos))
             {
-                contours[state]->Subdivide(res);
+                contours[state]->markedForRedraw = true;
                 toolPanel->Update();
                 toolPanel->Refresh();
                 Redraw();
@@ -148,7 +148,7 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
         else
         {
             contours[state]->SetCtrlPoint(activePt, mousePos);
-            contours[state]->Subdivide(res);
+            contours[state]->markedForRedraw = true;
             toolPanel->Update();
             toolPanel->Refresh();
             Redraw();
@@ -162,7 +162,6 @@ void InputPlane::OnMouseMoving(wxMouseEvent& mouse)
     }
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
-    mouse.Skip();
 }
 
 void InputPlane::OnMouseLeftUpPaintbrush(wxMouseEvent& mouse)
@@ -222,7 +221,7 @@ void InputPlane::OnMouseMovingRotationTool(wxMouseEvent& mouse)
         contours[state]->Rotate((ScreenToComplex(mouse.GetPosition()) -
                                  contours[state]->GetCenter()) /
                                 (lastMousePos - contours[state]->GetCenter()));
-        contours[state]->Subdivide(res);
+        contours[state]->markedForRedraw = true;
         toolPanel->Update();
         toolPanel->Refresh();
         for (auto out : outputs)
@@ -235,7 +234,6 @@ void InputPlane::OnMouseMovingRotationTool(wxMouseEvent& mouse)
         OnMouseMovingIdle(mouse);
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
-    mouse.Skip();
 }
 
 void InputPlane::OnMouseLeftUpScaleTool(wxMouseEvent& mouse)
@@ -275,7 +273,7 @@ void InputPlane::OnMouseMovingScaleTool(wxMouseEvent& mouse)
             abs((ScreenToComplex(mouse.GetPosition()) -
                  contours[state]->GetCenter()) /
                 (lastMousePos - contours[state]->GetCenter())));
-        contours[state]->Subdivide(res);
+        contours[state]->markedForRedraw = true;
         toolPanel->Update();
         toolPanel->Refresh();
         for (auto out : outputs)
@@ -288,7 +286,6 @@ void InputPlane::OnMouseMovingScaleTool(wxMouseEvent& mouse)
         OnMouseMovingIdle(mouse);
 
     lastMousePos = ScreenToComplex(mouse.GetPosition());
-    mouse.Skip();
 }
 
 void InputPlane::OnMouseRightUp(wxMouseEvent& mouse)
@@ -580,7 +577,7 @@ void InputPlane::RecalcAll()
 {
     for (auto& C : contours)
     {
-        C->Subdivide(res);
+        C->markedForRedraw = true;
     }
 }
 
@@ -619,10 +616,7 @@ void InputPlane::FinalizeContour(wxMouseEvent& mouse)
     history->UpdateLastCommand(ScreenToComplex(mouse.GetPosition()));
     toolPanel->PopulateContourTextCtrls(contours[state].get());
 
-    // For now recalculate all subdivided points.
-    // Later, could recalculate only the affected portion.
-    contours[state]->Subdivide(res);
-
+    contours[state]->markedForRedraw = true;
     DeSelect();
 }
 

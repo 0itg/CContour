@@ -11,7 +11,6 @@ class ContourPolygon : public Contour
     friend class boost::serialization::access;
 
 public:
-    // ContourPolygon() {}
     ContourPolygon(cplx c, wxColor col = wxColor(0, 0, 0),
                    std::string n = "Polygon") noexcept;
     ContourPolygon(wxColor col   = wxColor(0, 0, 0),
@@ -29,7 +28,7 @@ public:
                                   int pixPrecision = 3);
     virtual void Finalize();
     virtual cplx Interpolate(double t);
-    void Subdivide(int res);
+    virtual Contour* Map(ParsedFunc<cplx>& f, int res);
 
 protected:
     bool closed = false;

@@ -12,37 +12,48 @@ ContourParametric::ContourParametric(std::string func, int res, wxColor col,
     name  = n;
     f     = parser.Parse(func);
     f.SetIV("t");
-    Subdivide(res);
 }
 
-ContourPolygon* ContourParametric::Map(ParsedFunc<cplx>& g)
+void ContourParametric::Draw(wxDC* dc, ComplexPlane* canvas)
 {
-    ContourPolygon* C = new ContourPolygon(color, "f(" + name + ")");
-    C->Reserve(points.size());
-
-    for (auto& z : points)
-        C->AddPoint(g(z));
-    return C;
+    double tStep = 1.0 / canvas->GetRes();
+    const double TOL = 1e-9;
+    double tLast = tStart;
+    for (double t = tStart + tStep; t < tEnd + TOL; t += tStep)
+    {
+        DrawClippedLine(canvas->ComplexToScreen(f(tLast)),
+            canvas->ComplexToScreen(f(t)), dc, canvas);
+        tLast = t;
+    }
 }
 
-void ContourParametric::Subdivide(int res)
+bool ContourParametric::IsPointOnContour(cplx pt, ComplexPlane* canvas, int pixPrecision)
 {
-    points.clear();
-    double tStep = (tEnd - tStart) / res;
-    auto tEnd2   = tEnd + 0.000001; // To avoid FP rounding issues;
-    for (double t = tStart; t <= tEnd2; t += tStep)
-        ContourPolygon::AddPoint(f(t));
+    auto checkDist = [&](cplx pt, double t1, double t2) {
+        auto pt1 = f(t1);
+        auto pt2 = f(t2);
+        auto d = DistancePointToLine(pt, pt1, pt2);
+        return ((d < canvas->ScreenXToLength(pixPrecision) ||
+            d < canvas->ScreenYToLength(pixPrecision)) &&
+            IsInsideBox(pt, pt1, pt2));
+    };
+
+    double tStep = 1.0 / canvas->GetRes();
+    const double TOL = 1e-9;
+    double tLast = tStart;
+    for (double t = tStart + tStep; t < tEnd + TOL; t += tStep)
+    {
+        if (checkDist(pt, tLast, t))
+            return true;
+        tLast = t;
+    }
+    return false;
 }
 
 cplx ContourParametric::Interpolate(double t)
 {
     return f(t * tEnd + (1 - t) * tStart);
 }
-
-// CommandContourTranslate* ContourParametric::CreateActionCommand(cplx c)
-//{
-//    return new CommandContourTranslate(this, c, c);
-//}
 
 void ContourParametric::PopulateMenu(ToolPanel* TP)
 {
@@ -70,9 +81,9 @@ void ContourParametric::PopulateMenu(ToolPanel* TP)
     TP->AddwxCtrl(tStartLabel);
     sizer->Add(tStartLabel, sizerFlags);
 
-    auto tStartTextBox = new LinkedDoubleTextCtrl(
+    auto tStartTextBox = new LinkedContourParamCtrl(
         panel, wxID_ANY, wxString(std::to_string(tStart)), wxDefaultPosition,
-        wxDefaultSize, wxTE_PROCESS_ENTER, &tStart);
+        wxDefaultSize, wxTE_PROCESS_ENTER, &tStart, this);
     TP->AddLinkedCtrl(tStartTextBox);
     sizer->Add(tStartTextBox->GetCtrlPtr(), sizerFlags);
 
@@ -81,9 +92,9 @@ void ContourParametric::PopulateMenu(ToolPanel* TP)
     TP->AddwxCtrl(tEndLabel);
     sizer->Add(tEndLabel, sizerFlags);
 
-    auto tEndTextBox = new LinkedDoubleTextCtrl(
+    auto tEndTextBox = new LinkedContourParamCtrl(
         panel, wxID_ANY, wxString(std::to_string(tEnd)), wxDefaultPosition,
-        wxDefaultSize, wxTE_PROCESS_ENTER, &tEnd);
+        wxDefaultSize, wxTE_PROCESS_ENTER, &tEnd, this);
     TP->AddLinkedCtrl(tEndTextBox);
     sizer->Add(tEndTextBox->GetCtrlPtr(), sizerFlags);
 

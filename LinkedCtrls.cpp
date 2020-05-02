@@ -266,7 +266,6 @@ void AnimCtrl::WriteLinked()
         auto command = commandMenu->GetSelection();
         if (C != pathContour && (C != nullptr || command == COMMAND_EDIT_VAR))
         {
-            bool subdivide = true;
             switch (command)
             {
             case COMMAND_PLACE_AT:
@@ -291,7 +290,6 @@ void AnimCtrl::WriteLinked()
                     C.get(), 1, C->GetCtrlPoint(handle - 1)));
                 break;
             case COMMAND_EDIT_VAR:
-                subdivide = false;
                 auto f    = input->GetFunction();
                 if (C && C->IsParametric())
                     f = reinterpret_cast<ContourParametric*>(C.get())
@@ -301,9 +299,6 @@ void AnimCtrl::WriteLinked()
                 anim->animateGrid = true;
                 break;
             }
-            if (subdivide)
-                anim->AddCommand(std::make_unique<CommandContourSubdivide>(
-                    C.get(), input->GetRes()));
         }
     }
 }
@@ -456,4 +451,10 @@ void LinkedCheckBox::WriteLinked()
     auto cmd = std::make_unique<CommandSetFlag>(src, chkBox->GetValue());
     cmd->exec();
     history->RecordCommand(std::move(cmd));
+}
+
+void LinkedContourParamCtrl::WriteLinked()
+{
+    C->markedForRedraw = true;
+    LinkedDoubleTextCtrl::WriteLinked();
 }

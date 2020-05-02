@@ -89,13 +89,16 @@ void Contour::PopulateMenu(ToolPanel* TP)
     TP->FitInside();
 }
 
-Contour* Contour::Map(ParsedFunc<cplx>& f)
+Contour* Contour::Map(ParsedFunc<cplx>& f, int res)
 {
     ContourPolygon* C = new ContourPolygon(color, "f(" + name + ")");
-    C->Reserve(subDiv.size());
-
-    for (auto& z : subDiv)
-        C->AddPoint(f(z));
+    C->Reserve(res + 1);
+    double tStep = 1.0 / res;
+    const double TOL = 1e-9;
+    for (double t = 0; t < 1.0 + TOL; t += tStep)
+    {
+        C->AddPoint(f(Interpolate(t)));
+    }
     return C;
 }
 

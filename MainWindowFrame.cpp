@@ -335,24 +335,28 @@ inline void MainFrame::OnAbout(wxCommandEvent& event)
 
 inline void MainFrame::OnButtonSelectionTool(wxCommandEvent& event)
 {
+    input->DeSelect();
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpSelectionTool, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMovingIdle, input);
 }
 
 void MainFrame::OnButtonRotationTool(wxCommandEvent& event)
 {
+    input->DeSelect();
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpRotationTool, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMovingRotationTool, input);
 }
 
 void MainFrame::OnButtonScaleTool(wxCommandEvent& event)
 {
+    input->DeSelect();
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpScaleTool, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMovingScaleTool, input);
 }
 
 inline void MainFrame::OnToolbarContourSelect(wxCommandEvent& event)
 {
+    input->DeSelect();
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpContourTools, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMoving, input);
     input->SetContourType(event.GetId());
@@ -370,12 +374,14 @@ inline void MainFrame::OnButtonColorRandomizer(wxCommandEvent& event)
 
 inline void MainFrame::OnButtonPaintbrush(wxCommandEvent& event)
 {
+    input->DeSelect();
     input->Bind(wxEVT_LEFT_UP, &InputPlane::OnMouseLeftUpPaintbrush, input);
     input->Bind(wxEVT_MOTION, &InputPlane::OnMouseMoving, input);
 }
 
 void MainFrame::OnButtonParametricCurve(wxCommandEvent& event)
 {
+    input->DeSelect();
     DialogCreateParametricCurve ParCreate(
         this, "Parametric Curve " + std::to_string(++input->ParametricCount));
 

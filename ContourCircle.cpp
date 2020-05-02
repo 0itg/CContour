@@ -56,20 +56,6 @@ cplx ContourCircle::Interpolate(double t)
            cplx(radius * cos(2 * M_PI * t), radius * sin(2 * M_PI * t));
 }
 
-void ContourCircle::Subdivide(int res)
-{
-    if (isPathOnly) return;
-
-    subDiv.clear();
-    subDiv.reserve(res);
-    for (int i = 0; i <= res; i++)
-    {
-        double t = (double)i / res;
-        subDiv.push_back(Interpolate(t));
-    }
-    markedForRedraw = true;
-}
-
 void ContourCircle::RotateAndScale(cplx V, cplx pivot)
 {
     Contour::RotateAndScale(V, pivot);

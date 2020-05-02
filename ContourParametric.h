@@ -16,12 +16,13 @@ public:
                       wxColor col   = wxColor(0, 0, 0),
                       std::string n = "Parametric Curve", double tS = 0,
                       double tE = 1);
-    ContourPolygon* Map(ParsedFunc<cplx>& g);
+    Contour* Map(ParsedFunc<cplx>& g, int res) { return Contour::Map(g, res); }
+    void Draw(wxDC* dc, ComplexPlane* canvas);
+    bool IsPointOnContour(cplx pt, ComplexPlane* canvas, int pixPrecision = 4);
 
     // Mouse-driven editing is disabled.
     void AddPoint(cplx c) {}
 
-    void Subdivide(int res);
     cplx Interpolate(double t);
     void SetFunction(std::string func) { f = parser.Parse(func); }
     auto GetFunctionPtr() { return &f; }

@@ -353,31 +353,31 @@ private:
 
 // May eliminate this command, as it's not something the user does.
 // Currently used in the animation system, though.
-class CommandContourSubdivide : public Command
-{
-    friend class boost::serialization::access;
-
-public:
-    CommandContourSubdivide() = default;
-    CommandContourSubdivide(Contour* s, int i) : res(i), subject(s) {}
-
-    void exec();
-    // I assume there is no real need to restore the previous state,
-    // since it should be overwritten next time it's needed.
-    void undo() {}
-
-private:
-    int res;
-    Contour* subject;
-
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        ar& boost::serialization::base_object<Command>(*this);
-        ar& res;
-        ar& subject;
-    }
-};
+//class CommandContourSubdivide : public Command
+//{
+//    friend class boost::serialization::access;
+//
+//public:
+//    CommandContourSubdivide() = default;
+//    CommandContourSubdivide(Contour* s, int i) : res(i), subject(s) {}
+//
+//    void exec();
+//    // I assume there is no real need to restore the previous state,
+//    // since it should be overwritten next time it's needed.
+//    void undo() {}
+//
+//private:
+//    int res;
+//    Contour* subject;
+//
+//    template <class Archive>
+//    void serialize(Archive& ar, const unsigned int version)
+//    {
+//        ar& boost::serialization::base_object<Command>(*this);
+//        ar& res;
+//        ar& subject;
+//    }
+//};
 
 class CommandAddContour : public Command
 {
@@ -736,7 +736,7 @@ BOOST_CLASS_EXPORT_KEY(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_KEY(CommandAxesReset)
 BOOST_CLASS_EXPORT_KEY(CommandAxesSet)
 BOOST_CLASS_EXPORT_KEY(CommandAddContour)
-BOOST_CLASS_EXPORT_KEY(CommandContourSubdivide)
+//BOOST_CLASS_EXPORT_KEY(CommandContourSubdivide)
 BOOST_CLASS_EXPORT_KEY(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_KEY(CommandContourRemovePoint)
 BOOST_CLASS_EXPORT_KEY(CommandContourScale)

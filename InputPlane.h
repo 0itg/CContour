@@ -61,10 +61,10 @@ public:
 
     int GetState() const { return state; }
     int GetRes() const { return res; }
-    void RecalcAll();
 
     // Calls refresh/update for this panel and output panel(s)
     void Redraw();
+    void RecalcAll();
 
     // "Type" meaning Circle, Polygon, Rectangle, etc.
     void SetContourType(int id);
@@ -144,8 +144,8 @@ public:
         };
     };
 
-private:
     void DeSelect();
+private:
     void SelectionTool(wxMouseEvent& mouse);
 
     const int CIRCLED_POINT_RADIUS = 7;
