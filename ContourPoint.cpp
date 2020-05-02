@@ -72,7 +72,7 @@ bool ContourPoint::IsPointOnContour(cplx pt, ComplexPlane* canvas,
 			canvas->ScreenYToLength(pixPrecision));
 }
 
-Contour* ContourPoint::Map(ParsedFunc<cplx>& f)
+Contour* ContourPoint::Map(ParsedFunc<cplx>& f, int res)
 {
 	return new ContourPoint(f(this->GetCtrlPoint(0)), color);
 }

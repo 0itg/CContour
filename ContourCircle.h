@@ -27,7 +27,6 @@ public:
     bool IsPointOnContour(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     int OnCtrlPoint(cplx pt, ComplexPlane* canvas, int pixPrecision = 3);
     cplx Interpolate(double t);
-    void Subdivide(int res);
     void SetRadius(double r) { radius = r; }
     double GetRadius() { return radius; }
 

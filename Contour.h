@@ -96,14 +96,9 @@ public:
     // Parameterizing the contour as g(t) with 0 < t < 1, returns g(t).
     virtual cplx Interpolate(double t) = 0;
 
-    // Creates a polygonal approximation of the contour with number of segments
-    // dependent on res. No actual necessity for the number to equal res
-    // precisely, but it would be expected from the user.
-    virtual void Subdivide(int res) = 0;
-
     // Default function creates a Polygon by applying f to the subDiv points.
     // Overrides may return a polypmorphic pointer to any type of contour.
-    virtual Contour* Map(ParsedFunc<cplx>& f);
+    virtual Contour* Map(ParsedFunc<cplx>& f, int res);
 
     int GetPointCount() { return (int)points.size(); }
     void Reserve(size_t size) { points.reserve(size); }
@@ -126,7 +121,6 @@ public:
 protected:
     std::string name;
     std::vector<cplx> points;
-    std::vector<cplx> subDiv;
 
     cplx center;
 

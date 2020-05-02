@@ -21,8 +21,6 @@ public:
     virtual int ActionNoCtrlPoint(cplx mousePos, cplx lastPointClicked);
     virtual CommandContourTranslate* CreateActionCommand(cplx c);
     virtual bool IsDone() { return true; };
-    // Does nothing. Can't subdivide a single point.
-    virtual void Subdivide(int res) { markedForRedraw = true; }
     // Always returns the point's location. Nothing to interpolate.
     virtual cplx Interpolate(double t) { return points[0]; }
     // Only one point. Can't add more.
@@ -31,7 +29,7 @@ public:
     virtual bool ScalingEnabled() { return false; }
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
         int pixPrecision = 4);
-    virtual Contour* Map(ParsedFunc<cplx>& f);
+    virtual Contour* Map(ParsedFunc<cplx>& f, int res);
     static constexpr int POINT_RADIUS = 3;
 
     int GetOrder() { return order; }

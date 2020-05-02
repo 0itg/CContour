@@ -151,15 +151,15 @@ cplx ContourPolygon::Interpolate(double t)
         return points[0];
 }
 
-void ContourPolygon::Subdivide(int res)
+Contour* ContourPolygon::Map(ParsedFunc<cplx>& f, int res)
 {
-    if (isPathOnly) return;
+    if (isPathOnly) return nullptr;
+    ContourPolygon* C = new ContourPolygon(color, "f(" + name + ")");
 
-    subDiv.clear();
-    subDiv.reserve(res + points.size());
-    res           = (int)(std::max(points.size(), res - points.size()));
+    C->points.reserve(res + points.size());
+    res = (int)(std::max(points.size(), res - points.size()));
     int sideIndex = 0;
-    double t      = 0;
+    double t = 0;
     CalcSideLengths();
     double lengthTraversed = sideLengths[0];
 
@@ -173,8 +173,7 @@ void ContourPolygon::Subdivide(int res)
             // t just passed the edge of one side.
             sideIndex++;
             lengthTraversed += sideLengths[sideIndex];
-            subDiv.push_back(
-                points[sideIndex]); // add the endpoint of each segment
+            C->AddPoint(f(points[sideIndex])); // add the endpoint of each segment
         }
         // Within one side, linearly interpolate the points
         // such that we get res points in total.
@@ -182,23 +181,22 @@ void ContourPolygon::Subdivide(int res)
             if (sideLengths[sideIndex] > 0)
             {
                 double sideParam = abs(t * perimeter - lengthTraversed) /
-                                   sideLengths[sideIndex];
+                    sideLengths[sideIndex];
                 if (sideIndex < points.size() - 1)
-                    subDiv.push_back(points[(__int64)sideIndex + 1] *
-                                         (1 - sideParam) +
-                                     points[sideIndex] * sideParam);
+                    C->AddPoint(f(points[(__int64)sideIndex + 1] *
+                    (1 - sideParam) + points[sideIndex] * sideParam));
                 else
-                    subDiv.push_back(points[0] * (1 - sideParam) +
-                                     points[sideIndex] * sideParam);
+                    C->AddPoint(f(points[0] * (1 - sideParam) +
+                        points[sideIndex] * sideParam));
             }
     }
     // Degenerate polygons may occur but are discarded by the code above.
     // In that case, put in two points so the drawing
     // functions have what they expect.
-    if (subDiv.size() == 0)
+    if (C->GetPointCount() == 0)
     {
-        subDiv.push_back(points[0]);
-        subDiv.push_back(points[0]);
+        C->AddPoint(f(points[0]));
+        C->AddPoint(f(points[0]));
     }
-    markedForRedraw = true;
+    return C;
 }

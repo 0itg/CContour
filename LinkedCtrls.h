@@ -140,6 +140,22 @@ protected:
     double* src;
 };
 
+class LinkedContourParamCtrl : public LinkedDoubleTextCtrl
+{
+public:
+    LinkedContourParamCtrl(wxWindow* par, wxWindowID ID, wxString str,
+        wxPoint defaultPos, wxSize defSize, int style,
+        double* p, Contour* ctr, double step = 0.1, double init = 0,
+        double min = -1e10, double max = 1e10)
+        : LinkedDoubleTextCtrl(par, ID, str, defaultPos, defSize, style, p,
+            step, init, min, max), C(ctr)
+    {
+    }
+    void WriteLinked();
+private:
+    Contour* C;
+};
+
 // Links to a Contour control point, given the a pointer to the Contour
 // and the index of the point in its points vector.
 class LinkedCtrlPointTextCtrl : public LinkedCplxSpinCtrl
@@ -206,8 +222,7 @@ public:
                    ComplexPlane* P, double* p, double step = 0.1,
                    double init = 0, double min = -1e10, double max = 1e10)
         : LinkedDoubleTextCtrl(par, ID, str, defaultPos, defSize, style, p,
-                               step, init, min, max),
-          plane(P)
+                               step, init, min, max), plane(P)
     {
     }
     // void WriteLinked();

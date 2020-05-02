@@ -97,7 +97,8 @@ void OutputPlane::OnPaint(wxPaintEvent& paint)
         if (inputContours[i]->markedForRedraw)
         {
             contours[i] =
-                std::unique_ptr<Contour>(inputContours[i]->Map(f));
+                std::unique_ptr<Contour>(
+                    inputContours[i]->Map(f, in->GetRes()));
             inputContours[i]->markedForRedraw = false;
         }
     }
@@ -225,7 +226,8 @@ void OutputPlane::MarkAllForRedraw()
     contours.resize(inputContours.size());
     for (int i = 0; i < contours.size(); i++)
     {
-        contours[i] = std::unique_ptr<Contour>(inputContours[i]->Map(f));
+        contours[i] = std::unique_ptr<Contour>(
+            inputContours[i]->Map(f, in->GetRes()));
     }
 }
 
@@ -290,7 +292,8 @@ bool OutputPlane::DrawFrame(wxBitmap& image, double t)
     for (int i = 0; i < inputContours.size(); i++)
     {
         if (!inputContours[i]->isPathOnly)
-            contours[i] = std::unique_ptr<Contour>(inputContours[i]->Map(f));
+            contours[i] = std::unique_ptr<Contour>(
+                inputContours[i]->Map(f, in->GetRes()));
     }
 
     if (showGrid) tGrid.Draw(&dc, this);

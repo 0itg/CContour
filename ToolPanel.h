@@ -36,7 +36,8 @@ template <class T> class ParsedFunc;
 class ToolPanel : public wxScrolledWindow
 {
 public:
-    ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size);
+    ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
+        InputPlane* in = nullptr);
     virtual ~ToolPanel();
     virtual void OnTextEntry(wxCommandEvent& event);
     virtual void OnSpinButtonUp(wxSpinEvent& event);
@@ -86,9 +87,8 @@ class NumCtrlPanel : public ToolPanel
 public:
     NumCtrlPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
                  InputPlane* in = nullptr, OutputPlane* out = nullptr)
-        : ToolPanel(parent, ID, pos, size)
+        : ToolPanel(parent, ID, pos, size, in)
     {
-        input = in;
         if (out) SetOutputPlane(out);
     }
     void OnTextEntry(wxCommandEvent& event);

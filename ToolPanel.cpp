@@ -32,8 +32,9 @@ EVT_BUTTON(wxID_ANY, AnimPanel::OnRemoveAnim)
 wxEND_EVENT_TABLE();
 // clang-format on
 
-ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size)
-    : wxScrolledWindow(parent, ID, pos, size)
+ToolPanel::ToolPanel(wxWindow* parent, int ID, wxPoint pos, wxSize size,
+    InputPlane* in)
+    : wxScrolledWindow(parent, ID, pos, size), input(in)
 {
     wxBoxSizer* siz = new wxBoxSizer(wxVERTICAL);
     intermediate    = new wxPanel(this);

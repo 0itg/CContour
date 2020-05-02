@@ -11,7 +11,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(CommandParametricFuncEntry)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesReset)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAxesSet)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandAddContour)
-BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSubdivide)
+//BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourSubdivide)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourEditRadius)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourRemovePoint)
 BOOST_CLASS_EXPORT_IMPLEMENT(CommandContourScale)
@@ -34,6 +34,7 @@ CommandContourPlaceAt::CommandContourPlaceAt(Contour* s, cplx n, int pt)
 void CommandContourPlaceAt::exec()
 {
     subject->Translate(newPos, subject->GetCtrlPoint(point));
+    subject->markedForRedraw = true;
 }
 
 void CommandContourPlaceAt::undo() { subject->Translate(oldPos, newPos); }
@@ -51,7 +52,11 @@ CommandContourSetPoint::CommandContourSetPoint(Contour* s, cplx n, int i,
     oldPos = old;
 }
 
-void CommandContourSetPoint::exec() { subject->SetCtrlPoint(index, newPos); }
+void CommandContourSetPoint::exec()
+{
+    subject->SetCtrlPoint(index, newPos);
+    subject->markedForRedraw = true;
+}
 
 void CommandContourSetPoint::undo() { subject->SetCtrlPoint(index, oldPos); }
 
@@ -59,6 +64,7 @@ void CommandContourAddPoint::exec()
 {
     index = subject->GetPointCount();
     subject->AddPoint(mPos);
+    subject->markedForRedraw = true;
 }
 
 void CommandContourAddPoint::undo() { subject->RemovePoint(index); }
@@ -69,11 +75,15 @@ CommandContourRemovePoint::CommandContourRemovePoint(Contour* s, int i)
     oldPos = s->GetCtrlPoint(i);
 }
 
-void CommandContourRemovePoint::exec() { subject->RemovePoint(index); }
+void CommandContourRemovePoint::exec()
+{
+    subject->RemovePoint(index);
+    subject->markedForRedraw = true;
+}
 
 void CommandContourRemovePoint::undo() { subject->AddPoint(oldPos); }
 
-void CommandContourSubdivide::exec() { subject->Subdivide(res); }
+//void CommandContourSubdivide::exec() { subject->Subdivide(res); }
 
 CommandAxesSet::CommandAxesSet(ComplexPlane* par, double rMin, double rMax,
                                double iMin, double iMax)
@@ -177,6 +187,7 @@ CommandParametricFuncEntry::CommandParametricFuncEntry(ContourParametric* C,
 void CommandParametricFuncEntry::exec()
 {
     *subject->GetFunctionPtr() = newfunc;
+    subject->markedForRedraw = true;
 }
 
 void CommandParametricFuncEntry::undo()
@@ -260,7 +271,11 @@ CommandContourEditRadius::CommandContourEditRadius(ContourCircle* s, double rad)
     oldRad = s->GetRadius();
 }
 
-void CommandContourEditRadius::exec() { subject->SetRadius(radius); }
+void CommandContourEditRadius::exec()
+{ 
+    subject->SetRadius(radius);
+    subject->markedForRedraw = true;
+}
 
 void CommandContourEditRadius::undo() { subject->SetRadius(oldRad); }
 
@@ -292,7 +307,11 @@ CommandContourColorSet::CommandContourColorSet(Contour* s, wxColor col)
     oldColor = s->color;
 }
 
-void CommandContourColorSet::exec() { subject->color = color; }
+void CommandContourColorSet::exec()
+{
+    subject->color = color;
+    subject->markedForRedraw = true;
+}
 
 void CommandContourColorSet::undo() { subject->color = oldColor; }
 
@@ -403,6 +422,7 @@ CommandContourRotateAndScale::CommandContourRotateAndScale(Contour* s, cplx c,
 void CommandContourRotateAndScale::exec()
 {
     subject->RotateAndScale(V / Vlast, pivot);
+    subject->markedForRedraw = true;
 }
 
 void CommandContourRotateAndScale::undo()

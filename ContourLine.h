@@ -30,7 +30,6 @@ public:
     virtual bool IsPointOnContour(cplx pt, ComplexPlane* canvas,
                                   int pixPrecision = 3);
     virtual cplx Interpolate(double t);
-    virtual void Subdivide(int res);
 
 private:
     template <class Archive>

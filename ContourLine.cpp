@@ -52,16 +52,3 @@ cplx ContourLine::Interpolate(double t)
 {
     return points[0] * t + points[1] * (1 - t);
 }
-
-void ContourLine::Subdivide(int res)
-{
-    if (isPathOnly) return;
-
-    subDiv.clear();
-    subDiv.reserve(res);
-    cplx zStep((points[1].real() - points[0].real()) / res,
-               (points[1].imag() - points[0].imag()) / res);
-    for (int i = 0; i < res; i++)
-        subDiv.push_back(points[0] + (double)i * zStep);
-    markedForRedraw = true;
-}
